@@ -1,0 +1,155 @@
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
+
+// Based on Станислав Сидристый «Шаблон Lifetime: для сложного Disposing»
+// https://www.youtube.com/watch?v=F5oOYKTFpcQ
+
+namespace System
+{
+    /// <summary>
+    /// Manages the lifecycle of resources and ensures that all registered cleanup actions are executed upon disposal.
+    /// </summary>
+    public sealed class LifeTime : ILifeTime
+    {
+        private readonly List<Action> _actions = new();
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LifeTime"/> class and sets up termination on disposal.
+        /// </summary>
+        public LifeTime()
+        {
+            Add(() => IsTerminated = true);
+        }
+
+        #region Properties
+
+        /// <summary>
+        /// Represents the termination status of the LifeTime instance.
+        /// If true, indicates that the instance has been terminated and 
+        /// all associated resources have been released.
+        /// </summary>
+        public bool IsTerminated { get; private set; }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Adds an action to be executed when the LifeTime instance is disposed.
+        /// </summary>
+        /// <param name="action">The action to add. This action will be called upon disposal.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the action is null.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add an action to a terminated LifeTime instance.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Add(Action action)
+        {
+            Debug.Assert(action != null, $"{nameof(action)} is null");
+#if NET6_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(action);
+#else
+            ThrowHelper.WhenNull(action);
+#endif
+            lock (_actions)
+            {
+                CheckTerminated();
+                _actions.Add(action);
+            }
+        }
+
+        /// <summary>
+        /// Adds a pair of actions: one to be executed immediately (subscribe) and another to be executed during disposal (unsubscribe).
+        /// </summary>
+        /// <param name="subscribe">The action to execute immediately.</param>
+        /// <param name="unsubscribe">The action to execute upon disposal.</param>
+        /// <exception cref="ArgumentNullException">Thrown if either subscribe or unsubscribe is null.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add actions to a terminated LifeTime instance.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddBracket(Action subscribe, Action unsubscribe)
+        {
+            Debug.Assert(subscribe != null, $"{nameof(subscribe)} is null");
+            Debug.Assert(unsubscribe != null, $"{nameof(unsubscribe)} is null");
+#if NET6_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(subscribe);
+            ArgumentNullException.ThrowIfNull(unsubscribe);
+#else
+            ThrowHelper.WhenNull(subscribe);
+            ThrowHelper.WhenNull(unsubscribe);
+#endif
+            subscribe();
+            Add(unsubscribe);
+        }
+
+        /// <summary>
+        /// Adds an IDisposable object to be disposed of when the LifeTime instance is disposed.
+        /// </summary>
+        /// <param name="disposable">The disposable object to add.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the disposable object is null.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add a disposable object to a terminated LifeTime instance.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddDisposable(IDisposable disposable)
+        {
+            Debug.Assert(disposable != null, $"{nameof(disposable)} is null");
+#if NET6_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(disposable);
+#else
+            ThrowHelper.WhenNull(disposable);
+#endif
+            Add(disposable.Dispose);
+        }
+
+        /// <summary>
+        /// Adds a reference to an object to keep it alive until the LifeTime instance is disposed.
+        /// </summary>
+        /// <param name="obj">The object to keep alive.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the object is null.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add a reference to a terminated LifeTime instance.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddRef(object obj)
+        {
+            Debug.Assert(obj != null, $"{nameof(obj)} is null");
+#if NET6_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(obj);
+#else
+            ThrowHelper.WhenNull(obj);
+#endif
+            Add(() => GC.KeepAlive(obj));
+        }
+
+        /// <summary>
+        /// Checks whether the LifeTime instance has been terminated and throws an exception if it has.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">Thrown if the LifeTime instance is terminated.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void CheckTerminated()
+        {
+            if (IsTerminated)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
+        }
+
+        /// <summary>
+        /// Executes all added actions in reverse order and marks the instance as terminated.
+        /// Ensures that all resources are released properly.
+        /// </summary>
+        public void Dispose()
+        {
+            if (IsTerminated)
+            {
+                return;
+            }
+            lock (_actions)
+            {
+                for (int i = _actions.Count - 1; i >= 0; i--)
+                {
+                    _actions[i]();
+                }
+                _actions.Clear();
+            }
+            Debug.Assert(IsTerminated, $"{nameof(LifeTime)} is not terminated");
+        }
+
+        #endregion
+    }
+
+}
