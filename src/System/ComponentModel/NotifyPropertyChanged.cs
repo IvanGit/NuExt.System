@@ -85,6 +85,7 @@ namespace System.ComponentModel
         /// </summary>
         /// <returns>True if the current thread is the same as the creation thread; otherwise, false.</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool CheckAccess()
         {
             return Thread == Thread.CurrentThread;
@@ -98,6 +99,26 @@ namespace System.ComponentModel
         /// <param name="value">The second value to compare.</param>
         /// <returns>True if the values are equal; otherwise, false.</returns>
         private static bool CompareValues<T>(T storage, T value) => EqualityComparer<T>.Default.Equals(storage, value);
+
+        /// <summary>
+        /// Gets the current subscribers of the PropertyChanged event.
+        /// </summary>
+        /// <returns>
+        /// An array of <see cref="PropertyChangedEventHandler"/> delegates, or <see langword="null"/> if there are no subscribers.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected PropertyChangedEventHandler[]? GetPropertyChangedEventHandlers()
+        {
+            // eventDelegate will be null if no listeners are attached to the event
+            var eventDelegate = PropertyChanged;
+            if (eventDelegate is null)
+            {
+                return null;
+            }
+
+            var subscribers = Array.ConvertAll(eventDelegate.GetInvocationList(), del => (PropertyChangedEventHandler)del);
+            return subscribers;
+        }
 
         /// <summary>
         /// Raises the <see cref="PropertyChanged"/> event for a specified property.

@@ -57,7 +57,7 @@
                 }
                 catch (Exception ex)
                 {
-                    exceptions ??= new List<Exception>(2);
+                    exceptions ??= new List<Exception>();
                     exceptions.Add(ex);
                 }
             }
@@ -100,7 +100,7 @@
                 }
                 catch (Exception ex)
                 {
-                    exceptions ??= new List<Exception>(2);
+                    exceptions ??= new List<Exception>();
                     exceptions.Add(ex);
                 }
             }

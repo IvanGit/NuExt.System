@@ -1,4 +1,4 @@
-﻿namespace System
+﻿namespace System.Threading
 {
     /// <summary>
     /// Defines a contract for a dispatcher that manages thread access.

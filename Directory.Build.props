@@ -29,4 +29,8 @@
     <PublicSign>true</PublicSign>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <UseNuExtPackages>true</UseNuExtPackages>
+  </PropertyGroup>
+
 </Project>

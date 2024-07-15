@@ -5,15 +5,28 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageTags>nuext;extensions;async;asynclock;asyncdisposable</PackageTags>
-    <Description>Provides various fundamental extensions and classes for .NET, simplifying tasks related to asynchronous programming, resource lifecycle management, thread synchronization, and more.</Description>
-    <Version>0.1.0</Version>
+    <PackageTags>nuext;extensions;async;asynceventhandler;asynclock;reentrantasynclock;disposable;asyncdisposable;lifetime;asynclifetime;valuestringbuilder</PackageTags>
+    <Description>Provides various fundamental extensions and classes for .NET, simplifying tasks related to asynchronous programming, resource lifecycle management, thread synchronization, and more.
+
+Commonly Used Types:
+System.AggregateDisposable
+System.AsyncDisposable
+Ssytem.AsyncEventHandler
+Ssytem.AsyncLifeTime
+System.Disposable
+Ssytem.LifeTime
+System.ComponentModel.NotifyPropertyChanged
+System.Threading.AsyncLock
+System.Threading.ReentrantAsyncLock
+System.Text.ValueStringBuilder</Description>
+    <Version>0.1.1</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>logo128.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/IvanGit/NuExt.System</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>

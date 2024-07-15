@@ -9,10 +9,12 @@ namespace System
     /// </summary>
     /// <remarks>
     /// This class implements the <see cref="IAsyncDisposable"/> interface and provides a mechanism 
-    /// for asynchronously releasing managed resources. It also includes support for property change notifications.
+    /// for asynchronously releasing managed resources.
+    /// It also includes support for property change notifications by extending the <see cref="NotifyPropertyChanged"/> class.
     /// Note that this class has a finalizer, but it is generally undesirable for the finalizer to be called. 
     /// Ensure that <see cref="DisposeAsync"/> is properly invoked to suppress finalization.
     /// </remarks>
+    [Serializable]
     public abstract class AsyncDisposable : NotifyPropertyChanged, IAsyncDisposable
     {
         private bool _isDisposed;
@@ -80,10 +82,14 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void CheckDisposed()
         {
+#if NET8_0_OR_GREATER
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
+#else
             if (_isDisposed)
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
+#endif
         }
 
         /// <summary>
@@ -91,8 +97,12 @@ namespace System
         /// </summary>
         public async ValueTask DisposeAsync()
         {
-            Debug.Assert(!IsDisposed, $"{GetType().Name} ({GetHashCode()}) is already disposed");
-            Debug.Assert(!IsDisposing, $"{GetType().Name} ({GetHashCode()}) is already disposing");
+            Debug.Assert(!IsDisposed, $"{GetType().FullName} ({GetHashCode()}) is already disposed");
+            Debug.Assert(!IsDisposing, $"{GetType().FullName} ({GetHashCode()}) is already disposing");
+            if (ShouldThrowAlreadyDisposedException())
+            {
+                CheckDisposed();
+            }
             if (IsDisposed || IsDisposing)
             {
                 return;
@@ -103,11 +113,12 @@ namespace System
                 await Disposing.InvokeAsync(this, EventArgs.Empty);
                 await OnDisposeAsync().ConfigureAwait(false);
                 IsDisposed = true;
-                Debug.Assert(HasPropertyChangedSubscribers == false, $"{GetType().Name} ({GetHashCode()}): {nameof(PropertyChanged)} is not null");
+                Debug.Assert(Disposing is null, $"{GetType().FullName} ({GetHashCode()}): {nameof(Disposing)} is not null");
+                Debug.Assert(HasPropertyChangedSubscribers == false, $"{GetType().FullName} ({GetHashCode()}): {nameof(PropertyChanged)} is not null");
             }
             catch (Exception ex)
             {
-                Debug.Assert(false, $"{GetType().Name} ({GetHashCode()}):\r\n{ex.Message}");
+                Debug.Assert(false, $"{GetType().FullName} ({GetHashCode()}):{Environment.NewLine}{ex.Message}");
                 throw;
             }
             finally
@@ -124,6 +135,22 @@ namespace System
         protected virtual ValueTask OnDisposeAsync()
         {
             return default;
+        }
+
+        /// <summary>
+        /// Determines whether an exception should be thrown when Dispose is called 
+        /// on an already disposed object. By default, returns false.
+        /// </summary>
+        /// <returns>
+        /// True if an exception should be thrown on redundant Dispose calls; otherwise, false.
+        /// </returns>
+        /// <remarks>
+        /// Override this method in derived classes to customize disposal behavior.
+        /// </remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual bool ShouldThrowAlreadyDisposedException()
+        {
+            return false;
         }
 
         /// <summary>
@@ -145,7 +172,7 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowFinalizerException()
         {
-            string message = $"{GetType().Name} ({GetHashCode()}) was finalized without proper disposal.";
+            string message = $"{GetType().FullName} ({GetHashCode()}) was finalized without proper disposal.";
             Debug.WriteLine(message);
             Debug.Fail(message);
             throw new InvalidOperationException(message);

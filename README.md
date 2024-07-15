@@ -10,6 +10,7 @@ Provides various fundamental extensions and classes for .NET, simplifying tasks 
 - Includes high-performance string manipulation utilities
 
 ### Commonly Used Types:
+- **System.AggregateDisposable:** Simplifies the disposal of multiple disposables
 - **System.AsyncDisposable:** Simplifies async resource disposal
 - **System.AsyncEventHandler:** Represents an async event handler
 - **System.AsyncLifeTime:** Manages async operations lifecycle

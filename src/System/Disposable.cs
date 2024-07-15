@@ -6,10 +6,15 @@ using System.Runtime.CompilerServices;
 namespace System
 {
     /// <summary>
-    /// An abstract base class that provides mechanisms for managing the disposal of both managed and unmanaged resources. 
-    /// It ensures that resources are released appropriately by implementing the <see cref="IDisposable"/> interface.
-    /// The class also extends <see cref="NotifyPropertyChanged"/> to support property change notifications.
+    /// Represents a base class for synchronous disposable objects that raises property change notifications.
     /// </summary>
+    /// <remarks>
+    /// This class implements the <see cref="IDisposable"/> interface and provides a mechanism 
+    /// for synchronously releasing both managed and unmanaged resources. 
+    /// It also includes support for property change notifications by extending the <see cref="NotifyPropertyChanged"/> class.
+    /// Note that this class has a finalizer, but it is generally undesirable for the finalizer to be called. 
+    /// Ensure that <see cref="Dispose()"/> is properly invoked to suppress finalization.
+    /// </remarks>
     [Serializable]
     public abstract class Disposable : NotifyPropertyChanged, IDisposable
     {
@@ -35,6 +40,8 @@ namespace System
         ~Disposable()
         {
             Dispose(false);
+            if (!ShouldThrowFinalizerException()) return;
+            ThrowFinalizerException();
         }
 
         #region Properties
@@ -78,10 +85,14 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void CheckDisposed()
         {
+#if NET8_0_OR_GREATER
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
+#else
             if (_isDisposed)
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
+#endif
         }
 
         /// <summary>
@@ -99,9 +110,12 @@ namespace System
         /// <param name="disposing">True to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
         private void Dispose(bool disposing)
         {
-            Debug.Assert(!IsDisposed, $"{GetType().Name} ({GetHashCode()}) is already disposed");
-            Debug.Assert(!IsDisposing, $"{GetType().Name} ({GetHashCode()}) is already disposing");
-            Debug.Assert(disposing, $"{GetType().Name} ({GetHashCode()}) finalized");
+            Debug.Assert(!IsDisposed, $"{GetType().FullName} ({GetHashCode()}) is already disposed");
+            Debug.Assert(!IsDisposing, $"{GetType().FullName} ({GetHashCode()}) is already disposing");
+            if (ShouldThrowAlreadyDisposedException())
+            {
+                CheckDisposed();
+            }
             if (IsDisposed || IsDisposing)
             {
                 return;
@@ -118,12 +132,12 @@ namespace System
                     Disposed?.Invoke(this, EventArgs.Empty);
                     Debug.Assert(Disposed == null, $"{nameof(Disposed)} is not null");
 #endif
-                    Debug.Assert(Disposing is null, $"{GetType().Name} ({GetHashCode()}): {nameof(Disposing)} is not null");
-                    Debug.Assert(HasPropertyChangedSubscribers == false, $"{GetType().Name} ({GetHashCode()}): {nameof(PropertyChanged)} is not null");
+                    Debug.Assert(Disposing is null, $"{GetType().FullName} ({GetHashCode()}): {nameof(Disposing)} is not null");
+                    Debug.Assert(HasPropertyChangedSubscribers == false, $"{GetType().FullName} ({GetHashCode()}): {nameof(PropertyChanged)} is not null");
                 }
                 catch (Exception ex)
                 {
-                    Debug.Assert(false, $"{GetType().Name} ({GetHashCode()}):{Environment.NewLine}{ex.Message}");
+                    Debug.Assert(false, $"{GetType().FullName} ({GetHashCode()}):{Environment.NewLine}{ex.Message}");
                     throw;
                 }
                 finally
@@ -165,6 +179,47 @@ namespace System
         /// </summary>
         protected virtual void OnDisposeUnmanaged()
         {
+        }
+
+        /// <summary>
+        /// Determines whether an exception should be thrown when Dispose is called 
+        /// on an already disposed object. By default, returns false.
+        /// </summary>
+        /// <returns>
+        /// True if an exception should be thrown on redundant Dispose calls; otherwise, false.
+        /// </returns>
+        /// <remarks>
+        /// Override this method in derived classes to customize disposal behavior.
+        /// </remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual bool ShouldThrowAlreadyDisposedException()
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Overridable method that determines whether an exception should be thrown during finalization.
+        /// By default, it returns true. Subclasses can override this method to change the behavior.
+        /// </summary>
+        /// <returns>Returns true if an exception should be thrown; otherwise, false.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual bool ShouldThrowFinalizerException()
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Method invoked by the finalizer to generate an exception.
+        /// It outputs debug messages and throws an exception with information about the type and hash code of the object.
+        /// This method can be used for debugging and diagnosing issues related to improper object usage.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ThrowFinalizerException()
+        {
+            string message = $"{GetType().FullName} ({GetHashCode()}) was finalized without proper disposal.";
+            Debug.WriteLine(message);
+            Debug.Fail(message);
+            throw new InvalidOperationException(message);
         }
 
         #endregion
