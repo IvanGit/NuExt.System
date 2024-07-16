@@ -9,7 +9,7 @@
         // in them and B) even if we do, IEnumerable accepting overload
         // below should handle them. Allocation-wise; it's a ToList there
         // vs GetEnumerator here.
-        public static async ValueTask<T[]> WhenAll<T>(this IReadOnlyList<ValueTask<T>> tasks)
+        public static async ValueTask<T[]> WhenAll<T>(this IReadOnlyList<ValueTask<T>> tasks, bool continueOnCapturedContext = false)
         {
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(tasks);
@@ -28,7 +28,7 @@
             {
                 try
                 {
-                    results[i] = await tasks[i].ConfigureAwait(false);
+                    results[i] = await tasks[i].ConfigureAwait(continueOnCapturedContext);
                 }
                 catch (Exception ex)
                 {
@@ -45,22 +45,22 @@
         // ToList call below ensures that all tasks are initialized, so
         // calling this with an iterator wouldn't cause the tasks to run
         // sequentially.
-        public static ValueTask<T[]> WhenAll<T>(this IEnumerable<ValueTask<T>> tasks)
+        public static ValueTask<T[]> WhenAll<T>(this IEnumerable<ValueTask<T>> tasks, bool continueOnCapturedContext = false)
         {
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(tasks);
 #else
             ThrowHelper.WhenNull(tasks);
 #endif
-            return WhenAll(tasks.ToList());
+            return WhenAll(tasks.ToList(), continueOnCapturedContext);
         }
 
         // Arrays already implement IReadOnlyList<T>, but this overload
         // is still useful because the `params` keyword allows callers 
         // to pass individual tasks like they are different arguments.
-        public static ValueTask<T[]> WhenAll<T>(params ValueTask<T>[] tasks)
+        public static ValueTask<T[]> WhenAll<T>(bool continueOnCapturedContext = false, params ValueTask<T>[] tasks)
         {
-            return WhenAll(tasks as IReadOnlyList<ValueTask<T>>);
+            return WhenAll(tasks, continueOnCapturedContext);
         }
     }
 }

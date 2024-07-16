@@ -33,11 +33,11 @@
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">An <see cref="EventArgs"/> object that contains the event data.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
-        /// <param name="continueOnCapturedContext">Whether to marshal the continuation back to the original context captured.</param>
+        /// <param name="continueOnCapturedContext">Whether to marshal the continuation back to the original context captured. The default value is false.</param>
         /// <returns>A task that represents the invocation of the event handler.</returns>
         /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
         /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of the event handler.</exception>
-        public static async ValueTask InvokeAsync(this AsyncEventHandler? eventHandler, object? sender, EventArgs e, CancellationToken cancellationToken = default, bool continueOnCapturedContext = default)
+        public static async ValueTask InvokeAsync(this AsyncEventHandler? eventHandler, object? sender, EventArgs e, CancellationToken cancellationToken = default, bool continueOnCapturedContext = false)
         {
             if (eventHandler is null) return;
 
@@ -76,11 +76,11 @@
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">An object of type <typeparamref name="TEventArgs"/> that contains the event data.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
-        /// <param name="continueOnCapturedContext">Whether to marshal the continuation back to the original context captured.</param>
+        /// <param name="continueOnCapturedContext">Whether to marshal the continuation back to the original context captured. The default value is false.</param>
         /// <returns>A task that represents the invocation of the event handler.</returns>
         /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
         /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of the event handler.</exception>
-        public static async ValueTask InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs>? eventHandler, object? sender, TEventArgs e, CancellationToken cancellationToken = default, bool continueOnCapturedContext = default)
+        public static async ValueTask InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs>? eventHandler, object? sender, TEventArgs e, CancellationToken cancellationToken = default, bool continueOnCapturedContext = false)
         {
             if (eventHandler is null) return;
 

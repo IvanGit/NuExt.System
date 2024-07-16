@@ -193,10 +193,14 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CheckTerminated()
         {
+#if NET8_0_OR_GREATER
+            ObjectDisposedException.ThrowIf(IsTerminated, this);
+#else
             if (IsTerminated)
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
+#endif
         }
 
         /// <summary>

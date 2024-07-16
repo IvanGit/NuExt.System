@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuExt.System.Tests
+﻿namespace NuExt.System.Tests
 {
-    public class AsyncLockTest
+    public class AsyncLockTests
     {
-        private AsyncLock _asyncLock = new();
+        private readonly AsyncLock _asyncLock = new();
 
         [SetUp]
         public void Setup()

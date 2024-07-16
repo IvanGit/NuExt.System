@@ -12,8 +12,15 @@ namespace System
     /// This class implements the <see cref="IDisposable"/> interface and provides a mechanism 
     /// for synchronously releasing both managed and unmanaged resources. 
     /// It also includes support for property change notifications by extending the <see cref="NotifyPropertyChanged"/> class.
+    /// 
     /// Note that this class has a finalizer, but it is generally undesirable for the finalizer to be called. 
     /// Ensure that <see cref="Dispose()"/> is properly invoked to suppress finalization.
+    ///
+    /// <para>
+    /// This class is designed to have its <see cref="Dispose()"/> method called only once. 
+    /// Calling <see cref="Dispose()"/> multiple times or attempting to use the object after it has been disposed 
+    /// may result in undefined behavior or exceptions.
+    /// </para>
     /// </remarks>
     [Serializable]
     public abstract class Disposable : NotifyPropertyChanged, IDisposable
@@ -40,7 +47,11 @@ namespace System
         ~Disposable()
         {
             Dispose(false);
-            if (!ShouldThrowFinalizerException()) return;
+            if (!ShouldThrowFinalizerException())
+            {
+                Debug.Fail($"{GetType().FullName} ({GetHashCode()}) was finalized without proper disposal.");
+                return;
+            }
             ThrowFinalizerException();
         }
 
@@ -126,7 +137,9 @@ namespace System
                 try
                 {
                     Disposing?.Invoke(this, EventArgs.Empty);
+                    //https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose
                     OnDispose();
+                    OnDisposeUnmanaged();
                     IsDisposed = true;
 #if USE_DISPOSED_EVENT
                     Disposed?.Invoke(this, EventArgs.Empty);
@@ -166,16 +179,16 @@ namespace System
         }
 
         /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting managed resources.
-        /// This method is called when <see cref="Dispose(bool)"/> is invoked with a value of true.
+        /// Override this method to release managed resources.
+        /// This method is called when <see cref="Dispose()"/> is invoked.
         /// </summary>
         protected virtual void OnDispose()
         {
         }
 
         /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// This method is called when <see cref="Dispose(bool)"/> is invoked with a value of false.
+        /// Override this method to release unmanaged resources.
+        /// This method is called when <see cref="Dispose()"/> is invoked or when the finalizer of <see cref="Disposable"/> is executed.
         /// </summary>
         protected virtual void OnDisposeUnmanaged()
         {

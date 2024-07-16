@@ -147,7 +147,7 @@ namespace System.Collections.Generic
         /// <typeparam name="T">The type of elements in the collection, which must implement IDisposable.</typeparam>
         /// <param name="self">The collection whose elements will be disposed and cleared. This value cannot be null.</param>
         /// <exception cref="ArgumentNullException">Thrown when the self parameter is null.</exception>
-        public static void DisposeAndClear<T>(this ICollection<T> self) where T : IDisposable
+        public static void DisposeAndClear<T>(this ICollection<T> self) where T : IDisposable?
         {
             Debug.Assert(self != null);
 #if NET6_0_OR_GREATER
@@ -155,22 +155,25 @@ namespace System.Collections.Generic
 #else
             ThrowHelper.WhenNull(self);
 #endif
-            self.ForEach(item => item.Dispose());
+            self.ForEach(item => item?.Dispose());
             self.Clear();
         }
 
         /// <summary>
         /// Asynchronously disposes all elements in the collection in the order they were added and then clears the collection.
+        /// Collects and throws all exceptions that occur during disposal as an AggregateException.
         /// </summary>
         /// <typeparam name="T">The type of elements in the collection, which must implement IAsyncDisposable.</typeparam>
         /// <param name="self">The collection whose elements will be disposed and cleared. This value cannot be null.</param>
         /// <param name="continueOnCapturedContext">
         /// Whether to marshal the continuation back to the original context captured.
         /// If true, the continuation is run on the captured context; otherwise, it may run on a different context.
+        /// The default value is false.
         /// </param>
         /// <returns>A ValueTask representing the asynchronous disposal and clearing operation.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the self parameter is null.</exception>
-        public static async ValueTask DisposeAndClearAsync<T>(this ICollection<T> self, bool continueOnCapturedContext = default) where T : IAsyncDisposable
+        /// <exception cref="AggregateException">Thrown when one or more exceptions occur during the disposal of elements.</exception>
+        public static async ValueTask DisposeAndClearAsync<T>(this ICollection<T> self, bool continueOnCapturedContext = false) where T : IAsyncDisposable?
         {
             Debug.Assert(self != null);
 #if NET6_0_OR_GREATER
@@ -178,12 +181,23 @@ namespace System.Collections.Generic
 #else
             ThrowHelper.WhenNull(self);
 #endif
+            List<Exception>? exceptions = null;
             foreach (var item in self)
             {
-                if (item != null)
+                if (item is null) continue;
+                try
                 {
-                    await item.DisposeAsync().ConfigureAwait(continueOnCapturedContext: continueOnCapturedContext); ;
+                    await item.DisposeAsync().ConfigureAwait(continueOnCapturedContext: continueOnCapturedContext);
                 }
+                catch (Exception ex)
+                {
+                    exceptions ??= new List<Exception>();
+                    exceptions.Add(ex);
+                }
+            }
+            if (exceptions is not null)
+            {
+                throw new AggregateException(exceptions);
             }
             self.Clear();
         }

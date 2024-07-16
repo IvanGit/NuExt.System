@@ -9,10 +9,17 @@ namespace System
     /// </summary>
     /// <remarks>
     /// This class implements the <see cref="IAsyncDisposable"/> interface and provides a mechanism 
-    /// for asynchronously releasing managed resources.
+    /// for asynchronously releasing both managed and unmanaged resources.
     /// It also includes support for property change notifications by extending the <see cref="NotifyPropertyChanged"/> class.
+    ///
     /// Note that this class has a finalizer, but it is generally undesirable for the finalizer to be called. 
     /// Ensure that <see cref="DisposeAsync"/> is properly invoked to suppress finalization.
+    ///
+    /// <para>
+    /// This class is designed to have its <see cref="DisposeAsync"/> method called only once. 
+    /// Calling <see cref="DisposeAsync"/> multiple times or attempting to use the object after it has been disposed 
+    /// may result in undefined behavior or exceptions.
+    /// </para>
     /// </remarks>
     [Serializable]
     public abstract class AsyncDisposable : NotifyPropertyChanged, IAsyncDisposable
@@ -45,7 +52,12 @@ namespace System
         /// </summary>
         ~AsyncDisposable()
         {
-            if (!ShouldThrowFinalizerException()) return;
+            OnDisposeUnmanaged();
+            if (!ShouldThrowFinalizerException())
+            {
+                Debug.Fail($"{GetType().FullName} ({GetHashCode()}) was finalized without proper disposal.");
+                return;
+            }
             ThrowFinalizerException();
         }
 
@@ -111,7 +123,9 @@ namespace System
             try
             {
                 await Disposing.InvokeAsync(this, EventArgs.Empty);
-                await OnDisposeAsync().ConfigureAwait(false);
+                //https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-disposeasync
+                await OnDisposeAsync();
+                OnDisposeUnmanaged();
                 IsDisposed = true;
                 Debug.Assert(Disposing is null, $"{GetType().FullName} ({GetHashCode()}): {nameof(Disposing)} is not null");
                 Debug.Assert(HasPropertyChangedSubscribers == false, $"{GetType().FullName} ({GetHashCode()}): {nameof(PropertyChanged)} is not null");
@@ -129,12 +143,21 @@ namespace System
         }
 
         /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting managed resources asynchronously.
+        /// Override this method to release managed resources asynchronously.
+        /// This method is called when <see cref="DisposeAsync"/> is invoked.
         /// </summary>
         /// <returns>A task that represents the asynchronous dispose operation.</returns>
         protected virtual ValueTask OnDisposeAsync()
         {
             return default;
+        }
+
+        /// <summary>
+        /// Override this method to release unmanaged resources.
+        /// This method is called when <see cref="DisposeAsync"/> is invoked or when the finalizer of <see cref="AsyncDisposable"/> is executed.
+        /// </summary>
+        protected virtual void OnDisposeUnmanaged()
+        {
         }
 
         /// <summary>

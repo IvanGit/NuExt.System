@@ -209,7 +209,7 @@ namespace System.Threading
 
             Interlocked.Increment(ref _currentCount);
 
-            using SemaphoreSlim localSyncRoot = new SemaphoreSlim(1, 1);
+            using SemaphoreSlim localSyncRoot = new(1, 1);
             SyncRoot = localSyncRoot;//Sets synchronization root for a nested lock
 
             try
@@ -313,7 +313,7 @@ namespace System.Threading
 
             Interlocked.Increment(ref _currentCount);
 
-            using SemaphoreSlim localSyncRoot = new SemaphoreSlim(1, 1);
+            using SemaphoreSlim localSyncRoot = new(1, 1);
             SyncRoot = localSyncRoot;//Sets synchronization root for a nested lock
 
             try
@@ -414,7 +414,7 @@ namespace System.Threading
 
             Interlocked.Increment(ref _currentCount);
 
-            using SemaphoreSlim localSyncRoot = new SemaphoreSlim(1, 1);
+            using SemaphoreSlim localSyncRoot = new(1, 1);
             SyncRoot = localSyncRoot;//Sets synchronization root for a nested lock
 
             try
@@ -518,7 +518,7 @@ namespace System.Threading
 
             Interlocked.Increment(ref _currentCount);
 
-            using SemaphoreSlim localSyncRoot = new SemaphoreSlim(1, 1);
+            using SemaphoreSlim localSyncRoot = new(1, 1);
             SyncRoot = localSyncRoot;//Sets synchronization root for a nested lock
 
             try
