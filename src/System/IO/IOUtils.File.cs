@@ -35,9 +35,9 @@ namespace System.IO
         /// Clears a file name by replacing invalid characters and trimming its length.
         /// </summary>
         /// <param name="fileName">The original file name.</param>
-        /// <param name="limitSize">The maximum allowed length of the file name including its extension.</param>
+        /// <param name="limitSize">The maximum allowed length of the file name including its extension (default is 0, meaning no limit).</param>
         /// <returns>The cleared and possibly trimmed file name.</returns>
-        public static string? ClearFileName(string? fileName, int limitSize)
+        public static string? ClearFileName(string? fileName, int limitSize = 0)
         {
             ClearFileName(ref fileName, limitSize: limitSize);
             return fileName;

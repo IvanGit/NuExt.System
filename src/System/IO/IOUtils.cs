@@ -9,6 +9,10 @@ namespace System.IO
     /// <remarks>
     /// This class contains static methods that can be used without instantiating the class.
     /// It offers utility functions that are commonly needed when working with file systems.
+    ///
+    /// Notice: includes code derived from the Roslyn .NET compiler project, licensed under the MIT License.
+    /// See LICENSE file in the project root for full license information.
+    /// Original source code can be found at https://github.com/dotnet/roslyn.
     /// </remarks>
     public static partial class IOUtils
     {
