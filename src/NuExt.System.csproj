@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageTags>nuext;extensions;async;asynceventhandler;asynclock;reentrantasynclock;disposable;asyncdisposable;lifetime;asynclifetime;valuestringbuilder</PackageTags>
+    <PackageTags>nuext;extensions;async;asynceventhandler;asynclock;asyncwaithandle;reentrantasynclock;disposable;asyncdisposable;lifetime;asynclifetime;valuestringbuilder</PackageTags>
     <Description>Provides various fundamental extensions and classes for .NET, simplifying tasks related to asynchronous programming, resource lifecycle management, thread synchronization, and more.
 
 Commonly Used Types:
@@ -17,9 +17,10 @@ System.Disposable
 Ssytem.LifeTime
 System.ComponentModel.NotifyPropertyChanged
 System.Threading.AsyncLock
+System.Threading.AsyncWaitHandle
 System.Threading.ReentrantAsyncLock
 System.Text.ValueStringBuilder</Description>
-    <Version>0.1.2</Version>
+    <Version>0.1.3</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>

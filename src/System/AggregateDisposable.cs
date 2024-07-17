@@ -10,7 +10,7 @@
         /// <summary>
         /// The collection of disposables to be managed and disposed together.
         /// </summary>
-        private readonly IEnumerable<IDisposable> _disposables;
+        private readonly IEnumerable<IDisposable?> _disposables;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregateDisposable"/> class with the specified disposables and synchronization context.
@@ -18,7 +18,7 @@
         /// <param name="disposables">A collection of disposables to aggregate.</param>
         /// <param name="synchronizationContext">An optional <see cref="SynchronizationContext"/> to use for property change notifications.</param>
         /// <exception cref="ArgumentNullException">Thrown when disposables is null.</exception>
-        public AggregateDisposable(IEnumerable<IDisposable> disposables, SynchronizationContext? synchronizationContext) : base(synchronizationContext)
+        public AggregateDisposable(IEnumerable<IDisposable?> disposables, SynchronizationContext? synchronizationContext) : base(synchronizationContext)
         {
             _disposables = disposables ?? throw new ArgumentNullException(nameof(disposables));
         }

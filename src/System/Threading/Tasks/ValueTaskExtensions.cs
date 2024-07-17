@@ -1,15 +1,72 @@
 ﻿namespace System.Threading.Tasks
 {
-    //https://stackoverflow.com/questions/45689327/task-whenall-for-valuetask
+    //Based on https://stackoverflow.com/questions/45689327/task-whenall-for-valuetask
+    /// <summary>
+    /// A set of extension methods for working with ValueTask objects.
+    /// </summary>
     public static class ValueTaskExtensions
     {
-        // There are some collections (e.g. hash-sets, queues/stacks,
-        // linked lists, etc) that only implement I*Collection interfaces
-        // and not I*List ones, but A) we're not likely to have our tasks
-        // in them and B) even if we do, IEnumerable accepting overload
-        // below should handle them. Allocation-wise; it's a ToList there
-        // vs GetEnumerator here.
-        public static async ValueTask<T[]> WhenAll<T>(this IReadOnlyList<ValueTask<T>> tasks, bool continueOnCapturedContext = false)
+        /// <summary>
+        /// Executes a variable number of ValueTasks concurrently and returns their results as an array.
+        /// </summary>
+        /// <typeparam name="T">The type of the result produced by the ValueTasks.</typeparam>
+        /// <param name="continueOnCapturedContext">
+        /// Whether to marshal the continuation back to the original context captured when tasks complete.
+        /// </param>
+        /// <param name="tasks">A variable number of ValueTasks to be executed.</param>
+        /// <returns>A task that represents the completion of all provided tasks. If any of the tasks fail, an AggregateException is thrown.</returns>
+        public static ValueTask<T[]> WhenAll<T>(bool continueOnCapturedContext, params ValueTask<T>[] tasks)
+        {
+            return WhenAll(tasks, continueOnCapturedContext);
+        }
+
+        /// <summary>
+        /// Executes a collection of ValueTasks concurrently and returns their results as an array.
+        /// </summary>
+        /// <typeparam name="T">The type of the result produced by the ValueTasks.</typeparam>
+        /// <param name="tasks">An enumerable collection of ValueTasks to be executed.</param>
+        /// <param name="continueOnCapturedContext">
+        /// Whether to marshal the continuation back to the original context captured when tasks complete.
+        /// </param>
+        /// <returns>A task that represents the completion of all provided tasks. If any of the tasks fail, an AggregateException is thrown.</returns>
+        public static ValueTask<T[]> WhenAll<T>(this IEnumerable<ValueTask<T>> tasks, bool continueOnCapturedContext)
+        {
+#if NET6_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(tasks);
+#else
+            ThrowHelper.WhenNull(tasks);
+#endif
+            return WhenAll(tasks.ToList(), continueOnCapturedContext);
+        }
+
+        /// <summary>
+        /// Executes a collection of ValueTasks concurrently and returns their results as an array.
+        /// </summary>
+        /// <typeparam name="T">The type of the result produced by the ValueTasks.</typeparam>
+        /// <param name="tasks">An enumerable collection of ValueTasks to be executed.</param>
+        /// <returns>
+        /// A task that represents the completion of all provided tasks. If any of the tasks fail,
+        /// an AggregateException is thrown containing all exceptions thrown by the tasks.
+        /// </returns>
+        /// <remarks>
+        /// This method does not marshal the continuation back to the original context captured when tasks complete.
+        /// To configure this behavior, use the overload with the 'continueOnCapturedContext' parameter.
+        /// </remarks>
+        public static ValueTask<T[]> WhenAll<T>(this IEnumerable<ValueTask<T>> tasks)
+        {
+            return WhenAll(tasks, false);
+        }
+
+        /// <summary>
+        /// Executes a collection of ValueTasks concurrently and returns their results as an array.
+        /// </summary>
+        /// <typeparam name="T">The type of the result produced by the ValueTasks.</typeparam>
+        /// <param name="tasks">A read-only list of ValueTasks to be executed.</param>
+        /// <param name="continueOnCapturedContext">
+        /// Whether to marshal the continuation back to the original context captured when tasks complete.
+        /// </param>
+        /// <returns>A task that represents the completion of all provided tasks. If any of the tasks fail, an AggregateException is thrown.</returns>
+        public static async ValueTask<T[]> WhenAll<T>(this IReadOnlyList<ValueTask<T>> tasks, bool continueOnCapturedContext)
         {
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(tasks);
@@ -42,25 +99,40 @@
                 : throw new AggregateException(exceptions);
         }
 
-        // ToList call below ensures that all tasks are initialized, so
-        // calling this with an iterator wouldn't cause the tasks to run
-        // sequentially.
-        public static ValueTask<T[]> WhenAll<T>(this IEnumerable<ValueTask<T>> tasks, bool continueOnCapturedContext = false)
+        /// <summary>
+        /// Executes a collection of ValueTasks concurrently and returns their results as an array.
+        /// </summary>
+        /// <typeparam name="T">The type of the result produced by the ValueTasks.</typeparam>
+        /// <param name="tasks">A read-only list of ValueTasks to be executed.</param>
+        /// <returns>
+        /// A task that represents the completion of all provided tasks. If any of the tasks fail,
+        /// an AggregateException is thrown containing all exceptions thrown by the tasks.
+        /// </returns>
+        /// <remarks>
+        /// This method does not marshal the continuation back to the original context captured when tasks complete.
+        /// To configure this behavior, use the overload with the 'continueOnCapturedContext' parameter.
+        /// </remarks>
+        public static ValueTask<T[]> WhenAll<T>(this IReadOnlyList<ValueTask<T>> tasks)
         {
-#if NET6_0_OR_GREATER
-            ArgumentNullException.ThrowIfNull(tasks);
-#else
-            ThrowHelper.WhenNull(tasks);
-#endif
-            return WhenAll(tasks.ToList(), continueOnCapturedContext);
+            return WhenAll(tasks, false);
         }
 
-        // Arrays already implement IReadOnlyList<T>, but this overload
-        // is still useful because the `params` keyword allows callers 
-        // to pass individual tasks like they are different arguments.
-        public static ValueTask<T[]> WhenAll<T>(bool continueOnCapturedContext = false, params ValueTask<T>[] tasks)
+        /// <summary>
+        /// Executes a variable number of ValueTasks concurrently and returns their results as an array.
+        /// </summary>
+        /// <typeparam name="T">The type of the result produced by the ValueTasks.</typeparam>
+        /// <param name="tasks">A variable number of ValueTasks to be executed.</param>
+        /// <returns>
+        /// A task that represents the completion of all provided tasks. If any of the tasks fail,
+        /// an AggregateException is thrown containing all exceptions thrown by the tasks.
+        /// </returns>
+        /// <remarks>
+        /// This method does not marshal the continuation back to the original context captured when tasks complete.
+        /// To configure this behavior, use the overload with the 'continueOnCapturedContext' parameter.
+        /// </remarks>
+        public static ValueTask<T[]> WhenAll<T>(params ValueTask<T>[] tasks)
         {
-            return WhenAll(tasks, continueOnCapturedContext);
+            return WhenAll(tasks, false);
         }
     }
 }

@@ -18,6 +18,7 @@ Provides various fundamental extensions and classes for .NET, simplifying tasks 
 - **System.LifeTime**: Manages the lifecycle of objects and resources.
 - **System.ComponentModel.NotifyPropertyChanged**: Implementation of INotifyPropertyChanged.
 - **System.Threading.AsyncLock**: Async lock for resource synchronization.
+- **System.Threading.AsyncWaitHandle**: Async wait handle signaling with timeout and cancellation.
 - **System.Threading.ReentrantAsyncLock**: Reentrant async lock.
 - **System.Text.ValueStringBuilder**: High-performance string builder (originally internal in .NET runtime, made public).
 
