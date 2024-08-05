@@ -9,35 +9,35 @@ namespace System
     /// <summary>
     /// Manages the asynchronous lifecycle of resources, ensuring that all registered cleanup actions are executed upon disposal.
     /// </summary>
-    public sealed class AsyncLifeTime : IAsyncLifeTime
+    public sealed class AsyncLifetime : IAsyncLifetime
     {
         private readonly List<Func<ValueTask>> _actions = new();
         private readonly SemaphoreSlim _syncLock = new(1, 1);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AsyncLifeTime"/> class with the default setting 
+        /// Initializes a new instance of the <see cref="AsyncLifetime"/> class with the default setting 
         /// for ContinueOnCapturedContext, which is false.
         /// </summary>
         /// <remarks>
-        /// This constructor initializes the <see cref="AsyncLifeTime"/> instance with 
+        /// This constructor initializes the <see cref="AsyncLifetime"/> instance with 
         /// <c>ContinueOnCapturedContext</c> set to <c>false</c>. By default, the current execution context 
         /// will not be captured to continue asynchronous operations in the <see cref="DisposeAsync"/> method.
         /// </remarks>
-        public AsyncLifeTime() : this(false)
+        public AsyncLifetime() : this(false)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AsyncLifeTime"/> class with the specified settings.
+        /// Initializes a new instance of the <see cref="AsyncLifetime"/> class with the specified settings.
         /// </summary>
         /// <param name="continueOnCapturedContext">Determines whether the current execution context should be captured 
         /// and used to continue asynchronous operations in the <see cref="DisposeAsync"/> method.</param>
         /// <remarks>
-        /// When an instance of <see cref="AsyncLifeTime"/> is disposed asynchronously, the actions added to it will 
+        /// When an instance of <see cref="AsyncLifetime"/> is disposed asynchronously, the actions added to it will 
         /// be executed. If <paramref name="continueOnCapturedContext"/> is set to true, the original synchronization context 
         /// will be used to continue the asynchronous operations.
         /// </remarks>
-        public AsyncLifeTime(bool continueOnCapturedContext)
+        public AsyncLifetime(bool continueOnCapturedContext)
         {
             ContinueOnCapturedContext = continueOnCapturedContext;
             Add(() => IsTerminated = true);
@@ -62,11 +62,11 @@ namespace System
         #region Methods
 
         /// <summary>
-        /// Adds an action to be executed when the AsyncLifeTime instance is disposed asynchronously.
+        /// Adds an action to be executed when the <see cref="AsyncLifetime"/> instance is disposed asynchronously.
         /// </summary>
         /// <param name="action">The action to add. This action will be called upon asynchronous disposal.</param>
         /// <exception cref="ArgumentNullException">Thrown if the action is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add an action to a terminated AsyncLifeTime instance.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add an action to a terminated <see cref="AsyncLifetime"/> instance.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Add(Action action)
         {
@@ -84,11 +84,11 @@ namespace System
         }
 
         /// <summary>
-        /// Adds an asynchronous action to be executed when the AsyncLifeTime instance is disposed asynchronously.
+        /// Adds an asynchronous action to be executed when the <see cref="AsyncLifetime"/> instance is disposed asynchronously.
         /// </summary>
         /// <param name="action">The asynchronous action to add. This action will be called upon asynchronous disposal.</param>
         /// <exception cref="ArgumentNullException">Thrown if the action is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add an action to a terminated AsyncLifeTime instance.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add an action to a terminated <see cref="AsyncLifetime"/> instance.</exception>
         public void AddAsync(Func<ValueTask> action)
         {
             Debug.Assert(action != null, $"{nameof(action)} is null");
@@ -110,11 +110,11 @@ namespace System
         }
 
         /// <summary>
-        /// Adds an IAsyncDisposable object to be disposed of asynchronously when the AsyncLifeTime instance is disposed.
+        /// Adds an IAsyncDisposable object to be disposed of asynchronously when the <see cref="AsyncLifetime"/> instance is disposed.
         /// </summary>
         /// <param name="disposable">The asynchronous disposable object to add.</param>
         /// <exception cref="ArgumentNullException">Thrown if the disposable object is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add a disposable object to a terminated AsyncLifeTime instance.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add a disposable object to a terminated <see cref="AsyncLifetime"/> instance.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddAsyncDisposable(IAsyncDisposable disposable)
         {
@@ -133,7 +133,7 @@ namespace System
         /// <param name="subscribe">The action to execute immediately.</param>
         /// <param name="unsubscribe">The action to execute upon asynchronous disposal.</param>
         /// <exception cref="ArgumentNullException">Thrown if either subscribe or unsubscribe is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add actions to a terminated AsyncLifeTime instance.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add actions to a terminated <see cref="AsyncLifetime"/> instance.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddBracket(Action subscribe, Action unsubscribe)
         {
@@ -151,11 +151,11 @@ namespace System
         }
 
         /// <summary>
-        /// Adds an IDisposable object to be disposed of when the AsyncLifeTime instance is disposed asynchronously.
+        /// Adds an IDisposable object to be disposed of when the <see cref="AsyncLifetime"/> instance is disposed asynchronously.
         /// </summary>
         /// <param name="disposable">The disposable object to add.</param>
         /// <exception cref="ArgumentNullException">Thrown if the disposable object is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add a disposable object to a terminated AsyncLifeTime instance.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add a disposable object to a terminated <see cref="AsyncLifetime"/> instance.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddDisposable(IDisposable disposable)
         {
@@ -169,11 +169,11 @@ namespace System
         }
 
         /// <summary>
-        /// Adds a reference to an object to keep it alive until the AsyncLifeTime instance is disposed asynchronously.
+        /// Adds a reference to an object to keep it alive until the <see cref="AsyncLifetime"/> instance is disposed asynchronously.
         /// </summary>
         /// <param name="obj">The object to keep alive.</param>
         /// <exception cref="ArgumentNullException">Thrown if the object is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add a reference to a terminated AsyncLifeTime instance.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add a reference to a terminated <see cref="AsyncLifetime"/> instance.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddRef(object obj)
         {
@@ -187,9 +187,9 @@ namespace System
         }
 
         /// <summary>
-        /// Checks whether the AsyncLifeTime instance has been terminated and throws an exception if it has.
+        /// Checks whether the <see cref="AsyncLifetime"/> instance has been terminated and throws an exception if it has.
         /// </summary>
-        /// <exception cref="ObjectDisposedException">Thrown if the AsyncLifeTime instance is terminated.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if the <see cref="AsyncLifetime"/> instance is terminated.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CheckTerminated()
         {
@@ -227,7 +227,7 @@ namespace System
             {
                 _syncLock.Release();
             }
-            Debug.Assert(IsTerminated, $"{nameof(AsyncLifeTime)} is not terminated");
+            Debug.Assert(IsTerminated, $"{nameof(AsyncLifetime)} is not terminated");
         }
 
         #endregion

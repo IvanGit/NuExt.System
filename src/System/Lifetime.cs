@@ -9,14 +9,14 @@ namespace System
     /// <summary>
     /// Manages the lifecycle of resources and ensures that all registered cleanup actions are executed upon disposal.
     /// </summary>
-    public sealed class LifeTime : ILifeTime
+    public sealed class Lifetime : ILifetime
     {
         private readonly List<Action> _actions = new();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LifeTime"/> class and sets up termination on disposal.
+        /// Initializes a new instance of the <see cref="Lifetime"/> class and sets up termination on disposal.
         /// </summary>
-        public LifeTime()
+        public Lifetime()
         {
             Add(() => IsTerminated = true);
         }
@@ -24,7 +24,7 @@ namespace System
         #region Properties
 
         /// <summary>
-        /// Represents the termination status of the LifeTime instance.
+        /// Represents the termination status of the <see cref="Lifetime"/> instance.
         /// If true, indicates that the instance has been terminated and 
         /// all associated resources have been released.
         /// </summary>
@@ -35,11 +35,11 @@ namespace System
         #region Methods
 
         /// <summary>
-        /// Adds an action to be executed when the LifeTime instance is disposed.
+        /// Adds an action to be executed when the <see cref="Lifetime"/> instance is disposed.
         /// </summary>
         /// <param name="action">The action to add. This action will be called upon disposal.</param>
         /// <exception cref="ArgumentNullException">Thrown if the action is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add an action to a terminated LifeTime instance.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add an action to a terminated <see cref="Lifetime"/> instance.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Add(Action action)
         {
@@ -62,7 +62,7 @@ namespace System
         /// <param name="subscribe">The action to execute immediately.</param>
         /// <param name="unsubscribe">The action to execute upon disposal.</param>
         /// <exception cref="ArgumentNullException">Thrown if either subscribe or unsubscribe is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add actions to a terminated LifeTime instance.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add actions to a terminated <see cref="Lifetime"/> instance.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddBracket(Action subscribe, Action unsubscribe)
         {
@@ -80,11 +80,11 @@ namespace System
         }
 
         /// <summary>
-        /// Adds an IDisposable object to be disposed of when the LifeTime instance is disposed.
+        /// Adds an IDisposable object to be disposed of when the <see cref="Lifetime"/> instance is disposed.
         /// </summary>
         /// <param name="disposable">The disposable object to add.</param>
         /// <exception cref="ArgumentNullException">Thrown if the disposable object is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add a disposable object to a terminated LifeTime instance.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add a disposable object to a terminated <see cref="Lifetime"/> instance.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddDisposable(IDisposable disposable)
         {
@@ -98,11 +98,11 @@ namespace System
         }
 
         /// <summary>
-        /// Adds a reference to an object to keep it alive until the LifeTime instance is disposed.
+        /// Adds a reference to an object to keep it alive until the <see cref="Lifetime"/> instance is disposed.
         /// </summary>
         /// <param name="obj">The object to keep alive.</param>
         /// <exception cref="ArgumentNullException">Thrown if the object is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add a reference to a terminated LifeTime instance.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add a reference to a terminated <see cref="Lifetime"/> instance.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddRef(object obj)
         {
@@ -116,9 +116,9 @@ namespace System
         }
 
         /// <summary>
-        /// Checks whether the LifeTime instance has been terminated and throws an exception if it has.
+        /// Checks whether the <see cref="Lifetime"/> instance has been terminated and throws an exception if it has.
         /// </summary>
-        /// <exception cref="ObjectDisposedException">Thrown if the LifeTime instance is terminated.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if the <see cref="Lifetime"/> instance is terminated.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CheckTerminated()
         {
@@ -150,7 +150,7 @@ namespace System
                 }
                 _actions.Clear();
             }
-            Debug.Assert(IsTerminated, $"{nameof(LifeTime)} is not terminated");
+            Debug.Assert(IsTerminated, $"{nameof(Lifetime)} is not terminated");
         }
 
         #endregion

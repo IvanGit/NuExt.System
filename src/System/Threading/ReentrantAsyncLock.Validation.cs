@@ -49,7 +49,7 @@ namespace System.Threading
         }
 
         [Conditional("DEBUG")]
-        private void ValidateExclusiveStateFinally(bool isReentrant, SemaphoreSlim? syncRoot)
+        private static void ValidateExclusiveStateFinally(bool isReentrant, SemaphoreSlim? syncRoot)
         {
 #if !DEBUG_VALIDATE
             return;
@@ -78,7 +78,7 @@ namespace System.Threading
         }
 
         [Conditional("DEBUG")]
-        private void ValidateReentrantStateFinally(bool isReentrant, SemaphoreSlim? syncRoot)
+        private static void ValidateReentrantStateFinally(bool isReentrant, SemaphoreSlim? syncRoot)
         {
 #if !DEBUG_VALIDATE
             return;

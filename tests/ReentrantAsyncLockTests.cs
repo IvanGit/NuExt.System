@@ -67,8 +67,8 @@ namespace NuExt.System.Tests
         public async Task AsyncConcurrentTest()
         {
             using var asyncLock = new ReentrantAsyncLockAlias();
-            using var lifeTime = new LifeTime();
-            lifeTime.AddBracket(() => asyncLock.PropertyChanged += OnPropertyChanged, () => asyncLock.PropertyChanged -= OnPropertyChanged);
+            using var lifetime = new Lifetime();
+            lifetime.AddBracket(() => asyncLock.PropertyChanged += OnPropertyChanged, () => asyncLock.PropertyChanged -= OnPropertyChanged);
 
             var raceConditionActualValue = 0;
             var raceConditionExpectedValue = 0;

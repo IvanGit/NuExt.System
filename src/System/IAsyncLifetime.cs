@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines a contract for managing the asynchronous lifecycle of resources and actions that should be executed upon asynchronous disposal.
     /// </summary>
-    public interface IAsyncLifeTime : IAsyncDisposable
+    public interface IAsyncLifetime : IAsyncDisposable
     {
         /// <summary>
         /// Gets a value indicating whether the lifetime instance has been terminated.

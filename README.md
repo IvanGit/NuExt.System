@@ -13,9 +13,9 @@ Provides various fundamental extensions and classes for .NET, simplifying tasks 
 - **System.AggregateDisposable**: Simplifies the disposal of multiple disposables.
 - **System.AsyncDisposable**: Simplifies async resource disposal.
 - **System.AsyncEventHandler**: Represents an async event handler.
-- **System.AsyncLifeTime**: Manages async operations lifecycle.
+- **System.AsyncLifetime**: Manages async operations lifecycle.
 - **System.Disposable**: Base implementation of IDisposable.
-- **System.LifeTime**: Manages the lifecycle of objects and resources.
+- **System.Lifetime**: Manages the lifecycle of objects and resources.
 - **System.ComponentModel.NotifyPropertyChanged**: Implementation of INotifyPropertyChanged.
 - **System.Threading.AsyncLock**: Async lock for resource synchronization.
 - **System.Threading.AsyncWaitHandle**: Async wait handle signaling with timeout and cancellation.

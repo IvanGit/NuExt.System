@@ -12,15 +12,15 @@ Commonly Used Types:
 System.AggregateDisposable
 System.AsyncDisposable
 Ssytem.AsyncEventHandler
-Ssytem.AsyncLifeTime
+Ssytem.AsyncLifetime
 System.Disposable
-Ssytem.LifeTime
+Ssytem.Lifetime
 System.ComponentModel.NotifyPropertyChanged
 System.Threading.AsyncLock
 System.Threading.AsyncWaitHandle
 System.Threading.ReentrantAsyncLock
 System.Text.ValueStringBuilder</Description>
-    <Version>0.1.3</Version>
+    <Version>0.1.4</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>

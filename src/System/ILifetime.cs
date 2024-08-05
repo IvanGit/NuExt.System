@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines a contract for managing the lifecycle of resources and actions that should be executed upon disposal.
     /// </summary>
-    public interface ILifeTime : IDisposable
+    public interface ILifetime : IDisposable
     {
         /// <summary>
         /// Gets a value indicating whether the lifetime instance has been terminated.
