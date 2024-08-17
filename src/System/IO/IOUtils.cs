@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace System.IO
@@ -28,7 +29,7 @@ namespace System.IO
 #if NET7_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(root);
 #else
-            ThrowHelper.WhenNullOrEmpty(root);
+            Throw.IfNullOrEmpty(root);
 #endif
 #if NET462
             char c = root[root.Length - 1];
@@ -44,9 +45,41 @@ namespace System.IO
         }
 
         /// <summary>
+        /// Ensures that a path has the specified extension. If the path does not end with the specified extension,
+        /// the method adds the specified extension.
+        /// </summary>
+        /// <param name="path">The path to check.</param>
+        /// <param name="defaultExtension">The extension to ensure (including the dot, e.g., ".dll").</param>
+        /// <returns>The updated path with the specified extension.</returns>
+        public static string EnsurePathHasExtension(string path, string defaultExtension)
+        {
+#if NET8_0_OR_GREATER
+            ArgumentException.ThrowIfNullOrEmpty(path);
+#else
+            Throw.IfNullOrEmpty(path);
+#endif
+            Throw.ArgumentExceptionIf(string.IsNullOrWhiteSpace(defaultExtension) ||
+#if NET462
+                                                 !defaultExtension.StartsWith("."),
+#else
+                                                 !defaultExtension.StartsWith('.'),
+#endif
+                "Extension must start with a dot and cannot be empty", nameof(defaultExtension));
+
+            // Check if the path already ends with the default extension
+            if (!path.EndsWith(defaultExtension, StringComparison.OrdinalIgnoreCase))
+            {
+                // Add the default extension if it doesn't end with it
+                path += defaultExtension;
+            }
+
+            return path;
+        }
+
+        /// <summary>
         /// True if the path is an absolute path (rooted to drive or network share)
         /// </summary>
-        public static bool IsAbsolute([NotNullWhen(true)] string path)
+        public static bool IsAbsolute(string path)
         {
             if (string.IsNullOrEmpty(path))
             {
@@ -184,7 +217,7 @@ namespace System.IO
 #if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(path);
 #else
-            ThrowHelper.WhenNullOrEmpty(path);
+            Throw.IfNullOrEmpty(path);
 #endif
             var fullPath = Path.GetFullPath(path);
             return fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);

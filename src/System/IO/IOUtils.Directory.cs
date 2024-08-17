@@ -15,7 +15,7 @@ namespace System.IO
 #if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(path);
 #else
-            ThrowHelper.WhenNullOrEmpty(path);
+            Throw.IfNullOrEmpty(path);
 #endif
             if (Directory.Exists(path))
             {
@@ -44,7 +44,7 @@ namespace System.IO
 #if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(fullPath);
 #else
-            ThrowHelper.WhenNullOrEmpty(fullPath);
+            Throw.IfNullOrEmpty(fullPath);
 #endif
             if (fullPath.Length <= 3)
             {
@@ -67,7 +67,7 @@ namespace System.IO
 #if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(path);
 #else
-            ThrowHelper.WhenNullOrEmpty(path);
+            Throw.IfNullOrEmpty(path);
 #endif
             const int maxAttempts = 65000;
             var originalPath = path;
@@ -94,7 +94,7 @@ namespace System.IO
 #if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(path);
 #else
-            ThrowHelper.WhenNullOrEmpty(path);
+            Throw.IfNullOrEmpty(path);
 #endif
             try
             {

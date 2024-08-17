@@ -55,7 +55,7 @@ namespace System.IO
 #if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(fullPath);
 #else
-            ThrowHelper.WhenNullOrEmpty(fullPath);
+            Throw.IfNullOrEmpty(fullPath);
 #endif
             try
             {
@@ -83,7 +83,7 @@ namespace System.IO
 #if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(fullPath);
 #else
-            ThrowHelper.WhenNullOrEmpty(fullPath);
+            Throw.IfNullOrEmpty(fullPath);
 #endif
             try
             {
@@ -112,7 +112,7 @@ namespace System.IO
 #if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(path);
 #else
-            ThrowHelper.WhenNullOrEmpty(path);
+            Throw.IfNullOrEmpty(path);
 #endif
             if (!File.Exists(path))
             {
@@ -148,7 +148,7 @@ namespace System.IO
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(fileName);
 #else
-            ThrowHelper.WhenNull(fileName);
+            Throw.IfNull(fileName);
 #endif
             if (string.IsNullOrEmpty(fileName) || limitSize <= 0)
             {
@@ -187,7 +187,7 @@ namespace System.IO
 #if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(filePath);
 #else
-            ThrowHelper.WhenNullOrEmpty(filePath);
+            Throw.IfNullOrEmpty(filePath);
 #endif
             try
             {

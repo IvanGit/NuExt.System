@@ -1,4 +1,6 @@
-﻿namespace System.IO
+﻿using System.ComponentModel;
+
+namespace System.IO
 {
     partial class IOUtils
     {
@@ -137,14 +139,15 @@
         /// <exception cref="ArgumentNullException"><paramref name="fromPath"/> or <paramref name="toPath"/> is <c>null</c>.</exception>
         /// <exception cref="UriFormatException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static string GetUriRelativePath(string fromPath, string toPath)
         {
 #if NET7_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(fromPath);
             ArgumentException.ThrowIfNullOrEmpty(toPath);
 #else
-            ThrowHelper.WhenNullOrEmpty(fromPath);
-            ThrowHelper.WhenNullOrEmpty(toPath);
+            Throw.IfNullOrEmpty(fromPath);
+            Throw.IfNullOrEmpty(toPath);
 #endif
 
             var fromUri = new Uri(AppendDirectorySeparatorChar(fromPath));
