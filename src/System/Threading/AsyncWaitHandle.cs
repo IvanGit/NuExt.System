@@ -17,7 +17,7 @@
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(waitObject);
 #else
-            ThrowHelper.WhenNull(waitObject);
+            Throw.IfNull(waitObject);
 #endif
             _waitObject = waitObject;
         }

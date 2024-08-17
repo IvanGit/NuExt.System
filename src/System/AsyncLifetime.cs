@@ -74,7 +74,7 @@ namespace System
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(action);
 #else
-            ThrowHelper.WhenNull(action);
+            Throw.IfNull(action);
 #endif
             AddAsync(() =>
             {
@@ -95,7 +95,7 @@ namespace System
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(action);
 #else
-            ThrowHelper.WhenNull(action);
+            Throw.IfNull(action);
 #endif
             _syncLock.Wait();
             try
@@ -122,7 +122,7 @@ namespace System
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(disposable);
 #else
-            ThrowHelper.WhenNull(disposable);
+            Throw.IfNull(disposable);
 #endif
             AddAsync(disposable.DisposeAsync);
         }
@@ -143,8 +143,8 @@ namespace System
             ArgumentNullException.ThrowIfNull(subscribe);
             ArgumentNullException.ThrowIfNull(unsubscribe);
 #else
-            ThrowHelper.WhenNull(subscribe);
-            ThrowHelper.WhenNull(unsubscribe);
+            Throw.IfNull(subscribe);
+            Throw.IfNull(unsubscribe);
 #endif
             subscribe();
             Add(unsubscribe);
@@ -163,7 +163,7 @@ namespace System
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(disposable);
 #else
-            ThrowHelper.WhenNull(disposable);
+            Throw.IfNull(disposable);
 #endif
             Add(disposable.Dispose);
         }
@@ -181,7 +181,7 @@ namespace System
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(obj);
 #else
-            ThrowHelper.WhenNull(obj);
+            Throw.IfNull(obj);
 #endif
             Add(() => GC.KeepAlive(obj));
         }

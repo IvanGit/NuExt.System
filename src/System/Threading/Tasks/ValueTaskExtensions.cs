@@ -34,7 +34,7 @@
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(tasks);
 #else
-            ThrowHelper.WhenNull(tasks);
+            Throw.IfNull(tasks);
 #endif
             return WhenAll(tasks.ToList(), continueOnCapturedContext);
         }
@@ -71,7 +71,7 @@
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(tasks);
 #else
-            ThrowHelper.WhenNull(tasks);
+            Throw.IfNull(tasks);
 #endif
 
             if (tasks.Count == 0)

@@ -1,5 +1,6 @@
 ﻿#define DEBUG_WRITELINE_
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace System.Threading
@@ -10,6 +11,7 @@ namespace System.Threading
     /// It provides synchronous and asynchronous methods for acquiring and releasing the lock,
     /// making it suitable for scenarios where async/await patterns or other forms of asynchronous programming are used.
     /// </summary>
+    [DebuggerStepThrough]
     public sealed partial class ReentrantAsyncLock : Disposable
     {
         /// <summary>
@@ -183,7 +185,7 @@ namespace System.Threading
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(action);
 #else
-            ThrowHelper.WhenNull(action);
+            Throw.IfNull(action);
 #endif
             CheckDisposed();
 
@@ -287,7 +289,7 @@ namespace System.Threading
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(func);
 #else
-            ThrowHelper.WhenNull(func);
+            Throw.IfNull(func);
 #endif
             CheckDisposed();
 
@@ -388,7 +390,7 @@ namespace System.Threading
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(func);
 #else
-            ThrowHelper.WhenNull(func);
+            Throw.IfNull(func);
 #endif
             CheckDisposed();
 
@@ -492,7 +494,7 @@ namespace System.Threading
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(func);
 #else
-            ThrowHelper.WhenNull(func);
+            Throw.IfNull(func);
 #endif
             CheckDisposed();
 

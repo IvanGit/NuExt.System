@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace System.Collections.Generic
 {
@@ -11,7 +12,7 @@ namespace System.Collections.Generic
         /// <typeparam name="T">The type of elements in the array.</typeparam>
         /// <param name="self">The array to check.</param>
         /// <returns>True if the array is null or empty; otherwise, false.</returns>
-        public static bool IsNullOrEmpty<T>(this T[]? self)
+        public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this T[]? self)
         {
             return self == null || self.Length == 0;
         }
@@ -22,7 +23,7 @@ namespace System.Collections.Generic
         /// <typeparam name="T">The type of elements in the collection.</typeparam>
         /// <param name="self">The collection to check.</param>
         /// <returns>True if the collection is null or empty; otherwise, false.</returns>
-        public static bool IsNullOrEmpty<T>(this ICollection<T>? self)
+        public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this ICollection<T>? self)
         {
             return self == null || self.Count == 0;
         }
@@ -39,7 +40,7 @@ namespace System.Collections.Generic
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(items);
 #else
-            ThrowHelper.WhenNull(items);
+            Throw.IfNull(items);
 #endif
             for (int i = items.Count - 1; i >= 0; i--)
             {
@@ -61,8 +62,8 @@ namespace System.Collections.Generic
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(action);
 #else
-            ThrowHelper.WhenNull(source);
-            ThrowHelper.WhenNull(action);
+            Throw.IfNull(source);
+            Throw.IfNull(action);
 #endif
             foreach (T item in source)
             {
@@ -85,8 +86,8 @@ namespace System.Collections.Generic
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(match);
 #else
-            ThrowHelper.WhenNull(source);
-            ThrowHelper.WhenNull(match);
+            Throw.IfNull(source);
+            Throw.IfNull(match);
 #endif
             int i = 0;
             foreach (T item in source)
@@ -116,8 +117,8 @@ namespace System.Collections.Generic
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(selector);
 #else
-            ThrowHelper.WhenNull(source);
-            ThrowHelper.WhenNull(selector);
+            Throw.IfNull(source);
+            Throw.IfNull(selector);
 #endif
             if (source.Count == 0)
             {
@@ -153,7 +154,7 @@ namespace System.Collections.Generic
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(self);
 #else
-            ThrowHelper.WhenNull(self);
+            Throw.IfNull(self);
 #endif
             self.ForEach(item => item?.Dispose());
             self.Clear();
@@ -179,7 +180,7 @@ namespace System.Collections.Generic
 #if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(self);
 #else
-            ThrowHelper.WhenNull(self);
+            Throw.IfNull(self);
 #endif
             List<Exception>? exceptions = null;
             foreach (var item in self)

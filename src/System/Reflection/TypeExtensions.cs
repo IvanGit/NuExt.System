@@ -24,9 +24,9 @@ namespace System.Reflection
             ArgumentNullException.ThrowIfNull(baseType);
             ArgumentNullException.ThrowIfNull(match);
 #else
-            ThrowHelper.WhenNull(currentType);
-            ThrowHelper.WhenNull(baseType);
-            ThrowHelper.WhenNull(match);
+            Throw.IfNull(currentType);
+            Throw.IfNull(baseType);
+            Throw.IfNull(match);
 #endif
             var list = new List<PropertyInfo>();
             Type? type = currentType;
@@ -59,8 +59,8 @@ namespace System.Reflection
             ArgumentNullException.ThrowIfNull(currentType);
             ArgumentNullException.ThrowIfNull(baseType);
 #else
-            ThrowHelper.WhenNull(currentType);
-            ThrowHelper.WhenNull(baseType);
+            Throw.IfNull(currentType);
+            Throw.IfNull(baseType);
 #endif
             var list = new List<PropertyInfo>();
             Type? type = currentType;

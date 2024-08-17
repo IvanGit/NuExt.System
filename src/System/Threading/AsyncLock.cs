@@ -1,4 +1,6 @@
-﻿namespace System.Threading
+﻿using System.Diagnostics;
+
+namespace System.Threading
 {
     /// <summary>
     /// A simple lock that supports asynchronicity and mutual exclusion.
@@ -8,6 +10,7 @@
     /// the lock it already holds, it will result in a deadlock.
     /// If you need reentrance, consider using the <see cref="ReentrantAsyncLock"/> class instead.
     /// </summary>
+    [DebuggerStepThrough]
     public sealed class AsyncLock : Disposable
     {
         #region Internal classes
