@@ -156,7 +156,7 @@ namespace System.IO
             }
 
             var extension = Path.GetExtension(fileName);
-#if NET462
+#if NETFRAMEWORK
             var nameWithoutExtension = fileName.Substring(0, fileName.Length - extension.Length);
 #else
             var nameWithoutExtension = fileName[..^extension.Length];
@@ -166,7 +166,7 @@ namespace System.IO
             {
                 int count = limitSize - extension.Length;
                 var index = nameWithoutExtension.LastIndexOfAny(s_smartTrimFileNameChars, count);
-#if NET462
+#if NETFRAMEWORK
                 nameWithoutExtension = index > 0 ? nameWithoutExtension.Substring(0, index) : nameWithoutExtension.Substring(0, count);
 #else
                 nameWithoutExtension = index > 0 ? nameWithoutExtension[..index] : nameWithoutExtension[..count];

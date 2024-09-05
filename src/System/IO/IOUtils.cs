@@ -31,7 +31,7 @@ namespace System.IO
 #else
             Throw.IfNullOrEmpty(root);
 #endif
-#if NET462
+#if NETFRAMEWORK
             char c = root[root.Length - 1];
 #else
             char c = root[^1];
@@ -59,7 +59,7 @@ namespace System.IO
             Throw.IfNullOrEmpty(path);
 #endif
             Throw.ArgumentExceptionIf(string.IsNullOrWhiteSpace(defaultExtension) ||
-#if NET462
+#if NETFRAMEWORK
                                                  !defaultExtension.StartsWith("."),
 #else
                                                  !defaultExtension.StartsWith('.'),
@@ -288,7 +288,7 @@ namespace System.IO
 
             if (lastSeparator != s.Length)
             {
-#if NET462
+#if NETFRAMEWORK
                 s = s.Substring(0, lastSeparator);
 #else
                 s = s[..lastSeparator];

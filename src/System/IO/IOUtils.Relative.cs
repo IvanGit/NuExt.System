@@ -85,7 +85,7 @@ namespace System.IO
             return parentPath.Length > 0
                    && childPath.Length > parentPath.Length
                    && PathEquals(childPath, parentPath, parentPath.Length)
-#if NET462
+#if NETFRAMEWORK
                    && (IsDirectorySeparator(parentPath[parentPath.Length - 1])
 #else
                    && (IsDirectorySeparator(parentPath[^1])
@@ -95,7 +95,7 @@ namespace System.IO
 
         private static string GetRelativeChildPath(string parentPath, string childPath)
         {
-#if NET462
+#if NETFRAMEWORK
             var relativePath = childPath.Substring(parentPath.Length);
 #else
             var relativePath = childPath[parentPath.Length..];
@@ -105,7 +105,7 @@ namespace System.IO
             int start = ConsumeDirectorySeparators(relativePath, relativePath.Length, 0);
             if (start > 0)
             {
-#if NET462
+#if NETFRAMEWORK
                 relativePath = relativePath.Substring(start);
 #else
                 relativePath = relativePath[start..];
