@@ -17,6 +17,7 @@ Provides various fundamental extensions and classes for .NET, simplifying tasks 
 - **System.Disposable**: Base implementation of IDisposable.
 - **System.Lifetime**: Manages the lifecycle of objects and resources.
 - **System.ComponentModel.NotifyPropertyChanged**: Implementation of INotifyPropertyChanged.
+- **System.Diagnostics.ProcessMonitor**: Real-time CPU, memory, thread, and ThreadPool monitoring for .NET processes.
 - **System.Threading.AsyncLock**: Async lock for resource synchronization.
 - **System.Threading.AsyncWaitHandle**: Async wait handle signaling with timeout and cancellation.
 - **System.Threading.ReentrantAsyncLock**: Reentrant async lock.

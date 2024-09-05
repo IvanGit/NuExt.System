@@ -16,11 +16,12 @@ Ssytem.AsyncLifetime
 System.Disposable
 Ssytem.Lifetime
 System.ComponentModel.NotifyPropertyChanged
+System.Diagnostics.ProcessMonitor
 System.Threading.AsyncLock
 System.Threading.AsyncWaitHandle
 System.Threading.ReentrantAsyncLock
 System.Text.ValueStringBuilder</Description>
-    <Version>0.1.5</Version>
+    <Version>0.1.6</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>

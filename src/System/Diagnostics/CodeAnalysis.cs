@@ -1,6 +1,6 @@
 ﻿namespace System.Diagnostics.CodeAnalysis
 {
-#if NET462 || NETSTANDARD2_0
+#if NETFRAMEWORK || NETSTANDARD2_0
 
     /// <summary>Specifies that <see langword="null" /> is allowed as an input even if the corresponding type disallows it.</summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, Inherited = false)]

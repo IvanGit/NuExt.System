@@ -2,7 +2,7 @@
 
 namespace System.Runtime.CompilerServices;
 
-#if NET462 || NETSTANDARD2_0_OR_GREATER
+#if NETFRAMEWORK || NETSTANDARD
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
 public sealed class CallerArgumentExpressionAttribute : Attribute
 {
@@ -15,7 +15,7 @@ public sealed class CallerArgumentExpressionAttribute : Attribute
 }
 #endif
 
-#if NET462 || NETSTANDARD2_0_OR_GREATER
+#if NETFRAMEWORK || NETSTANDARD
 /// <summary>Reserved to be used by the compiler for tracking metadata.
 /// This class should not be used by developers in source code.</summary>
 [EditorBrowsable(EditorBrowsableState.Never)]

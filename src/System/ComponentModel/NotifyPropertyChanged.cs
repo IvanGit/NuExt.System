@@ -106,7 +106,6 @@ namespace System.ComponentModel
         /// <returns>
         /// An array of <see cref="PropertyChangedEventHandler"/> delegates, or <see langword="null"/> if there are no subscribers.
         /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected PropertyChangedEventHandler[]? GetPropertyChangedEventHandlers()
         {
             // eventDelegate will be null if no listeners are attached to the event
@@ -124,7 +123,6 @@ namespace System.ComponentModel
         /// Raises the <see cref="PropertyChanged"/> event for a specified property.
         /// </summary>
         /// <param name="propertyName">The name of the property that changed.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             var handler = PropertyChanged;

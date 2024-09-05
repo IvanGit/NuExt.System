@@ -80,13 +80,15 @@ namespace System
         }
 
         /// <summary>
-        /// Adds an IDisposable object to be disposed of when the <see cref="Lifetime"/> instance is disposed.
+        /// Adds an <see cref="IDisposable"/> object to be disposed of when the <see cref="Lifetime"/> instance is disposed.
         /// </summary>
+        /// <typeparam name="T">The type of the disposable object.</typeparam>
         /// <param name="disposable">The disposable object to add.</param>
+        /// <returns>The disposable object that was added.</returns>
         /// <exception cref="ArgumentNullException">Thrown if the disposable object is null.</exception>
         /// <exception cref="ObjectDisposedException">Thrown if trying to add a disposable object to a terminated <see cref="Lifetime"/> instance.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddDisposable(IDisposable disposable)
+        public T AddDisposable<T>(T disposable) where T : IDisposable
         {
             Debug.Assert(disposable != null, $"{nameof(disposable)} is null");
 #if NET6_0_OR_GREATER
@@ -95,16 +97,19 @@ namespace System
             Throw.IfNull(disposable);
 #endif
             Add(disposable.Dispose);
+            return disposable;
         }
 
         /// <summary>
         /// Adds a reference to an object to keep it alive until the <see cref="Lifetime"/> instance is disposed.
         /// </summary>
+        /// <typeparam name="T">The type of the object to keep alive. Must be a reference type.</typeparam>
         /// <param name="obj">The object to keep alive.</param>
+        /// <returns>The object that was added to be kept alive.</returns>
         /// <exception cref="ArgumentNullException">Thrown if the object is null.</exception>
         /// <exception cref="ObjectDisposedException">Thrown if trying to add a reference to a terminated <see cref="Lifetime"/> instance.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddRef(object obj)
+        public T AddRef<T>(T obj) where T: class
         {
             Debug.Assert(obj != null, $"{nameof(obj)} is null");
 #if NET6_0_OR_GREATER
@@ -113,6 +118,7 @@ namespace System
             Throw.IfNull(obj);
 #endif
             Add(() => GC.KeepAlive(obj));
+            return obj;
         }
 
         /// <summary>
