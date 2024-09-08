@@ -1,5 +1,4 @@
-﻿#define DEBUG_WRITELINE_
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -201,9 +200,7 @@ namespace System.Threading
             else
             {
                 _syncLock.Wait(cancellationToken);//Acquires an exclusive lock in the flow
-#if DEBUG_WRITELINE
-                Debug_WriteLine("Lock taken");
-#endif
+
                 ValidateExclusiveState();
 
                 _currentId = LocalId;//The lock is obtained
@@ -216,16 +213,10 @@ namespace System.Threading
 
             try
             {
-#if DEBUG_WRITELINE
-                Debug_WriteLine("Executing");
-#endif
                 action();
             }
             finally
             {
-#if DEBUG_WRITELINE
-                Debug_WriteLine("Executed");
-#endif
                 PerformValidationAfterExecution(isReentrant, localSyncRoot);
 
                 SyncRoot = syncRoot;// Restore the previous synchronization root to maintain correct synchronization state and nested lock handling in the current flow.
@@ -236,9 +227,6 @@ namespace System.Threading
                 {
                     ValidateExclusiveStateFinally(isReentrant, syncRoot);
                     _currentId = 0;//The lock is released
-#if DEBUG_WRITELINE
-                    Debug_WriteLine("Lock released");
-#endif
                     _syncLock.Release();//Releases an exclusive lock
                 }
                 else
@@ -305,9 +293,7 @@ namespace System.Threading
             else
             {
                 _syncLock.Wait(cancellationToken);//Acquires an exclusive lock in the flow
-#if DEBUG_WRITELINE
-                Debug_WriteLine("Lock taken");
-#endif
+
                 ValidateExclusiveState();
 
                 _currentId = LocalId;//The lock is obtained
@@ -320,16 +306,10 @@ namespace System.Threading
 
             try
             {
-#if DEBUG_WRITELINE
-                Debug_WriteLine("Executing");
-#endif
                 return func();
             }
             finally
             {
-#if DEBUG_WRITELINE
-                Debug_WriteLine("Executed");
-#endif
                 PerformValidationAfterExecution(isReentrant, localSyncRoot);
 
                 SyncRoot = syncRoot;// Restore the previous synchronization root to maintain correct synchronization state and nested lock handling in the current flow.
@@ -340,9 +320,6 @@ namespace System.Threading
                 {
                     ValidateExclusiveStateFinally(isReentrant, syncRoot);
                     _currentId = 0;//The lock is released
-#if DEBUG_WRITELINE
-                    Debug_WriteLine("Lock released");
-#endif
                     _syncLock.Release();//Releases an exclusive lock
                 }
                 else
@@ -406,9 +383,7 @@ namespace System.Threading
             else
             {
                 await _syncLock.WaitAsync(cancellationToken).ConfigureAwait(false);//Acquires an exclusive lock in the flow
-#if DEBUG_WRITELINE
-                Debug_WriteLine("Lock taken");
-#endif
+
                 ValidateExclusiveState();
 
                 _currentId = LocalId;//The lock is obtained
@@ -421,16 +396,10 @@ namespace System.Threading
 
             try
             {
-#if DEBUG_WRITELINE
-                Debug_WriteLine("Executing");
-#endif
                 await func().ConfigureAwait(false);
             }
             finally
             {
-#if DEBUG_WRITELINE
-                Debug_WriteLine("Executed");
-#endif
                 PerformValidationAfterExecution(isReentrant, localSyncRoot);
 
                 SyncRoot = null;//Clear the synchronization root to allow garbage collection
@@ -441,9 +410,6 @@ namespace System.Threading
                 {
                     ValidateExclusiveStateFinally(isReentrant, syncRoot);
                     _currentId = 0;//The lock is released
-#if DEBUG_WRITELINE
-                    Debug_WriteLine("Lock released");
-#endif
                     _syncLock.Release();//Releases an exclusive lock
                 }
                 else
@@ -510,9 +476,7 @@ namespace System.Threading
             else
             {
                 await _syncLock.WaitAsync(cancellationToken).ConfigureAwait(false);//Acquires an exclusive lock in the flow
-#if DEBUG_WRITELINE
-                Debug_WriteLine("Lock taken");
-#endif
+
                 ValidateExclusiveState();
 
                 _currentId = LocalId;//The lock is obtained
@@ -525,16 +489,10 @@ namespace System.Threading
 
             try
             {
-#if DEBUG_WRITELINE
-                Debug_WriteLine("Executing");
-#endif
                 return await func().ConfigureAwait(false);
             }
             finally
             {
-#if DEBUG_WRITELINE
-                Debug_WriteLine("Executed");
-#endif
                 PerformValidationAfterExecution(isReentrant, localSyncRoot);
 
                 SyncRoot = null;//Clear the synchronization root to allow garbage collection
@@ -545,9 +503,6 @@ namespace System.Threading
                 {
                     ValidateExclusiveStateFinally(isReentrant, syncRoot);
                     _currentId = 0;//The lock is released
-#if DEBUG_WRITELINE
-                    Debug_WriteLine("Lock released");
-#endif
                     _syncLock.Release();//Releases an exclusive lock
                 }
                 else
@@ -566,15 +521,6 @@ namespace System.Threading
                 ThrowSynchronizationLockException();
             }
         }
-
-#if DEBUG_WRITELINE
-        [Conditional("DEBUG")]
-        private void Debug_WriteLine(string action, [CallerMemberName]string? method = null)
-        {
-            Debug.WriteLine($"{action} {method} with Id={LocalId}, CurrentCount={CurrentCount}, Thread={Environment.CurrentManagedThreadId}");
-        }
-#endif
-
 
         /// <summary>
         /// Gets a unique ID

@@ -1,13 +1,11 @@
 ﻿#define DEBUG_WRITELINE_
 using System.ComponentModel;
 
-using ReentrantAsyncLockAlias = System.Threading.ReentrantAsyncLock;
-
 namespace NuExt.System.Tests
 {
     public class ReentrantAsyncLockTests
     {
-        private ReentrantAsyncLockAlias _asyncLock = new();
+        private readonly ReentrantAsyncLock _asyncLock = new();
 
         private void DoRecursion(int depth = 3, CancellationToken cancellationToken = default)
         {
@@ -66,7 +64,7 @@ namespace NuExt.System.Tests
         [Test]
         public async Task AsyncConcurrentTest()
         {
-            using var asyncLock = new ReentrantAsyncLockAlias();
+            using var asyncLock = new ReentrantAsyncLock();
             using var lifetime = new Lifetime();
             lifetime.AddBracket(() => asyncLock.PropertyChanged += OnPropertyChanged, () => asyncLock.PropertyChanged -= OnPropertyChanged);
 
@@ -170,7 +168,7 @@ namespace NuExt.System.Tests
 
             void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
             {
-                if (sender is not ReentrantAsyncLockAlias @lock) return;
+                if (sender is not ReentrantAsyncLock @lock) return;
                 Assert.That(e.PropertyName, Is.Not.EqualTo(nameof(@lock.CurrentCount)));
                 switch (e.PropertyName)
                 {
@@ -213,7 +211,7 @@ namespace NuExt.System.Tests
         [Test]
         public async Task AsyncContinuationTest()
         {
-            using var asyncLock = new ReentrantAsyncLockAlias();
+            using var asyncLock = new ReentrantAsyncLock();
             var tasks = new List<Task>();
             for (int i = 0; i < 10; i++)
             {
@@ -269,7 +267,7 @@ namespace NuExt.System.Tests
         [Test]
         public async Task SupportAsynchronousReentrancyTest()
         {
-            using var asyncLock = new ReentrantAsyncLockAlias();
+            using var asyncLock = new ReentrantAsyncLock();
             int depth = 0;
             await Task.Run(async () =>
             {
@@ -348,7 +346,7 @@ namespace NuExt.System.Tests
         [Test]
         public async Task SerializeReentrantCode()
         {
-            using var asyncLock = new ReentrantAsyncLockAlias();
+            using var asyncLock = new ReentrantAsyncLock();
             int raceConditionActualValue = 0;
             var raceConditionExpectedValue = 0;
             await asyncLock.AcquireAsync(async () =>
@@ -391,7 +389,6 @@ namespace NuExt.System.Tests
                         // Another (perhaps more reliable) way to detect racing threads is to assert that the currently
                         // executing thread is the same thread that is currently processing the WorkQueue used
                         // internally by the ReentrantAsyncLock.
-                        //Assert.True(asyncLock.IsOnQueue);
                         Assert.That(asyncLock.IsEntered, Is.True);
 
                         var task1 = DoTask();
@@ -431,7 +428,6 @@ namespace NuExt.System.Tests
                         // ...then come back and do the above stuff a second time.
                         raceConditionActualValue++;
                         Interlocked.Increment(ref raceConditionExpectedValue);
-                        //Assert.True(asyncLock.IsOnQueue);
                         Assert.That(asyncLock.IsEntered, Is.True);
                         Assert.That(asyncLock.CurrentId, Is.EqualTo(currentId3));
                         Assert.That(asyncLock.CurrentId, Is.Not.Zero);
@@ -470,7 +466,7 @@ namespace NuExt.System.Tests
         [Test]
         public async Task GotchasTest()
         {
-            using var asyncLock = new ReentrantAsyncLockAlias();
+            using var asyncLock = new ReentrantAsyncLock();
             var state = 0;
             async Task ChangeGuardedStateAsync()
             {
