@@ -12,7 +12,7 @@ namespace System.Text.Json
 
         internal static readonly JsonSerializerOptions SerializerOptions = new()
         {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             IgnoreReadOnlyProperties = true,
             WriteIndented = true,
         };

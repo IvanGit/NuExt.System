@@ -5,7 +5,7 @@
     /// When disposed, it disposes all aggregated disposables.
     /// </summary>
     [Serializable]
-    public class AggregateDisposable : Disposable
+    public sealed class AggregateDisposable : Disposable
     {
         /// <summary>
         /// The collection of disposables to be managed and disposed together.
@@ -28,7 +28,7 @@
         /// Initializes a new instance of the <see cref="AggregateDisposable"/> class with the specified disposables.
         /// </summary>
         /// <param name="disposables">A collection of disposables to aggregate.</param>
-        public AggregateDisposable(IEnumerable<IDisposable> disposables): this(disposables, null)
+        public AggregateDisposable(IEnumerable<IDisposable?> disposables): this(disposables, null)
         {
         }
 
@@ -36,7 +36,7 @@
         /// Initializes a new instance of the <see cref="AggregateDisposable"/> class with the specified disposables.
         /// </summary>
         /// <param name="disposables">An array of disposables to aggregate.</param>
-        public AggregateDisposable(params IDisposable[] disposables) : this((IEnumerable<IDisposable>)disposables)
+        public AggregateDisposable(params IDisposable?[] disposables) : this((IEnumerable<IDisposable?>)disposables)
         {
         }
 
@@ -49,11 +49,11 @@
         protected override void OnDispose()
         {
             List<Exception>? exceptions = null;
-            foreach (var disposer in _disposables)
+            foreach (var disposable in _disposables)
             {
                 try
                 {
-                    disposer?.Dispose();
+                    disposable?.Dispose();
                 }
                 catch (Exception ex)
                 {

@@ -10,18 +10,20 @@
 
 Commonly Used Types:
 System.AggregateDisposable
+System.AggregateAsyncDisposable
 System.AsyncDisposable
 Ssytem.AsyncEventHandler
 Ssytem.AsyncLifetime
 System.Disposable
 Ssytem.Lifetime
+System.Collections.ObjectModel.OrderedObservableCollection&lt;T&gt;
 System.ComponentModel.NotifyPropertyChanged
 System.Diagnostics.ProcessMonitor
 System.Threading.AsyncLock
 System.Threading.AsyncWaitHandle
 System.Threading.ReentrantAsyncLock
 System.Text.ValueStringBuilder</Description>
-    <Version>0.1.7</Version>
+    <Version>0.1.8</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
