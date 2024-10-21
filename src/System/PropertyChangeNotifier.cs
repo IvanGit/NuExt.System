@@ -1,6 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
-namespace System.ComponentModel
+namespace System
 {
     /// <summary>
     /// An abstract base class that provides property change notification functionality by implementing the 
@@ -8,25 +9,25 @@ namespace System.ComponentModel
     /// synchronization with a specified <see cref="SynchronizationContext"/> for UI-bound operations.
     /// </summary>
     [Serializable]
-    public abstract class NotifyPropertyChanged : INotifyPropertyChanged, IDispatcher
+    public abstract class PropertyChangeNotifier : INotifyPropertyChanged, IDispatcher
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="NotifyPropertyChanged"/> class 
+        /// Initializes a new instance of the <see cref="PropertyChangeNotifier"/> class 
         /// without a synchronization context.
         /// </summary>
-        protected NotifyPropertyChanged() : this(null)
+        protected PropertyChangeNotifier() : this(null)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NotifyPropertyChanged"/> class 
+        /// Initializes a new instance of the <see cref="PropertyChangeNotifier"/> class 
         /// with the specified synchronization context.
         /// </summary>
         /// <param name="synchronizationContext">
         /// An optional synchronization context to use for property change notifications. 
         /// If null, no synchronization context will be used.
         /// </param>
-        protected NotifyPropertyChanged(SynchronizationContext? synchronizationContext)
+        protected PropertyChangeNotifier(SynchronizationContext? synchronizationContext)
         {
             SynchronizationContext = synchronizationContext;
             Thread = Thread.CurrentThread;
@@ -92,15 +93,6 @@ namespace System.ComponentModel
         }
 
         /// <summary>
-        /// Compares two values for equality using the default equality comparer.
-        /// </summary>
-        /// <typeparam name="T">The type of the values to compare.</typeparam>
-        /// <param name="storage">The first value to compare.</param>
-        /// <param name="value">The second value to compare.</param>
-        /// <returns>True if the values are equal; otherwise, false.</returns>
-        private static bool CompareValues<T>(T storage, T value) => EqualityComparer<T>.Default.Equals(storage, value);
-
-        /// <summary>
         /// Gets the current subscribers of the PropertyChanged event.
         /// </summary>
         /// <returns>
@@ -126,25 +118,26 @@ namespace System.ComponentModel
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             var handler = PropertyChanged;
-            if (handler != null)
+            if (handler == null)
             {
-                var args = new PropertyChangedEventArgs(propertyName);
-                if (HasSynchronizationContext)
-                {
-                    SynchronizationContext!.Send(x =>
-                    {
-#if DEBUG_PROPERTIES
-                        Debug.WriteLine($"DEBUG - Property sending: {propertyName}");
-#endif
-                        PropertyChanged?.Invoke(this, (PropertyChangedEventArgs)x!);
-#if DEBUG_PROPERTIES
-                        Debug.WriteLine($"DEBUG - Property send: {propertyName}");
-#endif
-                    }, args);
-                    return;
-                }
-                handler(this, args);
+                return;
             }
+            var args = new PropertyChangedEventArgs(propertyName);
+            if (HasSynchronizationContext)
+            {
+                SynchronizationContext!.Send(x =>
+                {
+#if DEBUG_PROPERTIES
+                    Debug.WriteLine($"DEBUG - Property sending: {propertyName}");
+#endif
+                    PropertyChanged?.Invoke(this, (PropertyChangedEventArgs)x!);
+#if DEBUG_PROPERTIES
+                    Debug.WriteLine($"DEBUG - Property send: {propertyName}");
+#endif
+                }, args);
+                return;
+            }
+            handler(this, args);
         }
 
         /// <summary>
@@ -172,7 +165,7 @@ namespace System.ComponentModel
         /// <returns>True if the value was changed; otherwise, false.</returns>
         protected bool SetProperty<T>(ref T storage, T value, string? propertyName, Action? changedCallback)
         {
-            if (CompareValues(storage, value))
+            if (EqualityComparer<T>.Default.Equals(storage, value))
             {
                 return false;
             }
@@ -200,7 +193,7 @@ namespace System.ComponentModel
         /// <returns>True if the value was changed; otherwise, false.</returns>
         protected bool SetProperty<T>(ref T storage, T value, string? propertyName, Action<T>? changedCallback)
         {
-            if (CompareValues(storage, value))
+            if (EqualityComparer<T>.Default.Equals(storage, value))
             {
                 return false;
             }

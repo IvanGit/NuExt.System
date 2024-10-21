@@ -11,7 +11,7 @@ namespace System
     /// <remarks>
     /// This class implements the <see cref="IDisposable"/> interface and provides a mechanism 
     /// for synchronously releasing both managed and unmanaged resources. 
-    /// It also includes support for property change notifications by extending the <see cref="NotifyPropertyChanged"/> class.
+    /// It also includes support for property change notifications by extending the <see cref="PropertyChangeNotifier"/> class.
     /// 
     /// Note that this class has a finalizer, but it is generally undesirable for the finalizer to be called. 
     /// Ensure that <see cref="Dispose()"/> is properly invoked to suppress finalization.
@@ -23,7 +23,7 @@ namespace System
     /// </para>
     /// </remarks>
     [Serializable]
-    public abstract class Disposable : NotifyPropertyChanged, IDisposable
+    public abstract class Disposable : PropertyChangeNotifier, IDisposable
     {
         private bool _isDisposed;
         private bool _isDisposing;

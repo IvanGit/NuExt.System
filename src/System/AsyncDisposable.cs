@@ -10,7 +10,7 @@ namespace System
     /// <remarks>
     /// This class implements the <see cref="IAsyncDisposable"/> interface and provides a mechanism 
     /// for asynchronously releasing both managed and unmanaged resources.
-    /// It also includes support for property change notifications by extending the <see cref="NotifyPropertyChanged"/> class.
+    /// It also includes support for property change notifications by extending the <see cref="PropertyChangeNotifier"/> class.
     ///
     /// Note that this class has a finalizer, but it is generally undesirable for the finalizer to be called. 
     /// Ensure that <see cref="DisposeAsync"/> is properly invoked to suppress finalization.
@@ -22,7 +22,7 @@ namespace System
     /// </para>
     /// </remarks>
     [Serializable]
-    public abstract class AsyncDisposable : NotifyPropertyChanged, IAsyncDisposable
+    public abstract class AsyncDisposable : PropertyChangeNotifier, IAsyncDisposable
     {
         private bool _isDisposed;
         private bool _isDisposing;

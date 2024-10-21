@@ -16,14 +16,14 @@ Ssytem.AsyncEventHandler
 Ssytem.AsyncLifetime
 System.Disposable
 Ssytem.Lifetime
+System.PropertyChangeNotifier
 System.Collections.ObjectModel.OrderedObservableCollection&lt;T&gt;
-System.ComponentModel.NotifyPropertyChanged
 System.Diagnostics.ProcessMonitor
 System.Threading.AsyncLock
 System.Threading.AsyncWaitHandle
 System.Threading.ReentrantAsyncLock
 System.Text.ValueStringBuilder</Description>
-    <Version>0.1.8</Version>
+    <Version>0.1.9</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -38,13 +38,11 @@ System.Text.ValueStringBuilder</Description>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net462'">
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
     <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net462'">
-    <PackageReference Include="System.Text.Json" Version="8.0.4" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,7 +7,7 @@ namespace System.Diagnostics
     /// <summary>
     /// Monitors the performance of a specific process and provides formatted usage statistics.
     /// </summary>
-    public sealed class PerformanceMonitor: NotifyPropertyChanged
+    public sealed class PerformanceMonitor: PropertyChangeNotifier
     {
         private readonly ProcessMonitor _processMonitor;
         private readonly IFormatProvider? _formatProvider;

@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuExt.System.Tests
+﻿namespace NuExt.System.Tests
 {
-    public class NotifyPropertyChangedTests
+    public class PropertyChangeNotifierTests
     {
         [Test]
         public void PropertyChangedTTest()
@@ -28,7 +20,7 @@ namespace NuExt.System.Tests
             Assert.Pass();
         }
 
-        private class TestClass : NotifyPropertyChanged
+        private class TestClass : PropertyChangeNotifier
         {
             private ushort _uint16;
             public ushort Uint16

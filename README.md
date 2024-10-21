@@ -19,7 +19,7 @@
 - **`System.AsyncLifetime`**: Manages the lifecycle of asynchronous operations.
 - **`System.Disposable`**: Base implementation of `IDisposable`.
 - **`System.Lifetime`**: Manages the lifecycle of objects and resources.
-- **`System.ComponentModel.NotifyPropertyChanged`**: Implementation of `INotifyPropertyChanged`.
+- **`System.PropertyChangeNotifier`**: Implementation of `INotifyPropertyChanged`.
 - **`System.Diagnostics.ProcessMonitor`**: Real-time monitoring of CPU, memory and ThreadPool threads.
 - **`System.Threading.AsyncLock`**: Asynchronous lock for resource synchronization.
 - **`System.Threading.AsyncWaitHandle`**: Async wait handle with timeout and cancellation support.

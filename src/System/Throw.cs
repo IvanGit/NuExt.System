@@ -37,7 +37,6 @@ namespace System
             if (condition) throw new ArgumentException(message: message, paramName: conditionExpression);
         }
 
-#if NETFRAMEWORK || NETSTANDARD2_0_OR_GREATER
         /// <summary>
         /// Throws an <see cref="ArgumentNullException"/> if the given argument is null.
         /// </summary>
@@ -48,9 +47,7 @@ namespace System
         {
             _ = argument ?? throw new ArgumentNullException(paramName);
         }
-#endif
 
-#if NETFRAMEWORK || NET6_0 || NETSTANDARD2_0_OR_GREATER
         /// <summary>
         /// Throws an <see cref="ArgumentNullException"/> if the given string argument is null or an <see cref="ArgumentException"/> if it is empty.
         /// </summary>
@@ -65,7 +62,6 @@ namespace System
                 throw new ArgumentException("The value cannot be an empty string.", paramName);
             }
         }
-#endif
 
         /// <summary>
         /// Throws an <see cref="InvalidOperationException"/> with a specified message if the given condition is true.
