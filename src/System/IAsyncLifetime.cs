@@ -42,6 +42,14 @@
         void AddBracket(Action action, Action release);
 
         /// <summary>
+        /// Adds a pair of asynchronous actions: one to execute immediately (setup) and another to execute on asynchronous disposal (cleanup).
+        /// </summary>
+        /// <param name="action">The setup action to execute immediately.</param>
+        /// <param name="release">The cleanup action to execute upon asynchronous disposal.</param>
+        /// <exception cref="ArgumentNullException">Thrown if either action or release is null.</exception>
+        ValueTask AddBracketAsync(Func<ValueTask> action, Func<ValueTask> release);
+
+        /// <summary>
         /// Adds an <see cref="IDisposable"/> object to be disposed of when the <see cref="AsyncLifetime"/> instance is disposed asynchronously.
         /// </summary>
         /// <typeparam name="T">The type of the disposable object.</typeparam>

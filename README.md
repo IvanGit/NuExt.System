@@ -37,6 +37,8 @@ For comprehensive examples of how to use the package, see samples in the followi
 - [NuExt.System.Data.SQLite](https://github.com/IvanGit/NuExt.System.Data.SQLite)
 - [NuExt.DevExpress.Mvvm](https://github.com/IvanGit/NuExt.DevExpress.Mvvm)
 - [NuExt.DevExpress.Mvvm.MahApps.Metro](https://github.com/IvanGit/NuExt.DevExpress.Mvvm.MahApps.Metro)
+- [NuExt.Minimal.Mvvm.Windows](https://github.com/IvanGit/NuExt.Minimal.Mvvm.Windows)
+- [NuExt.Minimal.Mvvm.MahApps.Metro](https://github.com/IvanGit/NuExt.Minimal.Mvvm.MahApps.Metro)
 
 ### License
 

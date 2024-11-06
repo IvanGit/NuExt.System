@@ -9,6 +9,7 @@ namespace System
     /// <summary>
     /// Manages the asynchronous lifecycle of resources, ensuring that all registered cleanup actions are executed upon disposal.
     /// </summary>
+    [DebuggerStepThrough]
     public sealed class AsyncLifetime : IAsyncLifetime
     {
         private readonly List<Func<ValueTask>> _actions = new();
@@ -154,6 +155,29 @@ namespace System
         }
 
         /// <summary>
+        /// Adds a pair of asynchronous actions: one to be executed immediately (subscribe) and another to be executed during asynchronous disposal (unsubscribe).
+        /// </summary>
+        /// <param name="subscribe">The action to execute immediately.</param>
+        /// <param name="unsubscribe">The action to execute upon asynchronous disposal.</param>
+        /// <exception cref="ArgumentNullException">Thrown if either subscribe or unsubscribe is null.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add actions to a terminated <see cref="AsyncLifetime"/> instance.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async ValueTask AddBracketAsync(Func<ValueTask> subscribe, Func<ValueTask> unsubscribe)
+        {
+            Debug.Assert(subscribe != null, $"{nameof(subscribe)} is null");
+            Debug.Assert(unsubscribe != null, $"{nameof(unsubscribe)} is null");
+#if NET6_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(subscribe);
+            ArgumentNullException.ThrowIfNull(unsubscribe);
+#else
+            Throw.IfNull(subscribe);
+            Throw.IfNull(unsubscribe);
+#endif
+            await subscribe().ConfigureAwait(false);
+            AddAsync(unsubscribe);
+        }
+
+        /// <summary>
         /// Adds an <see cref="IDisposable"/> object to be disposed of when the <see cref="AsyncLifetime"/> instance is disposed asynchronously.
         /// </summary>
         /// <typeparam name="T">The type of the disposable object.</typeparam>
@@ -217,18 +241,28 @@ namespace System
         /// Ensures that all resources are released asynchronously.
         /// </summary>
         /// <returns>A ValueTask representing the asynchronous operation.</returns>
+        /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of added asynchronous actions.</exception>
         public async ValueTask DisposeAsync()
         {
             if (IsTerminated)
             {
                 return;
             }
+            List<Exception>? exceptions = null;
             await _syncLock.WaitAsync().ConfigureAwait(ContinueOnCapturedContext);
             try
             {
                 for (int i = _actions.Count - 1; i >= 0; i--)
                 {
-                    await _actions[i]().ConfigureAwait(ContinueOnCapturedContext);
+                    try
+                    {
+                        await _actions[i]().ConfigureAwait(ContinueOnCapturedContext);
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptions ??= new List<Exception>(i + 1);
+                        exceptions.Add(ex);
+                    }
                 }
                 _actions.Clear();
             }
@@ -237,6 +271,10 @@ namespace System
                 _syncLock.Release();
             }
             Debug.Assert(IsTerminated, $"{nameof(AsyncLifetime)} is not terminated");
+            if (exceptions is not null)
+            {
+                throw new AggregateException(exceptions);
+            }
         }
 
         #endregion

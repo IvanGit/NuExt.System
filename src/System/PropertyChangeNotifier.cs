@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace System
@@ -8,6 +9,7 @@ namespace System
     /// <see cref="INotifyPropertyChanged"/> interface. It also supports thread-safe property updates and 
     /// synchronization with a specified <see cref="SynchronizationContext"/> for UI-bound operations.
     /// </summary>
+    [DebuggerStepThrough]
     [Serializable]
     public abstract class PropertyChangeNotifier : INotifyPropertyChanged, IDispatcher
     {

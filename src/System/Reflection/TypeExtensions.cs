@@ -5,6 +5,43 @@ namespace System.Reflection
     public static class TypeExtensions
     {
         /// <summary>
+        /// Retrieves all fields of the given <paramref name="currentType"/> and its base types up to the specified <paramref name="baseType"/>, 
+        /// that match the specified condition <paramref name="match"/> and respect the provided binding flags <paramref name="flags"/>.
+        /// </summary>
+        /// <param name="currentType">The current type from which to start searching for fields.</param>
+        /// <param name="baseType">The base type up to which fields will be retrieved. Fields of this type will also be included.</param>
+        /// <param name="flags">The binding flags used to control the search for fields.</param>
+        /// <param name="match">A predicate that defines the conditions that fields must satisfy to be included in the result.</param>
+        /// <returns>A read-only list of fields that match the specified criteria.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="currentType"/>, <paramref name="baseType"/>, or <paramref name="match"/> is <c>null</c>.
+        /// </exception>
+        public static IReadOnlyList<FieldInfo> GetAllFields(this Type currentType, Type baseType, BindingFlags flags, Predicate<FieldInfo> match)
+        {
+            Debug.Assert(currentType != null && baseType != null && match != null);
+#if NET6_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(currentType);
+            ArgumentNullException.ThrowIfNull(baseType);
+            ArgumentNullException.ThrowIfNull(match);
+#else
+            Throw.IfNull(currentType);
+            Throw.IfNull(baseType);
+            Throw.IfNull(match);
+#endif
+            var list = new List<FieldInfo>();
+            Type? type = currentType;
+            while (type != null && type != typeof(object))
+            {
+                list.AddRange(type.GetFields(flags | BindingFlags.DeclaredOnly).Where(field => match(field)));
+                if (type == baseType)
+                    break;
+                type = type.BaseType;
+            }
+
+            return list;
+        }
+
+        /// <summary>
         /// Retrieves all properties of the given <paramref name="currentType"/> and its base types up to the specified <paramref name="baseType"/>, 
         /// that match the specified condition <paramref name="match"/> and respect the provided binding flags <paramref name="flags"/>.
         /// </summary>

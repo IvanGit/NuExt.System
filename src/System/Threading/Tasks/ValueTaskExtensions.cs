@@ -89,7 +89,7 @@
                 }
                 catch (Exception ex)
                 {
-                    exceptions ??= new List<Exception>(tasks.Count);
+                    exceptions ??= new List<Exception>(tasks.Count - i);
                     exceptions.Add(ex);
                 }
             }

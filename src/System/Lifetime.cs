@@ -9,6 +9,7 @@ namespace System
     /// <summary>
     /// Manages the lifecycle of resources and ensures that all registered cleanup actions are executed upon disposal.
     /// </summary>
+    [DebuggerStepThrough]
     public sealed class Lifetime : ILifetime
     {
         private readonly List<Action> _actions = new();
@@ -142,21 +143,35 @@ namespace System
         /// Executes all added actions in reverse order and marks the instance as terminated.
         /// Ensures that all resources are released properly.
         /// </summary>
+        /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of added actions.</exception>
         public void Dispose()
         {
             if (IsTerminated)
             {
                 return;
             }
+            List<Exception>? exceptions = null;
             lock (_actions)
             {
                 for (int i = _actions.Count - 1; i >= 0; i--)
                 {
-                    _actions[i]();
+                    try
+                    {
+                        _actions[i]();
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptions ??= new List<Exception>(i + 1);
+                        exceptions.Add(ex);
+                    }
                 }
                 _actions.Clear();
             }
             Debug.Assert(IsTerminated, $"{nameof(Lifetime)} is not terminated");
+            if (exceptions is not null)
+            {
+                throw new AggregateException(exceptions);
+            }
         }
 
         #endregion

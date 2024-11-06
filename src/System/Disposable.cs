@@ -22,6 +22,7 @@ namespace System
     /// may result in undefined behavior or exceptions.
     /// </para>
     /// </remarks>
+    [DebuggerStepThrough]
     [Serializable]
     public abstract class Disposable : PropertyChangeNotifier, IDisposable
     {
