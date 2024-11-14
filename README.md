@@ -26,6 +26,20 @@
 - **`System.Threading.ReentrantAsyncLock`**: Reentrant asynchronous lock.
 - **`System.Text.ValueStringBuilder`**: High-performance string builder (originally internal in .NET runtime, made public).
 
+### Installation
+
+You can install `NuExt.System` via [NuGet](https://www.nuget.org/):
+
+```sh
+dotnet add package NuExt.System
+```
+
+Or through the Visual Studio package manager:
+
+1. Go to `Tools -> NuGet Package Manager -> Manage NuGet Packages for Solution...`.
+2. Search for `NuExt.System`.
+3. Click "Install".
+
 ### Acknowledgements
 
 Includes code derived from the .NET Runtime, licensed under the MIT License. The `ValueStringBuilder` class was originally internal and has been adapted to be public.
