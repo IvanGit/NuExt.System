@@ -130,6 +130,7 @@ namespace System
         /// <summary>
         /// Raises the <see cref="PropertyChanged"/> event (per <see cref="INotifyPropertyChanged" />).
         /// </summary>
+        /// <param name="e">The event data containing the name of the property that changed.</param>
         protected void OnPropertyChanged(PropertyChangedEventArgs e)
         {
             var handler = PropertyChanged;
@@ -177,11 +178,40 @@ namespace System
         /// <typeparam name="T">The type of the property.</typeparam>
         /// <param name="storage">The backing field for the property.</param>
         /// <param name="value">The new value for the property.</param>
+        /// <param name="e">The event data containing the name of the property that changed.</param>
+        /// <returns>True if the value was changed; otherwise, false.</returns>
+        protected bool SetProperty<T>(ref T storage, T value, PropertyChangedEventArgs e)
+        {
+            return SetProperty(ref storage, value, e, out _);
+        }
+
+        /// <summary>
+        /// Sets the property and raises the <see cref="PropertyChanged"/> event if the value has changed.
+        /// </summary>
+        /// <typeparam name="T">The type of the property.</typeparam>
+        /// <param name="storage">The backing field for the property.</param>
+        /// <param name="value">The new value for the property.</param>
         /// <param name="propertyName">The name of the property. This optional parameter can be omitted because of CallerMemberName attribute.</param>
         /// <returns>True if the value was changed; otherwise, false.</returns>
         protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
         {
-            return SetProperty(ref storage, value, (Action?)null, propertyName);
+            return SetProperty(ref storage, value, propertyName, out _);
+        }
+
+        /// <summary>
+        /// Sets the property and raises the <see cref="PropertyChanged"/> event if the value has changed, and invokes a callback after the property is set.
+        /// </summary>
+        /// <typeparam name="T">The type of the property.</typeparam>
+        /// <param name="storage">The backing field for the property.</param>
+        /// <param name="value">The new value for the property.</param>
+        /// <param name="changedCallback">An optional callback to invoke after the property is set.</param>
+        /// <param name="e">The event data containing the name of the property that changed.</param>
+        /// <returns>True if the value was changed; otherwise, false.</returns>
+        protected bool SetProperty<T>(ref T storage, T value, Action? changedCallback, PropertyChangedEventArgs e)
+        {
+            if (!SetProperty(ref storage, value, e, out _)) return false;
+            changedCallback?.Invoke();
+            return true;
         }
 
         /// <summary>
@@ -207,6 +237,22 @@ namespace System
         /// <param name="storage">The backing field for the property.</param>
         /// <param name="value">The new value for the property.</param>
         /// <param name="changedCallback">An optional callback to invoke with the old value after the property is set.</param>
+        /// <param name="e">The event data containing the name of the property that changed.</param>
+        /// <returns>True if the value was changed; otherwise, false.</returns>
+        protected bool SetProperty<T>(ref T storage, T value, Action<T>? changedCallback, PropertyChangedEventArgs e)
+        {
+            if (!SetProperty(ref storage, value, e, out var oldValue)) return false;
+            changedCallback?.Invoke(oldValue);
+            return true;
+        }
+
+        /// <summary>
+        /// Sets the property and raises the <see cref="PropertyChanged"/> event if the value has changed, and invokes a callback with the old value after the property is set.
+        /// </summary>
+        /// <typeparam name="T">The type of the property.</typeparam>
+        /// <param name="storage">The backing field for the property.</param>
+        /// <param name="value">The new value for the property.</param>
+        /// <param name="changedCallback">An optional callback to invoke with the old value after the property is set.</param>
         /// <param name="propertyName">The name of the property. This optional parameter can be omitted because of CallerMemberName attribute.</param>
         /// <returns>True if the value was changed; otherwise, false.</returns>
         protected bool SetProperty<T>(ref T storage, T value, Action<T>? changedCallback, [CallerMemberName] string? propertyName = null)
@@ -217,7 +263,28 @@ namespace System
         }
 
         /// <summary>
-        /// Sets the property, raises the <see cref="PropertyChanged"/> event, and outputs the old value if the value has changed.
+        /// Sets the property, raises the <see cref="PropertyChanged"/> event, and allows cancellation through the <see cref="CanSetProperty{T}"/> method, and outputs the old value if the value has changed.
+        /// </summary>
+        /// <typeparam name="T">The type of the property.</typeparam>
+        /// <param name="storage">The backing field for the property.</param>
+        /// <param name="value">The new value for the property.</param>
+        /// <param name="e">The event data containing the name of the property that changed.</param>
+        /// <param name="oldValue">Outputs the old value of the property before it was changed.</param>
+        /// <returns>True if the value was changed; otherwise, false.</returns>
+        protected bool SetProperty<T>(ref T storage, T value, PropertyChangedEventArgs e, out T oldValue)
+        {
+            oldValue = storage;
+            if (EqualityComparer<T>.Default.Equals(storage, value) || !CanSetProperty(oldValue, value, e.PropertyName))
+            {
+                return false;
+            }
+            storage = value;
+            OnPropertyChanged(e);
+            return true;
+        }
+
+        /// <summary>
+        /// Sets the property, raises the <see cref="PropertyChanged"/> event, and allows cancellation through the <see cref="CanSetProperty{T}"/> method, and outputs the old value if the value has changed.
         /// </summary>
         /// <typeparam name="T">The type of the property.</typeparam>
         /// <param name="storage">The backing field for the property.</param>

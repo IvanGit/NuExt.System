@@ -23,7 +23,7 @@ System.Threading.AsyncLock
 System.Threading.AsyncWaitHandle
 System.Threading.ReentrantAsyncLock
 System.Text.ValueStringBuilder</Description>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -34,7 +34,7 @@ System.Text.ValueStringBuilder</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="$(MSBuildProjectName).Tests" Key="00240000048000009400000006020000002400005253413100040000010001006fe78604a88c4435cd66f3783ab59c2a7cc5f1f20103d9274026db1aafd95fb317561a5cb328cbc43a2904e476382661c08fe9381e1f8ca562759b0040e2a648158be90ab2fbf35a7cd7a0db2f8d6c6774129f84bdf098b75c7fc61431c035ad0fc068185e70b1bd775c0b770e87f8cbf01559ab55146c9f4ecc8ebdaa85e5c0" />
+    <InternalsVisibleTo Include="$(MSBuildProjectName).Tests" Key="0024000004800000940000000602000000240000525341310004000001000100b789a2ca53134810a04b9629da17625466eca3b89758bedfe43ebb1ed321c10eb969c265dbfe73e8fa34a63a30246654a4db84f23112d88b7f2a61573784f338af6d225b994a3ff0aa17db7faadb09edda35a28a5569a7e389fa501a23215d30987200702b22b86b36becc3780770256448a230c38bbdc0ba30fb21faeae5fbc" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net462'">

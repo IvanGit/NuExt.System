@@ -1,7 +1,7 @@
 <Project>
   <!-- Project properties -->
   <PropertyGroup>
-    <LangVersion>11</LangVersion>
+    <LangVersion>12</LangVersion>
   </PropertyGroup>
 
   <!-- NuGet -->
