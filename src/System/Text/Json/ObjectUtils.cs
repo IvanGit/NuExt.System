@@ -71,7 +71,7 @@ namespace System.Text.Json
                     if (type == null)
                     {
                         additionalData ??= [];
-                        additionalData[name] = value;
+                        additionalData[name] = value.Clone();
                         continue;
                     }
                     try
