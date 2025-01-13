@@ -145,7 +145,7 @@ namespace System.IO
         /// <returns>The trimmed file name.</returns>
         public static string SmartTrimFileName(string fileName, int limitSize)
         {
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(fileName);
 #else
             Throw.IfNull(fileName);

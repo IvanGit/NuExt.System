@@ -14,7 +14,7 @@
         /// Collapses the object by setting the <see cref="IsExpanded"/> property to <c>false</c>.
         /// </summary>
 
-#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET
         public void Collapse()
         {
             IsExpanded = false;
@@ -27,7 +27,7 @@
         /// Expands the object by setting the <see cref="IsExpanded"/> property to <c>true</c>.
         /// </summary>
 
-#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET
         public void Expand()
         {
             IsExpanded = true;
