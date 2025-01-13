@@ -32,7 +32,7 @@ namespace System.Text
 
         public int Length
         {
-            get => _pos;
+            readonly get => _pos;
             set
             {
                 Debug.Assert(value >= 0);
@@ -41,7 +41,7 @@ namespace System.Text
             }
         }
 
-        public int Capacity => _chars.Length;
+        public readonly int Capacity => _chars.Length;
 
         public void EnsureCapacity(int capacity)
         {
@@ -59,7 +59,7 @@ namespace System.Text
         /// This overload is pattern matched in the C# 7.3+ compiler so you can omit
         /// the explicit method call, and write eg "fixed (char* c = builder)"
         /// </summary>
-        public ref char GetPinnableReference()
+        public readonly ref char GetPinnableReference()
         {
             return ref MemoryMarshal.GetReference(_chars);
         }
@@ -95,7 +95,7 @@ namespace System.Text
         }
 
         /// <summary>Returns the underlying storage of the builder.</summary>
-        public Span<char> RawChars => _chars;
+        public readonly Span<char> RawChars => _chars;
 
         /// <summary>
         /// Returns a span around the contents of the builder.
@@ -111,11 +111,11 @@ namespace System.Text
             return _chars.Slice(0, _pos);
         }
 
-        public ReadOnlySpan<char> AsSpan() => _chars.Slice(0, _pos);
-        public ReadOnlySpan<char> AsSpan(int start) => _chars.Slice(start, _pos - start);
-        public ReadOnlySpan<char> AsSpan(int start, int length) => _chars.Slice(start, length);
+        public readonly ReadOnlySpan<char> AsSpan() => _chars.Slice(0, _pos);
+        public readonly ReadOnlySpan<char> AsSpan(int start) => _chars.Slice(start, _pos - start);
+        public readonly ReadOnlySpan<char> AsSpan(int start, int length) => _chars.Slice(start, length);
 
-        public bool TryCopyTo(Span<char> destination, out int charsWritten)
+        public bool TryCopyTo(scoped Span<char> destination, out int charsWritten)
         {
             if (_chars.Slice(0, _pos).TryCopyTo(destination))
             {

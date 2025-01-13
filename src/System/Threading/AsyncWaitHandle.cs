@@ -14,7 +14,7 @@
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="waitObject"/> is null.</exception>
         public AsyncWaitHandle(WaitHandle waitObject)
         {
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(waitObject);
 #else
             Throw.IfNull(waitObject);

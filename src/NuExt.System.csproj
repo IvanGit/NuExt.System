@@ -19,11 +19,13 @@ Ssytem.Lifetime
 System.PropertyChangeNotifier
 System.Collections.ObjectModel.OrderedObservableCollection&lt;T&gt;
 System.Diagnostics.ProcessMonitor
+System.IO.PathBuilder
+System.IO.ValuePathBuilder
+System.Text.ValueStringBuilder
 System.Threading.AsyncLock
 System.Threading.AsyncWaitHandle
-System.Threading.ReentrantAsyncLock
-System.Text.ValueStringBuilder</Description>
-    <Version>0.2.3</Version>
+System.Threading.ReentrantAsyncLock</Description>
+    <Version>0.3.0</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -31,6 +33,14 @@ System.Text.ValueStringBuilder</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>logo128.png</PackageIcon>
     <PackageProjectUrl>https://github.com/IvanGit/NuExt.System</PackageProjectUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0' or '$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net6.0'">
+    <DefineConstants>$(DefineConstants);NET</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net462'">
+    <DefineConstants>$(DefineConstants);NET_OLD</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

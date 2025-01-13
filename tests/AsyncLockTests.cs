@@ -41,7 +41,7 @@
             Assert.Pass();
         }
 
-        private void Run( CancellationToken cancellationToken = default)
+        private void Run(CancellationToken cancellationToken = default)
         {
             using (_asyncLock.Lock(cancellationToken))
             {

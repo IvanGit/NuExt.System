@@ -19,7 +19,7 @@ namespace System.Reflection
         public static IReadOnlyList<FieldInfo> GetAllFields(this Type currentType, Type baseType, BindingFlags flags, Predicate<FieldInfo> match)
         {
             Debug.Assert(currentType != null && baseType != null && match != null);
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(currentType);
             ArgumentNullException.ThrowIfNull(baseType);
             ArgumentNullException.ThrowIfNull(match);
@@ -56,7 +56,7 @@ namespace System.Reflection
         public static IReadOnlyList<PropertyInfo> GetAllProperties(this Type currentType, Type baseType, BindingFlags flags, Predicate<PropertyInfo> match)
         {
             Debug.Assert(currentType != null && baseType != null && match != null);
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(currentType);
             ArgumentNullException.ThrowIfNull(baseType);
             ArgumentNullException.ThrowIfNull(match);
@@ -92,7 +92,7 @@ namespace System.Reflection
         public static IReadOnlyList<PropertyInfo> GetAllProperties(this Type currentType, Type baseType, BindingFlags flags)
         {
             Debug.Assert(currentType != null && baseType != null);
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(currentType);
             ArgumentNullException.ThrowIfNull(baseType);
 #else

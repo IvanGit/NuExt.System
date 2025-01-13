@@ -12,7 +12,7 @@ namespace System
     [DebuggerStepThrough]
     public sealed class AsyncLifetime : IAsyncLifetime
     {
-        private readonly List<Func<ValueTask>> _actions = new();
+        private readonly List<Func<ValueTask>> _actions = [];
         private readonly SemaphoreSlim _syncLock = new(1, 1);
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace System
         public void Add(Action action)
         {
             Debug.Assert(action != null, $"{nameof(action)} is null");
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(action);
 #else
             Throw.IfNull(action);
@@ -93,7 +93,7 @@ namespace System
         public void AddAsync(Func<ValueTask> action)
         {
             Debug.Assert(action != null, $"{nameof(action)} is null");
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(action);
 #else
             Throw.IfNull(action);
@@ -122,7 +122,7 @@ namespace System
         public T AddAsyncDisposable<T>(T disposable) where T : IAsyncDisposable
         {
             Debug.Assert(disposable != null, $"{nameof(disposable)} is null");
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(disposable);
 #else
             Throw.IfNull(disposable);
@@ -143,7 +143,7 @@ namespace System
         {
             Debug.Assert(subscribe != null, $"{nameof(subscribe)} is null");
             Debug.Assert(unsubscribe != null, $"{nameof(unsubscribe)} is null");
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(subscribe);
             ArgumentNullException.ThrowIfNull(unsubscribe);
 #else
@@ -166,7 +166,7 @@ namespace System
         {
             Debug.Assert(subscribe != null, $"{nameof(subscribe)} is null");
             Debug.Assert(unsubscribe != null, $"{nameof(unsubscribe)} is null");
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(subscribe);
             ArgumentNullException.ThrowIfNull(unsubscribe);
 #else
@@ -189,7 +189,7 @@ namespace System
         public T AddDisposable<T>(T disposable) where T : IDisposable
         {
             Debug.Assert(disposable != null, $"{nameof(disposable)} is null");
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(disposable);
 #else
             Throw.IfNull(disposable);
@@ -210,7 +210,7 @@ namespace System
         public T AddRef<T>(T obj) where T : class
         {
             Debug.Assert(obj != null, $"{nameof(obj)} is null");
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(obj);
 #else
             Throw.IfNull(obj);

@@ -31,7 +31,7 @@
         /// <returns>A task that represents the completion of all provided tasks. If any of the tasks fail, an AggregateException is thrown.</returns>
         public static ValueTask<T[]> WhenAll<T>(this IEnumerable<ValueTask<T>> tasks, bool continueOnCapturedContext)
         {
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(tasks);
 #else
             Throw.IfNull(tasks);
@@ -68,14 +68,16 @@
         /// <returns>A task that represents the completion of all provided tasks. If any of the tasks fail, an AggregateException is thrown.</returns>
         public static async ValueTask<T[]> WhenAll<T>(this IReadOnlyList<ValueTask<T>> tasks, bool continueOnCapturedContext)
         {
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(tasks);
 #else
             Throw.IfNull(tasks);
 #endif
 
             if (tasks.Count == 0)
-                return Array.Empty<T>();
+            {
+                return [];
+            }
 
             // We don't allocate the list if no task throws
             List<Exception>? exceptions = null;

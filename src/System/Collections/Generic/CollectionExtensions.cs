@@ -37,7 +37,7 @@ namespace System.Collections.Generic
         /// <exception cref="ArgumentNullException">Thrown when the items parameter is null.</exception>
         public static IEnumerable<T> FastReverse<T>(this IList<T> items)
         {
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(items);
 #else
             Throw.IfNull(items);
@@ -58,7 +58,7 @@ namespace System.Collections.Generic
         public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
         {
             Debug.Assert(source != null && action != null);
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(action);
 #else
@@ -82,7 +82,7 @@ namespace System.Collections.Generic
         public static int IndexOf<T>(this IEnumerable<T> source, Predicate<T> match)
         {
             Debug.Assert(source != null && match != null);
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(match);
 #else
@@ -113,7 +113,7 @@ namespace System.Collections.Generic
         public static int FindIndexOfMax<T, TV>(this IList<T> source, Func<T, TV> selector) where TV : IComparable
         {
             Debug.Assert(source != null && selector != null);
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(selector);
 #else
@@ -151,7 +151,7 @@ namespace System.Collections.Generic
         public static void DisposeAndClear<T>(this ICollection<T> self) where T : IDisposable?
         {
             Debug.Assert(self != null);
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(self);
 #else
             Throw.IfNull(self);
@@ -177,7 +177,7 @@ namespace System.Collections.Generic
         public static async ValueTask DisposeAndClearAsync<T>(this ICollection<T> self, bool continueOnCapturedContext = false) where T : IAsyncDisposable?
         {
             Debug.Assert(self != null);
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(self);
 #else
             Throw.IfNull(self);

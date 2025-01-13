@@ -26,6 +26,21 @@ namespace System
         }
 
         /// <summary>
+        /// Throws an <see cref="ArgumentOutOfRangeException"/> with a specified parameter name and optional message if the given condition is true.
+        /// </summary>
+        /// <param name="condition">The condition that determines whether to throw the exception.</param>
+        /// <param name="paramName">The name of the parameter that caused the exception.</param>
+        /// <param name="message">The optional message that describes the error.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ArgumentOutOfRangeExceptionIf(bool condition, string? paramName, string? message = null)
+        {
+            if (condition)
+            {
+                throw !string.IsNullOrEmpty(message) ? new ArgumentOutOfRangeException(paramName, message) : new ArgumentOutOfRangeException(paramName);
+            }
+        }
+
+        /// <summary>
         /// Throws an <see cref="ArgumentException"/> with a specified message if the given condition is true.
         /// </summary>
         /// <param name="condition">The condition that determines whether to throw the exception.</param>

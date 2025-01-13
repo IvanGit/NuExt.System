@@ -51,7 +51,7 @@ namespace System.Text.Json
             {
                 return;
             }
-#if NET6_0_OR_GREATER
+#if NET
             ArgumentNullException.ThrowIfNull(getObjectType);
             ArgumentNullException.ThrowIfNull(setValue);
 #else

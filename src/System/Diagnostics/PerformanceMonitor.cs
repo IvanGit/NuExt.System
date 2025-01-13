@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-using System.Globalization;
-using System.Text;
+﻿using System.Text;
 
 namespace System.Diagnostics
 {
@@ -40,9 +38,54 @@ namespace System.Diagnostics
         }
 
         /// <summary>
+        /// CPU usage format string.
+        /// </summary>
+        public string FormatCpuUsage { get; set; } = "CPU: {0:N1} %";
+
+        /// <summary>
+        /// Memory usage format string.
+        /// </summary>
+        public string FormatMemoryUsage { get; set; } = "MEM: {0}";
+
+        /// <summary>
+        /// Peak memory usage format string.
+        /// </summary>
+        public string FormatPeakMemoryUsage { get; set; } = "PMEM: {0}";
+
+        /// <summary>
+        /// Managed memory usage format string.
+        /// </summary>
+        public string FormatManagedMemory { get; set; } = "GC: {0}";
+
+        /// <summary>
+        /// Peak managed memory usage format string.
+        /// </summary>
+        public string FormatPeakManagedMemory { get; set; } = "PGC: {0}";
+
+        /// <summary>
+        /// Thread info format string.
+        /// </summary>
+        public string FormatThreads { get; set; } = "WRK: {0}/{1}";
+
+        /// <summary>
         /// Gets the process being monitored.
         /// </summary>
         public Process Process { get; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to show CPU usage.
+        /// </summary>
+        public bool ShowCpuUsage { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to show Memory usage.
+        /// </summary>
+        public bool ShowMemoryUsage { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to show peak memory usage.
+        /// </summary>
+        public bool ShowPeakMemoryUsage { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to show managed memory usage.
@@ -53,11 +96,6 @@ namespace System.Diagnostics
         /// Gets or sets a value indicating whether to show peak managed memory usage.
         /// </summary>
         public bool ShowPeakManagedMemory { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to show peak memory usage.
-        /// </summary>
-        public bool ShowPeakMemoryUsage { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to show thread info.
@@ -83,29 +121,47 @@ namespace System.Diagnostics
                     var cpuUsage = _processMonitor.GetCpuUsage();
                     var memoryUsage = _processMonitor.GetCurrentMemoryUsage();
                     sb.Clear();
-                    sb.AppendFormat(_formatProvider, "CPU: {0:N1} %, MEM: {1}", cpuUsage, FormatUtils.FormatSize(_formatProvider, memoryUsage));
+                    string delimiter = string.Empty;
+                    if (ShowCpuUsage)
+                    {
+                        sb.Append(delimiter);
+                        sb.AppendFormat(_formatProvider, FormatCpuUsage, cpuUsage);
+                        delimiter = ", ";
+                    }
+                    if (ShowMemoryUsage)
+                    {
+                        sb.Append(delimiter);
+                        sb.AppendFormat(_formatProvider, FormatMemoryUsage, FormatUtils.FormatSize(_formatProvider, memoryUsage));
+                        delimiter = ", ";
+                    }
                     if (ShowPeakMemoryUsage)
                     {
-                        sb.AppendFormat(_formatProvider, ", PMEM: {0}", FormatUtils.FormatSize(_formatProvider, _processMonitor.GetPeakMemoryUsage()));
+                        sb.Append(delimiter);
+                        sb.AppendFormat(_formatProvider, FormatPeakMemoryUsage, FormatUtils.FormatSize(_formatProvider, _processMonitor.GetPeakMemoryUsage()));
+                        delimiter = ", ";
                     }
                     if (ShowManagedMemory)
                     {
                         var gcTotalMemory = GC.GetTotalMemory(false);
-                        sb.AppendFormat(_formatProvider, ", GC: {0}", FormatUtils.FormatSize(_formatProvider, gcTotalMemory));
+                        sb.Append(delimiter);
+                        sb.AppendFormat(_formatProvider, FormatManagedMemory, FormatUtils.FormatSize(_formatProvider, gcTotalMemory));
+                        delimiter = ", ";
                         if (gcTotalMemory > peakGcMemory)
                         {
                             peakGcMemory = gcTotalMemory;
                         }
                         if (ShowPeakManagedMemory)
                         {
-                            sb.AppendFormat(_formatProvider, ", PGC: {0}", FormatUtils.FormatSize(_formatProvider, peakGcMemory));
+                            sb.Append(delimiter);
+                            sb.AppendFormat(_formatProvider, FormatPeakManagedMemory, FormatUtils.FormatSize(_formatProvider, peakGcMemory));
                         }
                     }
                     if (ShowThreads)
                     {
                         var threadCount = _processMonitor.GetThreadCount();
                         var workerCount = _processMonitor.GetBusyWorkerThreads();
-                        sb.AppendFormat(_formatProvider, ", WRK: {0}/{1}", workerCount, threadCount);
+                        sb.Append(delimiter);
+                        sb.AppendFormat(_formatProvider, FormatThreads, workerCount, threadCount);
                     }
                     FormattedUsage = sb.ToString();
                 }
@@ -116,7 +172,7 @@ namespace System.Diagnostics
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error in QueuesAsync: {ex.Message}");
+                Trace.WriteLine($"Error in QueuesAsync: {ex.Message}");
                 Debug.Assert(false, ex.Message);
             }
         }

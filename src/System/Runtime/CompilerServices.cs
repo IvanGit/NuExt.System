@@ -5,14 +5,9 @@ namespace System.Runtime.CompilerServices;
 #if NETFRAMEWORK || NETSTANDARD
 
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
-public sealed class CallerArgumentExpressionAttribute : Attribute
+public sealed class CallerArgumentExpressionAttribute(string parameterName) : Attribute
 {
-    public CallerArgumentExpressionAttribute(string parameterName)
-    {
-        ParameterName = parameterName;
-    }
-
-    public string ParameterName { get; }
+    public string ParameterName { get; } = parameterName;
 }
 
 /// <summary>Reserved to be used by the compiler for tracking metadata.
@@ -38,17 +33,13 @@ public sealed class RequiredMemberAttribute : Attribute
 /// Indicates that compiler support for a particular feature is required for the location where this attribute is applied.
 /// </summary>
 [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
-public sealed class CompilerFeatureRequiredAttribute : Attribute
+public sealed class CompilerFeatureRequiredAttribute(string featureName) : Attribute
 {
-    public CompilerFeatureRequiredAttribute(string featureName)
-    {
-        FeatureName = featureName;
-    }
 
     /// <summary>
     /// The name of the compiler feature.
     /// </summary>
-    public string FeatureName { get; }
+    public string FeatureName { get; } = featureName;
 
     /// <summary>
     /// If true, the compiler can choose to allow access to the location where this attribute is applied if it does not understand <see cref="FeatureName"/>.

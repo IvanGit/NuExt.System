@@ -25,6 +25,8 @@
 - **`System.Threading.AsyncWaitHandle`**: Async wait handle with timeout and cancellation support.
 - **`System.Threading.ReentrantAsyncLock`**: Reentrant asynchronous lock.
 - **`System.Text.ValueStringBuilder`**: High-performance string builder (originally internal in .NET runtime, made public).
+- **`System.IO.PathBuilder`**: Builder for constructing paths.
+- **`System.IO.ValuePathBuilder`**: High-performance builder for constructing paths.
 
 ### Installation
 
