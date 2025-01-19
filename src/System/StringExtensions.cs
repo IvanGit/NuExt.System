@@ -1,9 +1,75 @@
 ﻿using System.Globalization;
+using System.Text;
 
 namespace System
 {
     public static class StringExtensions
     {
+#if !NET
+        public static string Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1)
+        {
+            int length = checked(str0.Length + str1.Length);
+            if (length == 0)
+            {
+                return string.Empty;
+            }
+
+            var builder = new ValueStringBuilder(length);
+            builder.Append(str0);
+            builder.Append(str1);
+            return builder.ToString();
+        }
+
+        public static string Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
+        {
+            int length = checked(str0.Length + str1.Length + str2.Length);
+            if (length == 0)
+            {
+                return string.Empty;
+            }
+
+            var builder = new ValueStringBuilder(length);
+            builder.Append(str0);
+            builder.Append(str1);
+            builder.Append(str2);
+            return builder.ToString();
+        }
+
+        public static string Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2, ReadOnlySpan<char> str3)
+        {
+            int length = checked(str0.Length + str1.Length + str2.Length + str3.Length);
+            if (length == 0)
+            {
+                return string.Empty;
+            }
+
+            var builder = new ValueStringBuilder(length);
+            builder.Append(str0);
+            builder.Append(str1);
+            builder.Append(str2);
+            builder.Append(str3);
+            return builder.ToString();
+        }
+
+#endif
+
+        public static string Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2, ReadOnlySpan<char> str3, ReadOnlySpan<char> str4)
+        {
+            int length = checked(str0.Length + str1.Length + str2.Length + str3.Length + str4.Length);
+            if (length == 0)
+            {
+                return string.Empty;
+            }
+
+            var builder = new ValueStringBuilder(length);
+            builder.Append(str0);
+            builder.Append(str1);
+            builder.Append(str2);
+            builder.Append(str3);
+            builder.Append(str4);
+            return builder.ToString();
+        }
+
 #if NET_OLD
         /// <summary>
         /// Determines whether this string instance contains a specified character.

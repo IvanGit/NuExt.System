@@ -1,5 +1,6 @@
 ﻿#define DEBUG_VALIDATE
 using System.Diagnostics;
+using static System.Diagnostics.Debug;
 
 namespace System.Threading
 {
@@ -11,25 +12,25 @@ namespace System.Threading
 #if !DEBUG_VALIDATE
             return;
 #endif
-            Debug.WriteLineIf(!IsEntered, $"{nameof(IsEntered)}={IsEntered}");
-            Debug.Assert(IsEntered, $"{nameof(IsEntered)}={IsEntered}");
+            WriteLineIf(!IsEntered, $"{nameof(IsEntered)}={IsEntered}");
+            Assert(IsEntered, $"{nameof(IsEntered)}={IsEntered}");
 
-            Debug.WriteLineIf(LocalId != CurrentId, $"{nameof(LocalId)}={LocalId} != {nameof(CurrentId)}={CurrentId}");
-            Debug.Assert(LocalId == CurrentId, $"{nameof(LocalId)}={LocalId} != {nameof(CurrentId)}={CurrentId}");
+            WriteLineIf(LocalId != CurrentId, $"{nameof(LocalId)}={LocalId} != {nameof(CurrentId)}={CurrentId}");
+            Assert(LocalId == CurrentId, $"{nameof(LocalId)}={LocalId} != {nameof(CurrentId)}={CurrentId}");
 
-            Debug.WriteLineIf(CurrentCount <= 0, $"{nameof(CurrentCount)}={CurrentCount}");
-            Debug.Assert(CurrentCount > 0, $"{nameof(CurrentCount)}={CurrentCount}");
+            WriteLineIf(CurrentCount <= 0, $"{nameof(CurrentCount)}={CurrentCount}");
+            Assert(CurrentCount > 0, $"{nameof(CurrentCount)}={CurrentCount}");
 
-            Debug.Assert(isReentrant && CurrentCount > 1 || !isReentrant && CurrentCount == 1);
+            Assert(isReentrant && CurrentCount > 1 || !isReentrant && CurrentCount == 1);
 
-            Debug.WriteLineIf(!ReferenceEquals(SyncRoot, syncRoot), $"{nameof(SyncRoot)}({SyncRoot?.GetHashCode()}) != {syncRoot}({syncRoot?.GetHashCode()})");
-            Debug.Assert(ReferenceEquals(SyncRoot, syncRoot), $"{nameof(SyncRoot)}({SyncRoot?.GetHashCode()}) != {syncRoot}({syncRoot?.GetHashCode()})");
+            WriteLineIf(!ReferenceEquals(SyncRoot, syncRoot), $"{nameof(SyncRoot)}({SyncRoot?.GetHashCode()}) != {syncRoot}({syncRoot?.GetHashCode()})");
+            Assert(ReferenceEquals(SyncRoot, syncRoot), $"{nameof(SyncRoot)}({SyncRoot?.GetHashCode()}) != {syncRoot}({syncRoot?.GetHashCode()})");
 
-            Debug.WriteLineIf(SyncRoot == null, $"{nameof(SyncRoot)} is null");
-            Debug.Assert(SyncRoot != null, $"{nameof(SyncRoot)} is null");
+            WriteLineIf(SyncRoot == null, $"{nameof(SyncRoot)} is null");
+            Assert(SyncRoot != null, $"{nameof(SyncRoot)} is null");
 
-            Debug.WriteLineIf(SyncRoot?.CurrentCount != 1, $"{nameof(SyncRoot)}.CurrentCount={SyncRoot?.CurrentCount}");
-            Debug.Assert(SyncRoot?.CurrentCount == 1, $"{nameof(SyncRoot)}.CurrentCount={SyncRoot?.CurrentCount}");
+            WriteLineIf(SyncRoot?.CurrentCount != 1, $"{nameof(SyncRoot)}.CurrentCount={SyncRoot?.CurrentCount}");
+            Assert(SyncRoot?.CurrentCount == 1, $"{nameof(SyncRoot)}.CurrentCount={SyncRoot?.CurrentCount}");
         }
 
         [Conditional("DEBUG")]
@@ -38,14 +39,14 @@ namespace System.Threading
 #if !DEBUG_VALIDATE
             return;
 #endif
-            Debug.WriteLineIf(CurrentId != 0, $"{nameof(CurrentId)}={CurrentId}");
-            Debug.Assert(CurrentId == 0, $"{nameof(CurrentId)}={CurrentId}");
+            WriteLineIf(CurrentId != 0, $"{nameof(CurrentId)}={CurrentId}");
+            Assert(CurrentId == 0, $"{nameof(CurrentId)}={CurrentId}");
 
-            Debug.WriteLineIf(CurrentCount != 0, $"{nameof(CurrentCount)}={CurrentCount}");
-            Debug.Assert(CurrentCount == 0, $"{nameof(CurrentCount)}={CurrentCount}");
+            WriteLineIf(CurrentCount != 0, $"{nameof(CurrentCount)}={CurrentCount}");
+            Assert(CurrentCount == 0, $"{nameof(CurrentCount)}={CurrentCount}");
 
-            Debug.WriteLineIf(SyncRoot != null, $"{nameof(SyncRoot)} is not null");
-            Debug.Assert(SyncRoot == null, $"{nameof(SyncRoot)} is not null");
+            WriteLineIf(SyncRoot != null, $"{nameof(SyncRoot)} is not null");
+            Assert(SyncRoot == null, $"{nameof(SyncRoot)} is not null");
         }
 
         [Conditional("DEBUG")]
@@ -54,11 +55,11 @@ namespace System.Threading
 #if !DEBUG_VALIDATE
             return;
 #endif
-            Debug.WriteLineIf(isReentrant, $"{nameof(isReentrant)}={isReentrant}");
-            Debug.Assert(!isReentrant, $"{nameof(isReentrant)}={isReentrant}");
+            WriteLineIf(isReentrant, $"{nameof(isReentrant)}={isReentrant}");
+            Assert(!isReentrant, $"{nameof(isReentrant)}={isReentrant}");
 
-            Debug.WriteLineIf(syncRoot != null, $"{nameof(syncRoot)} is not null");
-            Debug.Assert(syncRoot == null, $"{nameof(syncRoot)} is not null");
+            WriteLineIf(syncRoot != null, $"{nameof(syncRoot)} is not null");
+            Assert(syncRoot == null, $"{nameof(syncRoot)} is not null");
         }
 
         [Conditional("DEBUG")]
@@ -67,14 +68,14 @@ namespace System.Threading
 #if !DEBUG_VALIDATE
             return;
 #endif
-            Debug.WriteLineIf(!IsEntered, $"{nameof(IsEntered)}={IsEntered}");
-            Debug.Assert(IsEntered, $"{nameof(IsEntered)}={IsEntered}");
+            WriteLineIf(!IsEntered, $"{nameof(IsEntered)}={IsEntered}");
+            Assert(IsEntered, $"{nameof(IsEntered)}={IsEntered}");
 
-            Debug.WriteLineIf(CurrentCount <= 0, $"{nameof(CurrentCount)}={CurrentCount}");
-            Debug.Assert(CurrentCount > 0, $"{nameof(CurrentCount)}={CurrentCount}");
+            WriteLineIf(CurrentCount <= 0, $"{nameof(CurrentCount)}={CurrentCount}");
+            Assert(CurrentCount > 0, $"{nameof(CurrentCount)}={CurrentCount}");
 
-            Debug.WriteLineIf(SyncRoot == null, $"{nameof(SyncRoot)} is null");
-            Debug.Assert(SyncRoot != null, $"{nameof(SyncRoot)} is null");
+            WriteLineIf(SyncRoot == null, $"{nameof(SyncRoot)} is null");
+            Assert(SyncRoot != null, $"{nameof(SyncRoot)} is null");
         }
 
         [Conditional("DEBUG")]
@@ -83,11 +84,11 @@ namespace System.Threading
 #if !DEBUG_VALIDATE
             return;
 #endif
-            Debug.WriteLineIf(!isReentrant, $"{nameof(isReentrant)}={isReentrant}");
-            Debug.Assert(isReentrant, $"{nameof(isReentrant)}={isReentrant}");
+            WriteLineIf(!isReentrant, $"{nameof(isReentrant)}={isReentrant}");
+            Assert(isReentrant, $"{nameof(isReentrant)}={isReentrant}");
 
-            Debug.WriteLineIf(syncRoot?.CurrentCount != 0, $"{nameof(syncRoot)}.CurrentCount={syncRoot?.CurrentCount}");
-            Debug.Assert(syncRoot?.CurrentCount == 0, $"{nameof(syncRoot)}.CurrentCount={syncRoot?.CurrentCount}");
+            WriteLineIf(syncRoot?.CurrentCount != 0, $"{nameof(syncRoot)}.CurrentCount={syncRoot?.CurrentCount}");
+            Assert(syncRoot?.CurrentCount == 0, $"{nameof(syncRoot)}.CurrentCount={syncRoot?.CurrentCount}");
         }
     }
 }

@@ -24,7 +24,7 @@
 - **`System.Threading.AsyncLock`**: Asynchronous lock for resource synchronization.
 - **`System.Threading.AsyncWaitHandle`**: Async wait handle with timeout and cancellation support.
 - **`System.Threading.ReentrantAsyncLock`**: Reentrant asynchronous lock.
-- **`System.Text.ValueStringBuilder`**: High-performance string builder (originally internal in .NET runtime, made public).
+- **`System.Text.ValueStringBuilder`**: High-performance string builder (originally internal in .NET runtime).
 - **`System.IO.PathBuilder`**: Builder for constructing paths.
 - **`System.IO.ValuePathBuilder`**: High-performance builder for constructing paths.
 
@@ -54,7 +54,7 @@ For comprehensive examples of how to use the package, see samples in the followi
 
 ### Acknowledgements
 
-Includes code derived from the .NET Runtime, licensed under the MIT License. The `ValueStringBuilder` class was originally internal and has been adapted to be public.
+Includes code derived from the .NET Runtime, licensed under the MIT License. The original source code can be found in the [.NET Runtime GitHub repository](https://github.com/dotnet/runtime).
 
 ### License
 

@@ -231,7 +231,7 @@ namespace System
         private void ThrowFinalizerException()
         {
             string message = $"{GetType().FullName} ({GetHashCode()}) was finalized without proper disposal.";
-            Debug.WriteLine(message);
+            Trace.WriteLine(message);
             Debug.Fail(message);
             throw new InvalidOperationException(message);
         }

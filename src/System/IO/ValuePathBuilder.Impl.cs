@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace System.IO
 {
@@ -10,7 +11,9 @@ namespace System.IO
         private char[]? _arrayToReturnToPool;
         private Span<char> _chars;
         private int _pos;
+#pragma warning disable IDE0051 // Remove unused private members
         private char? _directorySeparatorChar;
+#pragma warning restore IDE0051 // Remove unused private members
 
         #region Properties
 
@@ -18,13 +21,24 @@ namespace System.IO
 
         public partial char DirectorySeparatorChar
         {
-            get => _directorySeparatorChar ?? PathUtilities.DirectorySeparatorChar;
+            readonly get => _directorySeparatorChar ?? Path.DirectorySeparatorChar;
             set => _directorySeparatorChar = value;
         }
 
-        public readonly partial int Length => _pos;
+        private readonly bool IsUnixLikePlatform => PathUtilities.IsUnixLikePlatform(DirectorySeparatorChar);
 
-        public partial ref char this[int index]
+        public partial int Length
+        {
+            readonly get => _pos;
+            set
+            {
+                Debug.Assert(value >= 0);
+                Debug.Assert(value <= _chars.Length);
+                _pos = value;
+            }
+        }
+
+        public readonly partial ref char this[int index]
         {
             get
             {
@@ -63,8 +77,14 @@ namespace System.IO
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [OverloadResolutionPriority(-1)]
         public partial void Add(scoped ReadOnlySpan<char> s)
         {
+            if (s.IsEmpty)
+            {
+                return;
+            }
+
             int pos = _pos;
             if (pos > _chars.Length - s.Length)
             {
@@ -122,6 +142,7 @@ namespace System.IO
         public partial void Clear()
         {
             _pos = 0;
+            _chars.Clear();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -166,8 +187,8 @@ namespace System.IO
         {
             if (terminate)
             {
-                EnsureCapacity(Length + 1);
-                _chars[Length] = '\0';
+                EnsureCapacity(_pos + 1);
+                _chars[_pos] = '\0';
             }
             return ref MemoryMarshal.GetReference(_chars);
         }
@@ -225,8 +246,8 @@ namespace System.IO
         {
             if (terminate)
             {
-                EnsureCapacity(Length + 1);
-                _chars[Length] = '\0';
+                EnsureCapacity(_pos + 1);
+                _chars[_pos] = '\0';
             }
 #if NET_OLD
             return _chars.Slice(0, _pos);
@@ -305,17 +326,19 @@ namespace System.IO
             return builder;
         }
 
+        [OverloadResolutionPriority(-1)]
         public partial void Append(scoped ReadOnlySpan<char> path)
         {
             if (path.IsEmpty)
             {
                 return;
             }
+
             int pos = _pos;
             if (pos > 0)
             {
                 var c = _chars[pos - 1];
-                if (!PathUtilities.IsDirectorySeparator(c) && !PathUtilities.IsDirectorySeparator(path[0]))
+                if (!PathUtilities.IsDirectorySeparator(c, IsUnixLikePlatform) && !PathUtilities.IsDirectorySeparator(path[0], IsUnixLikePlatform))
                 {
                     Add(DirectorySeparatorChar);
                 }
@@ -329,10 +352,11 @@ namespace System.IO
             {
                 return;
             }
+
             if (_pos > 0)
             {
                 var c = _chars[_pos - 1];
-                if (!PathUtilities.IsDirectorySeparator(c) && !PathUtilities.IsDirectorySeparator(path![0]))
+                if (!PathUtilities.IsDirectorySeparator(c, IsUnixLikePlatform) && !PathUtilities.IsDirectorySeparator(path![0], IsUnixLikePlatform))
                 {
                     Add(DirectorySeparatorChar);
                 }
@@ -340,45 +364,196 @@ namespace System.IO
             Add(path);
         }
 
-        public partial bool HasExtension()
+        public partial bool ChangeExtension(string? extension)
         {
-            for (int i = Length - 1; i >= 0; i--)
+            int subLength = _pos;
+            if (subLength == 0)
+            {
+                return false;
+            }
+
+            for (int i = _pos - 1; i >= 0; i--)
             {
                 char c = _chars[i];
                 if (c == '.')
                 {
-                    return i != Length - 1;
+                    subLength = i;
+                    break;
                 }
-                if (PathUtilities.IsDirectorySeparator(c))
+                if (PathUtilities.IsDirectorySeparator(c, IsUnixLikePlatform))
                 {
                     break;
                 }
             }
-            return false;
+
+            int pos = _pos;
+            _pos = subLength;
+
+            if (extension == null)
+            {
+                return subLength < pos;
+            }
+
+            if (!extension.StartsWith('.'))
+            {
+                Add('.');
+            }
+            Add(extension);
+            return true;
         }
 
-        public partial ReadOnlySpan<char> GetExtension()
+        [OverloadResolutionPriority(-1)]
+        public partial bool ChangeFileName(scoped ReadOnlySpan<char> newFileName)
         {
-            for (int i = Length - 1; i >= 0; i--)
+            var fileNameLength = GetFileName().Length;
+
+            _pos -= fileNameLength;
+
+            if (newFileName.IsEmpty)
             {
-                char c = _chars[i];
-                if (c == '.')
-                {
-                    return i != Length - 1 ?
-                        _chars
-#if NET_OLD
-                        .Slice(i, Length - i) 
-#else
-                        [i..Length]
-#endif
-                        : [];
-                }
-                if (PathUtilities.IsDirectorySeparator(c))
-                {
-                    break;
-                }
+                return fileNameLength > 0;
             }
-            return [];
+
+            Append(newFileName);
+            return fileNameLength > 0 || newFileName.Length > 0;
+        }
+
+        public partial bool ChangeFileName(string? newFileName)
+        {
+            var fileNameLength = GetFileName().Length;
+
+            _pos -= fileNameLength;
+
+            if (newFileName == null)
+            {
+                return fileNameLength > 0;
+            }
+
+            Append(newFileName);
+            return fileNameLength > 0 || newFileName.Length > 0;
+        }
+
+        public readonly partial bool EndsInDirectorySeparator()
+        {
+            return _pos > 0 && PathUtilities.IsDirectorySeparator(_chars[_pos - 1], IsUnixLikePlatform);
+        }
+
+        public partial bool EnsureTrailingSeparator()
+        {
+            if (EndsInDirectorySeparator())
+            {
+                return false;
+            }
+            Add(DirectorySeparatorChar);
+            return true;
+        }
+
+        public readonly partial ReadOnlySpan<char> GetDirectoryName()
+        {
+            return PathUtilities.GetDirectoryName(AsSpan(), IsUnixLikePlatform);
+        }
+
+        public readonly partial ReadOnlySpan<char> GetExtension()
+        {
+            return PathUtilities.GetExtension(AsSpan(), IsUnixLikePlatform);
+        }
+
+        public readonly partial ReadOnlySpan<char> GetFileName()
+        {
+            return PathUtilities.GetFileName(AsSpan(), IsUnixLikePlatform);
+        }
+
+        public readonly partial ReadOnlySpan<char> GetFileNameWithoutExtension()
+        {
+            return PathUtilities.GetFileNameWithoutExtension(AsSpan(), IsUnixLikePlatform);
+        }
+
+        public readonly partial ReadOnlySpan<char> GetFullPath()
+        {
+            return PathUtilities.GetFullPath(AsSpan(), IsUnixLikePlatform);
+        }
+
+        public readonly partial ReadOnlySpan<char> GetFullPath(ReadOnlySpan<char> basePath)
+        {
+            return PathUtilities.GetFullPath(AsSpan(), basePath, IsUnixLikePlatform);
+        }
+
+        public readonly partial ReadOnlySpan<char> GetPathRoot()
+        {
+            return PathUtilities.GetPathRoot(AsSpan(), IsUnixLikePlatform);
+        }
+
+        public readonly partial int GetPathSegments(ICollection<string>? segments)
+        {
+            return PathUtilities.GetPathSegments(AsSpan(), segments, IsUnixLikePlatform);
+        }
+
+        public readonly partial ReadOnlySpan<char> GetRelativePath(ReadOnlySpan<char> path)
+        {
+            return PathUtilities.GetRelativePath(AsSpan(), path, IsUnixLikePlatform);
+        }
+
+        public readonly partial bool HasExtension()
+        {
+            return PathUtilities.HasExtension(AsSpan(), IsUnixLikePlatform);
+        }
+
+        public readonly partial bool IsEffectivelyEmpty()
+        {
+            return PathUtilities.IsEffectivelyEmpty(AsSpan(), IsUnixLikePlatform);
+        }
+
+        public readonly partial bool IsPathFullyQualified()
+        {
+            return PathUtilities.IsPathFullyQualified(AsSpan(), IsUnixLikePlatform);
+        }
+
+        public readonly partial bool IsPathRooted()
+        {
+            return PathUtilities.IsPathRooted(AsSpan(), IsUnixLikePlatform);
+        }
+
+        public readonly partial bool IsRoot()
+        {
+            return _pos == PathUtilities.GetRootLength(AsSpan(), IsUnixLikePlatform);
+        }
+
+        public partial bool NormalizeDirectorySeparators()
+        {
+            if (_pos == 0)
+            {
+                return false;
+            }
+            ValueStringBuilder builder = default;
+            var result = PathUtilities.NormalizeDirectorySeparators(AsSpan(), ref builder, IsUnixLikePlatform);
+            if (result)
+            {
+                Debug.Assert(builder.Length > 0);
+                _pos = 0;
+                Add(builder.AsSpan());
+            }
+            builder.Dispose();
+            return result;
+        }
+
+        public readonly partial bool PathEquals(scoped ReadOnlySpan<char> path)
+        {
+            return PathUtilities.PathEquals(AsSpan(), path, IsUnixLikePlatform);
+        }
+
+        public readonly partial bool StartsWithDirectorySeparator()
+        {
+            return _pos > 0 && PathUtilities.IsDirectorySeparator(_chars[0], IsUnixLikePlatform);
+        }
+
+        public partial bool TrimEndingDirectorySeparator()
+        {
+            if (EndsInDirectorySeparator() && !IsRoot())
+            {
+                _pos -= 1;
+                return true;
+            }
+            return false;
         }
 
         #endregion

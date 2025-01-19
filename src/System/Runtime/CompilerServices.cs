@@ -2,7 +2,7 @@
 
 namespace System.Runtime.CompilerServices;
 
-#if NETFRAMEWORK || NETSTANDARD
+#if !NET
 
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
 public sealed class CallerArgumentExpressionAttribute(string parameterName) : Attribute
@@ -19,7 +19,7 @@ public static class IsExternalInit
 
 #endif
 
-#if NETFRAMEWORK || NETSTANDARD || NET6_0
+#if !NET7_0_OR_GREATER
 
 /// <summary>Specifies that a type has required members or that a member is required.</summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property,
@@ -55,6 +55,27 @@ public sealed class CompilerFeatureRequiredAttribute(string featureName) : Attri
     /// The <see cref="FeatureName"/> used for the required members C# feature.
     /// </summary>
     public const string RequiredMembers = nameof(RequiredMembers);
+}
+
+#endif
+
+#if !NET9_0_OR_GREATER
+
+/// <summary>
+/// Specifies the priority of a member in overload resolution. When unspecified, the default priority is 0.
+/// </summary>
+/// <remarks>
+/// Initializes a new instance of the <see cref="OverloadResolutionPriorityAttribute"/> class.
+/// </remarks>
+/// <param name="priority">The priority of the attributed member. Higher numbers are prioritized, lower numbers are deprioritized. 0 is the default if no attribute is present.</param>
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+public sealed class OverloadResolutionPriorityAttribute(int priority) : Attribute
+{
+
+    /// <summary>
+    /// The priority of the member.
+    /// </summary>
+    public int Priority { get; } = priority;
 }
 
 #endif

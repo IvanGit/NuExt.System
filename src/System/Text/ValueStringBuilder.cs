@@ -3,6 +3,7 @@
 
 using System.Buffers;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -10,6 +11,7 @@ using System.Runtime.InteropServices;
 
 namespace System.Text
 {
+    [SuppressMessage("Style", "IDE0057", Justification = "<Pending>")]
     public ref partial struct ValueStringBuilder
     {
         private char[]? _arrayToReturnToPool;
@@ -251,6 +253,7 @@ namespace System.Text
             _pos += length;
         }
 
+        [OverloadResolutionPriority(-1)]
         public void Append(scoped ReadOnlySpan<char> value)
         {
             int pos = _pos;

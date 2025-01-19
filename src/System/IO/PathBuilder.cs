@@ -75,9 +75,9 @@
         public partial char DirectorySeparatorChar { get; set; }
 
         /// <summary>
-        /// Gets the length of the path.
+        /// Gets or sets the length of the path.
         /// </summary>
-        public partial int Length { get; }
+        public partial int Length { get; set; }
 
         /// <summary>
         /// Gets a reference to the character at the specified index.
@@ -145,6 +145,27 @@
         public partial ReadOnlySpan<char> AsSpan(int start, int length);
 
         /// <summary>
+        /// Changes the extension of a path.
+        /// </summary>
+        /// <param name="extension">The new extension (with or without a leading period). Specify <see langword="null" /> to remove an existing extension from the path.</param>
+        /// <returns><see langword="true" /> if the extension was successfully changed; otherwise, <see langword="false" />.</returns>
+        public partial bool ChangeExtension(string? extension);
+
+        /// <summary>
+        ///  Changes the file name portion of the path.
+        /// </summary>
+        /// <param name="newFileName">The new file name.</param>
+        /// <returns><see langword="true" /> if the file name was successfully changed or removed; otherwise, <see langword="false" />.</returns>
+        public partial bool ChangeFileName(scoped ReadOnlySpan<char> newFileName);
+
+        /// <summary>
+        /// Changes the file name portion of the path.
+        /// </summary>
+        /// <param name="newFileName">The new file name. Specify <see langword="null" /> to remove an existing file name from the path.</param>
+        /// <returns><see langword="true" /> if the file name was successfully changed or removed; otherwise, <see langword="false" />.</returns>
+        public partial bool ChangeFileName(string? newFileName);
+
+        /// <summary>
         /// Clears the path.
         /// </summary>
         public partial void Clear();
@@ -155,16 +176,31 @@
         public partial void Dispose();
 
         /// <summary>
+        /// Returns true if the path ends in a directory separator.
+        /// </summary>
+        /// <returns><see langword="true" /> if the path ends in a directory separator; otherwise, <see langword="false" />.</returns>
+        public partial bool EndsInDirectorySeparator();
+
+        /// <summary>
+        /// Ensures that the path ends with a directory separator character.
+        /// </summary>
+        /// <remarks>
+        /// This method modifies the current instance of the path by appending a trailing 
+        /// directory separator specified by <see cref="DirectorySeparatorChar"/> if it is not already present.
+        /// </remarks>
+        /// <returns><see langword="true" /> if a trailing directory separator was added; otherwise, <see langword="false" />.</returns>
+        public partial bool EnsureTrailingSeparator();
+
+        /// <summary>
         /// Ensures that the capacity of this builder is at least the specified value.
         /// </summary>
         /// <param name="capacity">The minimum capacity to ensure.</param>
         public partial void EnsureCapacity(int capacity);
 
-        /// <summary>
-        /// Tests if the path's file name includes a file extension. A trailing period is not considered an extension.
-        /// </summary>
-        /// <returns>True if the path has an extension; otherwise, false.</returns>
-        public partial bool HasExtension();
+        /// <summary>Returns the directory information for the path represented by a character span.</summary>
+        /// <returns>Directory information for path, or an empty span if path is empty, or a root (such as \, C:, or \\server\share).</returns>
+        /// <remarks>This method will not normalize directory separators.</remarks>
+        public partial ReadOnlySpan<char> GetDirectoryName();
 
         /// <summary>
         /// Returns the extension of the given path.
@@ -174,10 +210,148 @@
         public partial ReadOnlySpan<char> GetExtension();
 
         /// <summary>
+        /// Returns the file name and extension of a file path that is represented by a read-only character span.
+        /// </summary>
+        /// <returns>The characters after the last directory separator character in the path.</returns>
+        public partial ReadOnlySpan<char> GetFileName();
+
+        /// <summary>
+        /// Returns the file name of the specified path string without the extension.
+        /// </summary>
+        /// <returns>The characters between the last separator and last (.) in the path.</returns>
+        public partial ReadOnlySpan<char> GetFileNameWithoutExtension();
+
+        /// <summary>
+        /// Expands the path to a fully qualified path.
+        /// </summary>
+        /// <returns>The expanded path.</returns>
+        public partial ReadOnlySpan<char> GetFullPath();
+
+        /// <summary>
+        /// Returns an absolute path from a relative path and a fully qualified base path.
+        /// </summary>
+        /// <param name="basePath">The beginning of a fully qualified path.</param>
+        /// <exception cref="T:System.ArgumentException">
+        ///         <paramref name="basePath" /> is not a fully qualified path.
+        /// 
+        /// -or-
+        /// 
+        /// The path or <paramref name="basePath" /> contains one or more of the invalid characters.</exception>
+        /// <returns>The absolute path.</returns>
+        public partial ReadOnlySpan<char> GetFullPath(ReadOnlySpan<char> basePath);
+
+        /// <summary>
+        /// Gets the root directory information from the path.
+        /// </summary>
+        /// <remarks>
+        /// This method extracts the root directory portion of the specified path. 
+        /// On Windows, this would typically include the drive letter and the volume separator (e.g., "C:\").
+        /// On Unix-based systems, it would generally return "/" for absolute paths.
+        /// If the path does not contain any root directory information, an empty span is returned.
+        /// </remarks>
+        /// <returns>The characters containing the root directory of the path.</returns>
+        public partial ReadOnlySpan<char> GetPathRoot();
+
+        /// <summary>
+        /// Splits the specified path into its individual segments (such as directories and the file name)
+        /// and adds them to the provided collection, if not null.
+        /// </summary>
+        /// <param name="segments">A collection to which each segment of the path will be added, or null.</param>
+        /// <remarks>
+        /// This method separates the path into its constituent parts based on the operating system's path separator.
+        /// - On Windows, segments are separated by either '\' or '/' characters.
+        /// - On Unix-based systems, segments are separated by '/' characters.
+        /// The root directory, if present, is included as the first segment.
+        /// If <paramref name="segments"/> is null, no segments will be added but the method will still return the count 
+        /// of path segments.
+        /// </remarks>
+        /// <returns>The number of segments in the path.</returns>
+        public partial int GetPathSegments(ICollection<string>? segments);
+
+        /// <summary>
+        /// Returns a relative path from the path to another.
+        /// </summary>
+        /// <param name="path">The destination path.</param>
+        /// <exception cref="T:System.ArgumentException">
+        /// The path or <paramref name="path" /> is effectively empty.</exception>
+        /// <returns>The relative path, or <paramref name="path" /> if the paths don't share the same root.</returns>
+        public partial ReadOnlySpan<char> GetRelativePath(ReadOnlySpan<char> path);
+
+        /// <summary>
+        /// Tests if the path's file name includes a file extension. A trailing period is not considered an extension.
+        /// </summary>
+        /// <returns><see langword="true" /> if the path has an extension; otherwise, <see langword="false" />.</returns>
+        public partial bool HasExtension();
+
+        /// <summary>
+        /// Returns true if the path is effectively empty for the current OS.
+        /// </summary>
+        /// <returns><see langword="true" /> if the path effectively empty; otherwise, <see langword="false" />.</returns>
+        /// <remarks>
+        /// For unix, this is empty or null. For Windows, this is empty, null, or just spaces ((char)32).
+        /// </remarks>
+        public partial bool IsEffectivelyEmpty();
+
+        /// <summary>
+        /// Returns a value that indicates whether the path is fixed to a specific drive or UNC path.
+        /// </summary>
+        /// <returns><see langword="true" /> if the path is fully qualified; otherwise, <see langword="false" />.</returns>
+        public partial bool IsPathFullyQualified();
+
+        /// <summary>
+        /// Returns a value that indicates whether the path contains a root.
+        /// </summary>
+        /// <returns><see langword="true" /> if the path contains a root; otherwise, <see langword="false" />.</returns>
+        public partial bool IsPathRooted();
+
+        /// <summary>
+        /// Determines whether the current path represents a root directory.
+        /// </summary>
+        /// <returns><see langword="true" /> if the path is a root directory; otherwise, <see langword="false" />.</returns>
+        public partial bool IsRoot();
+
+        /// <summary>
+        /// Normalize separators in the given path. Compresses forward slash runs.
+        /// </summary>
+        /// <returns><see langword="true" /> if the path was normalized; otherwise, <see langword="false" />.</returns>
+        public partial bool NormalizeDirectorySeparators();
+
+        /// <summary>
+        /// Compares the current path with the specified path for equality, 
+        /// normalizing directory separators and ignoring trailing separators.
+        /// </summary>
+        /// <param name="path">The path to compare with.</param>
+        /// <returns><see langword="true" /> if the paths are equal; otherwise, <see langword="false" />.</returns>
+        /// <remarks>
+        /// This method performs a character-by-character comparison of the paths, normalizing the directory separators
+        /// to match the current system's directory separator character. It also ignores trailing directory separators
+        /// to ensure that paths like "C:\Path\" and "C:\Path" are considered equal. However, it does not expand relative paths,
+        /// so paths containing ".." or "." will be compared as-is without resolving them to their absolute counterparts.
+        /// </remarks>
+        public partial bool PathEquals(scoped ReadOnlySpan<char> path);
+
+        /// <summary>
+        /// Returns true if the path starts in a directory separator.
+        /// </summary>
+        /// <returns><see langword="true" /> if the path starts in a directory separator; otherwise, <see langword="false" />.</returns>
+        public partial bool StartsWithDirectorySeparator();
+
+        /// <summary>
         /// Returns the path.
         /// </summary>
         /// <returns>A string that represents the path.</returns>
         public override partial string ToString();
+
+        /// <summary>
+        /// Trims one trailing directory separator beyond the root of the path.
+        /// </summary>
+        /// <remarks>
+        /// This method modifies the current instance of the path by removing exactly one trailing 
+        /// directory separator character ('/' or '\\') if present. It does not alter the root portion 
+        /// of the path, such as "C:\\" or "/" for Windows and Unix-like systems respectively.
+        /// </remarks>
+        /// <returns><see langword="true" /> if a trailing directory separator was removed; otherwise, <see langword="false" />.</returns>
+        public partial bool TrimEndingDirectorySeparator();
 
         /// <summary>
         /// Tries to copy the contents of the builder to a destination span.

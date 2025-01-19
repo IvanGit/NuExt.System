@@ -51,7 +51,7 @@
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error retrieving busy worker threads: {ex.Message}");
+                Trace.WriteLine($"Error retrieving busy worker threads: {ex.Message}");
                 return 0;
             }
         }
@@ -79,7 +79,7 @@
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error calculating CPU usage: {ex.Message}");
+                Trace.WriteLine($"Error calculating CPU usage: {ex.Message}");
                 return 0f;
             }
         }
@@ -96,7 +96,7 @@
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error retrieving memory usage: {ex.Message}");
+                Trace.WriteLine($"Error retrieving memory usage: {ex.Message}");
                 return 0;
             }
         }
@@ -113,7 +113,7 @@
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error retrieving peak memory usage: {ex.Message}");
+                Trace.WriteLine($"Error retrieving peak memory usage: {ex.Message}");
                 return 0;
             }
         }
@@ -130,7 +130,7 @@
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error retrieving thread count: {ex.Message}");
+                Trace.WriteLine($"Error retrieving thread count: {ex.Message}");
                 return 0;
             }
         }
@@ -146,7 +146,7 @@
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error refreshing process information: {ex.Message}");
+                Trace.WriteLine($"Error refreshing process information: {ex.Message}");
             }
         }
 

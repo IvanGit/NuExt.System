@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageTags>nuext;extensions;async;asynceventhandler;asynclock;asyncwaithandle;reentrantasynclock;disposable;asyncdisposable;lifetime;asynclifetime;valuestringbuilder</PackageTags>
+    <PackageTags>nuext;extensions;async;asynceventhandler;asynclock;asyncwaithandle;reentrantasynclock;disposable;asyncdisposable;lifetime;asynclifetime;valuestringbuilder;pathbuilder;valuepathbuilder</PackageTags>
     <Description>Provides various fundamental extensions and classes for .NET, simplifying tasks related to asynchronous programming, resource lifecycle management, thread synchronization, and more.
 
 Commonly Used Types:
@@ -25,7 +25,7 @@ System.Text.ValueStringBuilder
 System.Threading.AsyncLock
 System.Threading.AsyncWaitHandle
 System.Threading.ReentrantAsyncLock</Description>
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -52,7 +52,7 @@ System.Threading.ReentrantAsyncLock</Description>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net462'">
-    <PackageReference Include="System.Text.Json" Version="9.0.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.1" />
   </ItemGroup>
 
   <ItemGroup>
