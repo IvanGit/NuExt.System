@@ -1,21 +1,13 @@
 <Project>
-
   <ItemGroup>
+    <CsFiles Include="**\*.*.cs" Exclude="**\*.xaml.cs;**\*.axaml.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="@(CsFiles)">
+      <DependentUpon>$([System.Text.RegularExpressions.Regex]::Replace('%(Filename)', '\..*$', '.cs'))</DependentUpon>
+    </Compile>
     <Compile Update="**\*Extensions.cs">
       <DependentUpon>$([System.String]::Copy('%(Filename)').Replace('Extensions', '.cs'))</DependentUpon>
     </Compile>
-    <Compile Update="**\*.Impl.cs">
-      <DependentUpon>$([System.String]::Copy('%(Filename)').Replace('.Impl', '.cs'))</DependentUpon>
-    </Compile>
-    <Compile Update="**\*.Unix.cs">
-      <DependentUpon>$([System.String]::Copy('%(Filename)').Replace('.Unix', '.cs'))</DependentUpon>
-    </Compile>
-    <Compile Update="**\*.Validation.cs">
-      <DependentUpon>$([System.String]::Copy('%(Filename)').Replace('.Validation', '.cs'))</DependentUpon>
-    </Compile>
-    <Compile Update="**\*.Windows.cs">
-      <DependentUpon>$([System.String]::Copy('%(Filename)').Replace('.Windows', '.cs'))</DependentUpon>
-    </Compile>
   </ItemGroup>
-
 </Project>

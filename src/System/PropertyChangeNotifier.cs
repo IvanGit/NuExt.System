@@ -11,7 +11,7 @@ namespace System
     /// </summary>
     [DebuggerStepThrough]
     [Serializable]
-    public abstract class PropertyChangeNotifier : INotifyPropertyChanged, IDispatcher
+    public abstract class PropertyChangeNotifier : INotifyPropertyChanged, IDispatcherObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyChangeNotifier"/> class 
@@ -138,7 +138,7 @@ namespace System
             {
                 return;
             }
-            if (HasSynchronizationContext)
+            if (HasSynchronizationContext && !CheckAccess())
             {
                 SynchronizationContext!.Send(x =>
                 {
@@ -161,7 +161,7 @@ namespace System
                 return;
             }
             var args = new PropertyChangedEventArgs(propertyName);
-            if (HasSynchronizationContext)
+            if (HasSynchronizationContext && !CheckAccess())
             {
                 SynchronizationContext!.Send(x =>
                 {
@@ -302,6 +302,26 @@ namespace System
             storage = value;
             OnPropertyChanged(propertyName);
             return true;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowInvalidThreadAccess()
+        {
+            throw new InvalidOperationException("The calling thread cannot access this object because it is owned by a different thread.");
+        }
+
+        /// <summary>
+        /// Checks if the current thread is the same as the thread on which this instance was created and throws an <see cref="InvalidOperationException"/> if not.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the current thread is not the same as the thread on which this instance was created.</exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void VerifyAccess()
+        {
+            if (!CheckAccess())
+            {
+                ThrowInvalidThreadAccess();
+            }
         }
 
         #endregion

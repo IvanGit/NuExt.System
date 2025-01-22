@@ -25,7 +25,7 @@ System.Text.ValueStringBuilder
 System.Threading.AsyncLock
 System.Threading.AsyncWaitHandle
 System.Threading.ReentrantAsyncLock</Description>
-    <Version>0.3.1</Version>
+    <Version>0.3.2</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
