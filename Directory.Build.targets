@@ -1,6 +1,6 @@
 <Project>
   <ItemGroup>
-    <CsFiles Include="**\*.*.cs" Exclude="**\*.xaml.cs;**\*.axaml.cs" />
+    <CsFiles Include="**\*.*.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="@(CsFiles)">

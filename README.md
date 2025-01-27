@@ -36,11 +36,55 @@ You can install `NuExt.System` via [NuGet](https://www.nuget.org/):
 dotnet add package NuExt.System
 ```
 
-Or through the Visual Studio package manager:
+Or via the Visual Studio package manager:
 
 1. Go to `Tools -> NuGet Package Manager -> Manage NuGet Packages for Solution...`.
 2. Search for `NuExt.System`.
 3. Click "Install".
+
+### ReentrantAsyncLock Internals
+
+The `ReentrantAsyncLock` class provides a reentrant (re-enterable) asynchronous lock. This means that the same thread can acquire the lock multiple times without blocking itself. It is particularly useful for complex asynchronous scenarios where recursive calls are expected.
+
+`ReentrantAsyncLock` relies on `AsyncLocal` to manage the lock's state across asynchronous method calls, ensuring that the lock is associated with the correct execution context. `AsyncLocal` variables store data that is unique to a particular asynchronous control flow, allowing different asynchronous operations to have their own distinct contexts.
+
+In most cases, you won't encounter any issues. However, in specific scenarios where certain methods, such as `CancellationToken.Register`, might capture the `ExecutionContext`, here's an example demonstrating a preferred usage. Instead of:
+
+```csharp
+var asyncLock = new ReentrantAsyncLock();
+var cts = new CancellationTokenSource();
+
+asyncLock.Acquire(() => cts.Token.Register(() => asyncLock.Acquire(() =>
+{
+    // user code
+})));
+
+asyncLock.Acquire(() => cts.Cancel());
+```
+
+It is preferable to do:
+
+```csharp
+var asyncLock = new ReentrantAsyncLock();
+var cts = new CancellationTokenSource();
+
+asyncLock.Acquire(() => 
+{
+    //Don't capture the current ExecutionContext and its AsyncLocals for CancellationToken.Register
+    using (ExecutionContext.SuppressFlow())
+    {
+        cts.Token.Register(() => asyncLock.Acquire(() =>
+        {
+            // user code
+        }));
+    }
+    //The current ExecutionContext is restored after exiting the using block
+});
+
+asyncLock.Acquire(() => cts.Cancel());
+```
+
+This ensures that the `AsyncLocal` values do not unintentionally flow into the registered callbacks, maintaining the intended behavior of your application.
 
 ### Usage Examples
 
