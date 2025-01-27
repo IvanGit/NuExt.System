@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace System.Threading
 {
@@ -10,7 +8,6 @@ namespace System.Threading
     /// It provides synchronous and asynchronous methods for acquiring and releasing the lock,
     /// making it suitable for scenarios where async/await patterns or other forms of asynchronous programming are used.
     /// </summary>
-    [DebuggerStepThrough]
     public sealed partial class ReentrantAsyncLock : Disposable
     {
         /// <summary>
@@ -97,7 +94,6 @@ namespace System.Threading
         /// - This property does not trigger PropertyChanged notifications because it is intended for internal use only,
         ///   and also to avoid potential recursion issues.
         /// </remarks>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         internal int CurrentId => _currentId;
 
         /// <summary>
@@ -129,7 +125,6 @@ namespace System.Threading
         /// This identifier is unique to the context and helps manage reentrant lock acquisition.
         /// Primarily intended for internal use.
         /// </remarks>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         internal int LocalId => _localId.Value != 0 ? _localId.Value : (_localId.Value = NewId());
 
         /// <summary>
@@ -139,7 +134,6 @@ namespace System.Threading
         /// This property provides a thread-local <see cref="SemaphoreSlim"/> instance used to manage reentrant locks.
         /// Intended for internal use only.
         /// </remarks>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         internal SemaphoreSlim? SyncRoot
         {
             get => _localSyncRoot.Value;
