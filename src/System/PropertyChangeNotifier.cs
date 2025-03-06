@@ -138,7 +138,7 @@ namespace System
             {
                 return;
             }
-            if (HasSynchronizationContext && !CheckAccess())
+            if (HasSynchronizationContext/* && !CheckAccess()*/)
             {
                 SynchronizationContext!.Send(x =>
                 {
@@ -161,7 +161,7 @@ namespace System
                 return;
             }
             var args = new PropertyChangedEventArgs(propertyName);
-            if (HasSynchronizationContext && !CheckAccess())
+            if (HasSynchronizationContext/* && !CheckAccess()*/)
             {
                 SynchronizationContext!.Send(x =>
                 {
