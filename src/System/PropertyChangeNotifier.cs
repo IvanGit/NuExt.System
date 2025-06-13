@@ -112,15 +112,15 @@ namespace System
         /// Gets the current subscribers of the PropertyChanged event.
         /// </summary>
         /// <returns>
-        /// An array of <see cref="PropertyChangedEventHandler"/> delegates, or <see langword="null"/> if there are no subscribers.
+        /// An array of <see cref="PropertyChangedEventHandler"/> delegates. If there are no subscribers, returns an empty array.
         /// </returns>
-        protected PropertyChangedEventHandler[]? GetPropertyChangedEventHandlers()
+        protected PropertyChangedEventHandler[] GetPropertyChangedEventHandlers()
         {
             // eventDelegate will be null if no listeners are attached to the event
             var eventDelegate = PropertyChanged;
             if (eventDelegate is null)
             {
-                return null;
+                return [];
             }
 
             var subscribers = Array.ConvertAll(eventDelegate.GetInvocationList(), del => (PropertyChangedEventHandler)del);
