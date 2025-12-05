@@ -20,7 +20,7 @@ namespace System.IO
         public const string ThisDirectory = ".";
 
         private static readonly char[] s_invalidFileNameChars = Path.GetInvalidFileNameChars();
-        private static readonly char[] s_smartTrimFileNameChars = { ' ', '\t', '_', '-' };
+        private static readonly char[] s_smartTrimFileNameChars = [' ', '\t', '_', '-'];
 
         public static string CombinePathsUnchecked(string root, string? relativePath)
         {
