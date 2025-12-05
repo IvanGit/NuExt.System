@@ -10,7 +10,7 @@ namespace NuExt.System.Tests
         public void Test1()
         {
             var p = new Path() { DirectorySeparatorChar = '/' };
-            Assert.That(p.Length, Is.EqualTo(0));
+            Assert.That(p.Length, Is.Zero);
 
             p.Add('/');
             Assert.That(p.Length, Is.EqualTo(1));
@@ -1793,7 +1793,7 @@ namespace NuExt.System.Tests
 
             var result = p.GetFullPath();
 
-            if (directorySeparatorChar == '\\' && !path.StartsWith("."))
+            if (directorySeparatorChar == '\\' && !path.StartsWith('.'))
             {
                 string fullPath;
                 try

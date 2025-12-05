@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 
 namespace System.Text
 {
-    [SuppressMessage("Style", "IDE0057", Justification = "<Pending>")]
+    [SuppressMessage("Style", "IDE0057:Slice can be simplified", Justification = "<Pending>")]
     public ref partial struct ValueStringBuilder
     {
         private char[]? _arrayToReturnToPool;
@@ -56,6 +56,16 @@ namespace System.Text
         }
 
         /// <summary>
+        /// Ensures that the builder is terminated with a NUL character.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void NullTerminate()
+        {
+            EnsureCapacity(_pos + 1);
+            _chars[_pos] = '\0';
+        }
+
+        /// <summary>
         /// Get a pinnable reference to the builder.
         /// Does not ensure there is a null char after <see cref="Length"/>
         /// This overload is pattern matched in the C# 7.3+ compiler so you can omit
@@ -63,20 +73,6 @@ namespace System.Text
         /// </summary>
         public readonly ref char GetPinnableReference()
         {
-            return ref MemoryMarshal.GetReference(_chars);
-        }
-
-        /// <summary>
-        /// Get a pinnable reference to the builder.
-        /// </summary>
-        /// <param name="terminate">Ensures that the builder has a null char after <see cref="Length"/></param>
-        public ref char GetPinnableReference(bool terminate)
-        {
-            if (terminate)
-            {
-                EnsureCapacity(Length + 1);
-                _chars[Length] = '\0';
-            }
             return ref MemoryMarshal.GetReference(_chars);
         }
 
@@ -91,7 +87,7 @@ namespace System.Text
 
         public override string ToString()
         {
-            string s = _chars.Slice(0, _pos).ToString();
+            string s = _pos == 0 ? string.Empty : _chars.Slice(0, _pos).ToString();
             Dispose();
             return s;
         }
@@ -99,39 +95,9 @@ namespace System.Text
         /// <summary>Returns the underlying storage of the builder.</summary>
         public readonly Span<char> RawChars => _chars;
 
-        /// <summary>
-        /// Returns a span around the contents of the builder.
-        /// </summary>
-        /// <param name="terminate">Ensures that the builder has a null char after <see cref="Length"/></param>
-        public ReadOnlySpan<char> AsSpan(bool terminate)
-        {
-            if (terminate)
-            {
-                EnsureCapacity(Length + 1);
-                _chars[Length] = '\0';
-            }
-            return _chars.Slice(0, _pos);
-        }
-
         public readonly ReadOnlySpan<char> AsSpan() => _chars.Slice(0, _pos);
         public readonly ReadOnlySpan<char> AsSpan(int start) => _chars.Slice(start, _pos - start);
         public readonly ReadOnlySpan<char> AsSpan(int start, int length) => _chars.Slice(start, length);
-
-        public bool TryCopyTo(scoped Span<char> destination, out int charsWritten)
-        {
-            if (_chars.Slice(0, _pos).TryCopyTo(destination))
-            {
-                charsWritten = _pos;
-                Dispose();
-                return true;
-            }
-            else
-            {
-                charsWritten = 0;
-                Dispose();
-                return false;
-            }
-        }
 
         public void Insert(int index, char value, int count)
         {
@@ -237,23 +203,7 @@ namespace System.Text
             _pos += count;
         }
 
-        public unsafe void Append(char* value, int length)
-        {
-            int pos = _pos;
-            if (pos > _chars.Length - length)
-            {
-                Grow(length);
-            }
-
-            Span<char> dst = _chars.Slice(_pos, length);
-            for (int i = 0; i < dst.Length; i++)
-            {
-                dst[i] = *value++;
-            }
-            _pos += length;
-        }
-
-        [OverloadResolutionPriority(-1)]
+        //[OverloadResolutionPriority(-1)]
         public void Append(scoped ReadOnlySpan<char> value)
         {
             int pos = _pos;

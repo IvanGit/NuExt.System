@@ -6,7 +6,7 @@
     /// <param name="sender">The source of the event.</param>
     /// <param name="e">An <see cref="EventArgs"/> object that contains the event data.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
-    /// <returns>A task that represents the handling of the event.</returns>
+    /// <returns>A ValueTask that represents the handling of the event.</returns>
     [Serializable]
     public delegate ValueTask AsyncEventHandler(object? sender, EventArgs e, CancellationToken cancellationToken = default);
 
@@ -17,7 +17,7 @@
     /// <param name="sender">The source of the event.</param>
     /// <param name="e">An object of type <typeparamref name="TEventArgs"/> that contains the event data.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
-    /// <returns>A task that represents the handling of the event.</returns>
+    /// <returns>A ValueTask that represents the handling of the event.</returns>
     [Serializable]
     public delegate ValueTask AsyncEventHandler<TEventArgs>(object? sender, TEventArgs e, CancellationToken cancellationToken = default);
 
@@ -26,6 +26,68 @@
     /// </summary>
     public static class AsyncEventHandlerExtensions
     {
+        #region AsyncEventHandler
+
+        /// <summary>
+        /// Invokes the specified asynchronous event handler without a cancellation token and with continuation on original context.
+        /// </summary>
+        /// <param name="eventHandler">The event handler to invoke.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">An <see cref="EventArgs"/> object that contains the event data.</param>
+        /// <returns>A ValueTask that represents the invocation of the event handler. Continuations are not marshaled back to the original context captured.</returns>
+        /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+        /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of the event handler.</exception>
+        public static ValueTask InvokeAsync(this AsyncEventHandler? eventHandler, object? sender, EventArgs e)
+        {
+            return InvokeAsync(eventHandler, sender, e, continueOnCapturedContext: false, continueOnException: true, default);
+        }
+
+        /// <summary>
+        /// Invokes the specified asynchronous event handler using the specified cancellation token.
+        /// </summary>
+        /// <param name="eventHandler">The event handler to invoke.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">An <see cref="EventArgs"/> object that contains the event data.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
+        /// <returns>A ValueTask that represents the invocation of the event handler. Continuations are not marshaled back to the original context captured.</returns>
+        /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+        /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of the event handler.</exception>
+        public static ValueTask InvokeAsync(this AsyncEventHandler? eventHandler, object? sender, EventArgs e, CancellationToken cancellationToken)
+        {
+            return InvokeAsync(eventHandler, sender, e, continueOnCapturedContext: false, continueOnException: true, cancellationToken);
+        }
+
+        /// <summary>
+        /// Invokes the specified asynchronous event handler without a cancellation token.
+        /// </summary>
+        /// <param name="eventHandler">The event handler to invoke.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">An <see cref="EventArgs"/> object that contains the event data.</param>
+        /// <param name="continueOnCapturedContext">Whether to marshal the continuation back to the original context captured.</param>
+        /// <returns>A ValueTask that represents the invocation of the event handler.</returns>
+        /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+        /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of the event handler.</exception>
+        public static ValueTask InvokeAsync(this AsyncEventHandler? eventHandler, object? sender, EventArgs e, bool continueOnCapturedContext)
+        {
+            return InvokeAsync(eventHandler, sender, e, continueOnCapturedContext, continueOnException: true, default);
+        }
+
+        /// <summary>
+        /// Invokes the specified asynchronous event handler using the specified cancellation token and continuation context.
+        /// </summary>
+        /// <param name="eventHandler">The event handler to invoke.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">An <see cref="EventArgs"/> object that contains the event data.</param>
+        /// <param name="continueOnCapturedContext">Whether to marshal the continuation back to the original context captured.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
+        /// <returns>A ValueTask that represents the invocation of the event handler.</returns>
+        /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+        /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of the event handler.</exception>
+        public static ValueTask InvokeAsync(this AsyncEventHandler? eventHandler, object? sender, EventArgs e, bool continueOnCapturedContext, CancellationToken cancellationToken)
+        {
+            return InvokeAsync(eventHandler, sender, e, continueOnCapturedContext, continueOnException: true, cancellationToken);
+        }
+
         /// <summary>
         /// Invokes the specified asynchronous event handler.
         /// </summary>
@@ -33,11 +95,12 @@
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">An <see cref="EventArgs"/> object that contains the event data.</param>
         /// <param name="continueOnCapturedContext">Whether to marshal the continuation back to the original context captured.</param>
+        /// <param name="continueOnException">Whether to continue execution if an exception occurs in one of the handlers.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
-        /// <returns>A task that represents the invocation of the event handler.</returns>
+        /// <returns>A ValueTask that represents the invocation of the event handler.</returns>
         /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
         /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of the event handler.</exception>
-        public static async ValueTask InvokeAsync(this AsyncEventHandler? eventHandler, object? sender, EventArgs e, bool continueOnCapturedContext, CancellationToken cancellationToken)
+        public static async ValueTask InvokeAsync(this AsyncEventHandler? eventHandler, object? sender, EventArgs e, bool continueOnCapturedContext, bool continueOnException, CancellationToken cancellationToken)
         {
             if (eventHandler is null) return;
 
@@ -57,6 +120,10 @@
                 }
                 catch (Exception ex)
                 {
+                    if (!continueOnException)
+                    {
+                        throw;
+                    }
                     exceptions ??= [];
                     exceptions.Add(ex);
                 }
@@ -68,42 +135,72 @@
             }
         }
 
+        #endregion
+
+        #region AsyncEventHandler<TEventArgs>
+
         /// <summary>
-        /// Invokes the specified asynchronous event handler without a cancellation token.
+        /// Invokes the specified asynchronous event handler without a cancellation token and with continuation on original context.
         /// </summary>
+        /// <typeparam name="TEventArgs">The type of the event data generated by the event.</typeparam>
         /// <param name="eventHandler">The event handler to invoke.</param>
         /// <param name="sender">The source of the event.</param>
-        /// <param name="e">An <see cref="EventArgs"/> object that contains the event data.</param>
-        /// <param name="continueOnCapturedContext">Whether to marshal the continuation back to the original context captured.</param>
-        /// <returns>A task that represents the invocation of the event handler.</returns>
-        public static ValueTask InvokeAsync(this AsyncEventHandler? eventHandler, object? sender, EventArgs e, bool continueOnCapturedContext)
+        /// <param name="e">An object of type <typeparamref name="TEventArgs"/> that contains the event data.</param>
+        /// <returns>A ValueTask that represents the invocation of the event handler. Continuations are not marshaled back to the original context captured.</returns>
+        /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+        /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of the event handler.</exception>
+        public static ValueTask InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs>? eventHandler, object? sender, TEventArgs e)
         {
-            return InvokeAsync(eventHandler, sender, e, continueOnCapturedContext, default);
+            return InvokeAsync(eventHandler, sender, e, continueOnCapturedContext: false, continueOnException: true, default);
         }
 
         /// <summary>
         /// Invokes the specified asynchronous event handler using the specified cancellation token.
         /// </summary>
+        /// <typeparam name="TEventArgs">The type of the event data generated by the event.</typeparam>
         /// <param name="eventHandler">The event handler to invoke.</param>
         /// <param name="sender">The source of the event.</param>
-        /// <param name="e">An <see cref="EventArgs"/> object that contains the event data.</param>
+        /// <param name="e">An object of type <typeparamref name="TEventArgs"/> that contains the event data.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
-        /// <returns>A task that represents the invocation of the event handler. Continuations are not marshaled back to the original context captured.</returns>
-        public static ValueTask InvokeAsync(this AsyncEventHandler? eventHandler, object? sender, EventArgs e, CancellationToken cancellationToken)
+        /// <returns>A ValueTask that represents the invocation of the event handler. Continuations are not marshaled back to the original context captured.</returns>
+        /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+        /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of the event handler.</exception>
+        public static ValueTask InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs>? eventHandler, object? sender, TEventArgs e, CancellationToken cancellationToken)
         {
-            return InvokeAsync(eventHandler, sender, e, false, cancellationToken);
+            return InvokeAsync(eventHandler, sender, e, continueOnCapturedContext: false, continueOnException: true, cancellationToken);
         }
 
         /// <summary>
-        /// Invokes the specified asynchronous event handler without a cancellation token and with continuation on original context.
+        /// Invokes the specified asynchronous event handler without a cancellation token.
         /// </summary>
+        /// <typeparam name="TEventArgs">The type of the event data generated by the event.</typeparam>
         /// <param name="eventHandler">The event handler to invoke.</param>
         /// <param name="sender">The source of the event.</param>
-        /// <param name="e">An <see cref="EventArgs"/> object that contains the event data.</param>
-        /// <returns>A task that represents the invocation of the event handler. Continuations are not marshaled back to the original context captured.</returns>
-        public static ValueTask InvokeAsync(this AsyncEventHandler? eventHandler, object? sender, EventArgs e)
+        /// <param name="e">An object of type <typeparamref name="TEventArgs"/> that contains the event data.</param>
+        /// <param name="continueOnCapturedContext">Whether to marshal the continuation back to the original context captured.</param>
+        /// <returns>A ValueTask that represents the invocation of the event handler.</returns>
+        /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+        /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of the event handler.</exception>
+        public static ValueTask InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs>? eventHandler, object? sender, TEventArgs e, bool continueOnCapturedContext)
         {
-            return InvokeAsync(eventHandler, sender, e, false, default);
+            return InvokeAsync(eventHandler, sender, e, continueOnCapturedContext, continueOnException: true, default);
+        }
+
+        /// <summary>
+        /// Invokes the specified asynchronous event handler using the specified cancellation token and continuation context.
+        /// </summary>
+        /// <typeparam name="TEventArgs">The type of the event data generated by the event.</typeparam>
+        /// <param name="eventHandler">The event handler to invoke.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">An object of type <typeparamref name="TEventArgs"/> that contains the event data.</param>
+        /// <param name="continueOnCapturedContext">Whether to marshal the continuation back to the original context captured.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
+        /// <returns>A ValueTask that represents the invocation of the event handler.</returns>
+        /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+        /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of the event handler.</exception>
+        public static ValueTask InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs>? eventHandler, object? sender, TEventArgs e, bool continueOnCapturedContext, CancellationToken cancellationToken)
+        {
+            return InvokeAsync(eventHandler, sender, e, continueOnCapturedContext, continueOnException: true, cancellationToken);
         }
 
         /// <summary>
@@ -114,11 +211,12 @@
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">An object of type <typeparamref name="TEventArgs"/> that contains the event data.</param>
         /// <param name="continueOnCapturedContext">Whether to marshal the continuation back to the original context captured.</param>
+        /// <param name="continueOnException">Whether to continue execution if an exception occurs in one of the handlers.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
-        /// <returns>A task that represents the invocation of the event handler.</returns>
+        /// <returns>A ValueTask that represents the invocation of the event handler.</returns>
         /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
         /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of the event handler.</exception>
-        public static async ValueTask InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs>? eventHandler, object? sender, TEventArgs e, bool continueOnCapturedContext, CancellationToken cancellationToken)
+        public static async ValueTask InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs>? eventHandler, object? sender, TEventArgs e, bool continueOnCapturedContext, bool continueOnException, CancellationToken cancellationToken)
         {
             if (eventHandler is null) return;
 
@@ -138,6 +236,10 @@
                 }
                 catch (Exception ex)
                 {
+                    if (!continueOnException)
+                    {
+                        throw;
+                    }
                     exceptions ??= [];
                     exceptions.Add(ex);
                 }
@@ -149,45 +251,6 @@
             }
         }
 
-        /// <summary>
-        /// Invokes the specified asynchronous event handler without a cancellation token.
-        /// </summary>
-        /// <typeparam name="TEventArgs">The type of the event data generated by the event.</typeparam>
-        /// <param name="eventHandler">The event handler to invoke.</param>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">An object of type <typeparamref name="TEventArgs"/> that contains the event data.</param>
-        /// <param name="continueOnCapturedContext">Whether to marshal the continuation back to the original context captured.</param>
-        /// <returns>A task that represents the invocation of the event handler.</returns>
-        public static ValueTask InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs>? eventHandler, object? sender, TEventArgs e, bool continueOnCapturedContext)
-        {
-            return InvokeAsync(eventHandler, sender, e, continueOnCapturedContext, default);
-        }
-
-        /// <summary>
-        /// Invokes the specified asynchronous event handler using the specified cancellation token.
-        /// </summary>
-        /// <typeparam name="TEventArgs">The type of the event data generated by the event.</typeparam>
-        /// <param name="eventHandler">The event handler to invoke.</param>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">An object of type <typeparamref name="TEventArgs"/> that contains the event data.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
-        /// <returns>A task that represents the invocation of the event handler. Continuations are not marshaled back to the original context captured.</returns>
-        public static ValueTask InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs>? eventHandler, object? sender, TEventArgs e, CancellationToken cancellationToken)
-        {
-            return InvokeAsync(eventHandler, sender, e, false, cancellationToken);
-        }
-
-        /// <summary>
-        /// Invokes the specified asynchronous event handler without a cancellation token and with continuation on original context.
-        /// </summary>
-        /// <typeparam name="TEventArgs">The type of the event data generated by the event.</typeparam>
-        /// <param name="eventHandler">The event handler to invoke.</param>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">An object of type <typeparamref name="TEventArgs"/> that contains the event data.</param>
-        /// <returns>A task that represents the invocation of the event handler. Continuations are not marshaled back to the original context captured.</returns>
-        public static ValueTask InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs>? eventHandler, object? sender, TEventArgs e)
-        {
-            return InvokeAsync(eventHandler, sender, e, false, default);
-        }
+        #endregion
     }
 }

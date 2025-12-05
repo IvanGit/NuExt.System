@@ -1,84 +1,94 @@
 ﻿namespace System.Reflection
 {
     /// <summary>
-    /// Provides information about the current assembly.
+    /// Provides information about the specified assembly.
     /// </summary>
-    public static class AssemblyInfo
+    public class AssemblyInfo
     {
-        private static Assembly? s_assembly;
         /// <summary>
-        /// Gets the current assembly. If not already set, it retrieves 
-        /// the entry assembly or executing assembly.
+        /// Initializes a new instance of the <see cref="AssemblyInfo"/> class with the specified assembly.
         /// </summary>
-        public static Assembly Assembly
+        /// <param name="assembly">The assembly to get information from.</param>
+        public AssemblyInfo(Assembly assembly)
         {
-            get
-            {
-                s_assembly ??= Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
-                return s_assembly;
-            }
+            Assembly = assembly ?? throw new ArgumentNullException(nameof(assembly));
+            AssemblyName = Assembly.GetName();
+            Version = AssemblyName.Version;
         }
 
-        private static string? s_company;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AssemblyInfo"/> class using the entry or executing assembly.
+        /// </summary>
+        public AssemblyInfo(): this(Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly())
+        {
+        }
+
+        /// <summary>
+        /// Gets the current assembly info for the entry or executing assembly.
+        /// </summary>
+        public static AssemblyInfo Current { get; } = new();
+
+        /// <summary>
+        /// Gets the assembly.
+        /// </summary>
+        public Assembly Assembly { get; }
+
         /// <summary>
         /// Gets the company name from the assembly's attributes.
         /// </summary>
-        public static string? Company
+        public string? Company
         {
             get
             {
-                s_company ??= (Attribute.GetCustomAttribute(Assembly, typeof(AssemblyCompanyAttribute)) as AssemblyCompanyAttribute)?.Company;
-                return s_company;
+                field ??= (Attribute.GetCustomAttribute(Assembly, typeof(AssemblyCompanyAttribute)) as AssemblyCompanyAttribute)?.Company;
+                return field;
             }
         }
 
-        private static string? s_copyright;
         /// <summary>
         /// Gets the copyright information from the assembly's attributes.
         /// </summary>
-        public static string? Copyright
+        public string? Copyright
         {
             get
             {
-                s_copyright ??= (Attribute.GetCustomAttribute(Assembly, typeof(AssemblyCopyrightAttribute)) as AssemblyCopyrightAttribute)?.Copyright;
-                return s_copyright;
+                field ??= (Attribute.GetCustomAttribute(Assembly, typeof(AssemblyCopyrightAttribute)) as AssemblyCopyrightAttribute)?.Copyright;
+                return field;
             }
         }
 
-        private static string? s_product;
         /// <summary>
         /// Gets the product name from the assembly's attributes.
         /// </summary>
-        public static string? Product
+        public string? Product
         {
             get
             {
-                s_product ??= (Attribute.GetCustomAttribute(Assembly, typeof(AssemblyProductAttribute)) as AssemblyProductAttribute)?.Product;
-                return s_product;
+                field ??= (Attribute.GetCustomAttribute(Assembly, typeof(AssemblyProductAttribute)) as AssemblyProductAttribute)?.Product;
+                return field;
             }
         }
 
-        private static string? s_title;
         /// <summary>
         /// Gets the title of the assembly from the assembly's attributes.
         /// </summary>
-        public static string? Title
+        public string? Title
         {
             get
             {
-                s_title ??= (Attribute.GetCustomAttribute(Assembly, typeof(AssemblyTitleAttribute)) as AssemblyTitleAttribute)?.Title;
-                return s_title;
+                field ??= (Attribute.GetCustomAttribute(Assembly, typeof(AssemblyTitleAttribute)) as AssemblyTitleAttribute)?.Title;
+                return field;
             }
         }
 
         /// <summary>
         /// Gets the name of the assembly.
         /// </summary>
-        internal static AssemblyName AssemblyName { get; } = Assembly.GetName();
+        public AssemblyName AssemblyName { get; }
 
         /// <summary>
         /// Gets the version of the assembly.
         /// </summary>
-        public static Version? Version { get; } = AssemblyName.Version;
+        public Version? Version { get; }
     }
 }

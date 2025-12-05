@@ -11,6 +11,7 @@ namespace NuExt.System.Benchmarks
             AddJob(Job.Default.WithRuntime(ClrRuntime.Net462));
             AddJob(Job.Default.WithRuntime(CoreRuntime.Core80));
             AddJob(Job.Default.WithRuntime(CoreRuntime.Core90));
+            AddJob(Job.Default.WithRuntime(CoreRuntime.Core10_0));
         }
     }
 }

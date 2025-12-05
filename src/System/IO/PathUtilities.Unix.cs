@@ -12,6 +12,10 @@ namespace System.IO
             private const char AltDirectorySeparatorChar = '/';
             internal const string DirectorySeparatorCharAsString = "/";
 
+            public static char[] GetInvalidFileNameChars() => ['\0', '/'];
+
+            public static char[] GetInvalidPathChars() => ['\0'];
+
             // Expands the given path to a fully qualified path.
             internal static ReadOnlySpan<char> GetFullPath(ReadOnlySpan<char> path)
             {

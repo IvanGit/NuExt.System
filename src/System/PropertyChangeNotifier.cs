@@ -9,9 +9,17 @@ namespace System
     /// <see cref="INotifyPropertyChanged"/> interface. It also supports thread-safe property updates and 
     /// synchronization with a specified <see cref="SynchronizationContext"/> for UI-bound operations.
     /// </summary>
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="PropertyChangeNotifier"/> class 
+    /// with the specified synchronization context.
+    /// </remarks>
+    /// <param name="synchronizationContext">
+    /// An optional synchronization context to use for property change notifications. 
+    /// If null, no synchronization context will be used.
+    /// </param>
     [DebuggerStepThrough]
     [Serializable]
-    public abstract class PropertyChangeNotifier : INotifyPropertyChanged, IDispatcherObject
+    public abstract class PropertyChangeNotifier(SynchronizationContext? synchronizationContext) : INotifyPropertyChanged, IDispatcherObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyChangeNotifier"/> class 
@@ -19,20 +27,6 @@ namespace System
         /// </summary>
         protected PropertyChangeNotifier() : this(null)
         {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PropertyChangeNotifier"/> class 
-        /// with the specified synchronization context.
-        /// </summary>
-        /// <param name="synchronizationContext">
-        /// An optional synchronization context to use for property change notifications. 
-        /// If null, no synchronization context will be used.
-        /// </param>
-        protected PropertyChangeNotifier(SynchronizationContext? synchronizationContext)
-        {
-            SynchronizationContext = synchronizationContext;
-            Thread = Thread.CurrentThread;
         }
 
         #region Properties
@@ -62,13 +56,13 @@ namespace System
         /// Gets the SynchronizationContext associated with this instance.
         /// </summary>
         [Browsable(false)]
-        public SynchronizationContext? SynchronizationContext { get; }
+        public SynchronizationContext? SynchronizationContext { get; } = synchronizationContext;
 
         /// <summary>
         /// Gets the thread on which the current instance was created.
         /// </summary>
         [Browsable(false)]
-        public Thread Thread { get; }
+        public Thread Thread { get; } = Thread.CurrentThread;
 
         #endregion
 

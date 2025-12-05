@@ -24,9 +24,11 @@
 - **`System.Threading.AsyncLock`**: Asynchronous lock for resource synchronization.
 - **`System.Threading.AsyncWaitHandle`**: Async wait handle with timeout and cancellation support.
 - **`System.Threading.ReentrantAsyncLock`**: Reentrant asynchronous lock.
-- **`System.Text.ValueStringBuilder`**: High-performance string builder (originally internal in .NET runtime).
+- **`System.Threading.Tasks.ValueTaskExtensions`**: `ValueTask.WhenAll` and `ValueTask.WhenAll<TResult>` implementations.
 - **`System.IO.PathBuilder`**: Builder for constructing paths.
 - **`System.IO.ValuePathBuilder`**: High-performance builder for constructing paths.
+- **`System.Text.ValueStringBuilder`**: High-performance string builder (originally internal in .NET runtime).
+- **`System.Collections.Generic.ValueListBuilder<T>`**: High-performance list builder (originally internal in .NET runtime).
 
 ### Installation
 
@@ -87,6 +89,112 @@ asyncLock.Acquire(() => cts.Cancel());
 This ensures that the `AsyncLocal` values do not unintentionally flow into the registered callbacks, maintaining the intended behavior of your application.
 
 ### Usage Examples
+
+#### Examples Using `ValueListBuilder<T>` and `ValueTask.WhenAll` extensions
+
+##### Using `ValueListBuilder<T>` and `ValueTask.WhenAll`
+
+```csharp
+public class Example
+{
+    public static async Task Main()
+    {
+        int failed = 0;
+        String[] urls = [ "www.adatum.com", "www.cohovineyard.com",
+                        "www.cohowinery.com", "www.northwindtraders.com",
+                        "www.contoso.com" ];
+        var tasks = new ValueListBuilder<ValueTask>(urls.Length);
+
+        foreach (var value in urls)
+        {
+            var url = value;
+            tasks.Append(new ValueTask(Task.Run(() =>
+            {
+                var png = new Ping();
+                try
+                {
+                    var reply = png.Send(url);
+                    if (reply.Status != IPStatus.Success)
+                    {
+                        Interlocked.Increment(ref failed);
+                        throw new TimeoutException("Unable to reach " + url + ".");
+                    }
+                }
+                catch (PingException)
+                {
+                    Interlocked.Increment(ref failed);
+                    throw;
+                }
+            })));
+        }
+        ValueTask t = ValueTask.WhenAll(tasks.ToArray());
+        try
+        {
+            await t;
+        }
+        catch { }
+
+        if (t.IsCompletedSuccessfully)
+            Console.WriteLine("All ping attempts succeeded.");
+        else if (t.IsFaulted)
+            Console.WriteLine("{0} ping attempts failed", failed);
+    }
+}
+```
+
+##### Using `ValueListBuilder<T>` and `ValueTask.WhenAll<T>`
+
+```csharp
+public class Example
+{
+    public static async Task Main()
+    {
+        int failed = 0;
+        String[] urls = [ "www.adatum.com", "www.cohovineyard.com",
+                        "www.cohowinery.com", "www.northwindtraders.com",
+                        "www.contoso.com" ];
+        var tasks = new ValueListBuilder<ValueTask<PingReply>>(urls.Length);
+
+        foreach (var value in urls)
+        {
+            var url = value;
+            tasks.Append(new ValueTask<PingReply>(Task.Run(() =>
+            {
+                var png = new Ping();
+                try
+                {
+                    var reply = png.Send(url);
+                    if (reply.Status != IPStatus.Success)
+                    {
+                        Interlocked.Increment(ref failed);
+                        throw new TimeoutException("Unable to reach " + url + ".");
+                    }
+                    return reply;
+                }
+                catch (PingException)
+                {
+                    Interlocked.Increment(ref failed);
+                    throw;
+                }
+            })));
+        }
+        try
+        {
+            PingReply[] replies = await ValueTask.WhenAll(tasks.ToArray());
+            Console.WriteLine("{0} ping attempts succeeded:", replies.Length);
+            for (int i = 0; i < replies.Length; i++)
+            {
+                var reply = replies[i];
+                Console.WriteLine($"Reply from {reply.Address}: bytes={reply.Buffer.Length} time={reply.RoundtripTime}ms TTL={reply.Options?.Ttl} [{urls[i]}]");
+            }
+        }
+        catch (AggregateException)
+        {
+            Console.WriteLine("{0} ping attempts failed", failed);
+        }
+    }
+}
+```
 
 For comprehensive examples of how to use the package, see samples in the following repositories:
 

@@ -238,6 +238,24 @@ namespace System.IO
         }
 
         /// <summary>
+        /// Returns an array containing the characters that are not allowed in file names.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static char[] GetInvalidFileNameChars(bool isUnixLike)
+        {
+            return isUnixLike ? Unix.GetInvalidFileNameChars() : Windows.GetInvalidFileNameChars();
+        }
+
+        /// <summary>
+        /// Returns an array containing the characters that are not allowed in path names.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static char[] GetInvalidPathChars(bool isUnixLike)
+        {
+            return isUnixLike ? Unix.GetInvalidPathChars() : Windows.GetInvalidPathChars();
+        }
+
+        /// <summary>
         /// Returns the root portion of the given path. The resulting string
         /// consists of those rightmost characters of the path that constitute the
         /// root of the path. Possible patterns for the resulting string are: An

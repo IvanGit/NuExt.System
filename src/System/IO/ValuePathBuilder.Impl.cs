@@ -11,9 +11,8 @@ namespace System.IO
         private char[]? _arrayToReturnToPool;
         private Span<char> _chars;
         private int _pos;
-#pragma warning disable IDE0051 // Remove unused private members
         private char? _directorySeparatorChar;
-#pragma warning restore IDE0051 // Remove unused private members
+        private bool? _isUnixLikePlatform;
 
         #region Properties
 
@@ -22,10 +21,14 @@ namespace System.IO
         public partial char DirectorySeparatorChar
         {
             readonly get => _directorySeparatorChar ?? Path.DirectorySeparatorChar;
-            set => _directorySeparatorChar = value;
+            set 
+            { 
+                _directorySeparatorChar = value;
+                _isUnixLikePlatform = PathUtilities.IsUnixLikePlatform(value);
+            }
         }
 
-        private readonly bool IsUnixLikePlatform => PathUtilities.IsUnixLikePlatform(DirectorySeparatorChar);
+        private readonly bool IsUnixLikePlatform => _isUnixLikePlatform ?? PathUtilities.IsUnixLikePlatform(DirectorySeparatorChar);
 
         public partial int Length
         {

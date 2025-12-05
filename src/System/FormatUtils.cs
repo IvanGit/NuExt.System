@@ -1,5 +1,8 @@
 ﻿namespace System
 {
+    /// <summary>
+    /// Provides utility methods for formatting.
+    /// </summary>
     public static class FormatUtils
     {
         private const long _1KB = 1024;
@@ -7,6 +10,12 @@
         private const long _1GB = 1024 * _1MB;
         private const long _1TB = 1024 * _1GB;
 
+        /// <summary>
+        /// Formats a size in bytes into a human-readable string using the appropriate unit (B, KB, MB, GB, or TB).
+        /// </summary>
+        /// <param name="provider">An object that supplies culture-specific formatting information.</param>
+        /// <param name="size">The size in bytes to be formatted.</param>
+        /// <returns>A human-readable string representation of the size with the appropriate unit.</returns>
         public static string FormatSize(IFormatProvider? provider, long size)
         {
             FormattableString message = size switch

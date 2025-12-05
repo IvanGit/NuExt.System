@@ -1,4 +1,4 @@
-﻿#if NETFRAMEWORK
+﻿#if NET_OLD
 using System.Diagnostics;
 
 namespace System.Collections.Generic
