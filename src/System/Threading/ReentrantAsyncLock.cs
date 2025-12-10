@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace System.Threading
 {
@@ -175,11 +176,7 @@ namespace System.Threading
         /// </remarks>
         public void Acquire(Action action, CancellationToken cancellationToken = default)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(action);
-#else
-            Throw.IfNull(action);
-#endif
             CheckDisposed();
 
             bool isReentrant = LocalId == CurrentId;
@@ -268,11 +265,7 @@ namespace System.Threading
         /// </remarks>
         public T Acquire<T>(Func<T> func, CancellationToken cancellationToken = default)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(func);
-#else
-            Throw.IfNull(func);
-#endif
             CheckDisposed();
 
             bool isReentrant = LocalId == CurrentId;
@@ -358,11 +351,7 @@ namespace System.Threading
         /// </remarks>
         public async ValueTask AcquireAsync(Func<ValueTask> func, CancellationToken cancellationToken = default)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(func);
-#else
-            Throw.IfNull(func);
-#endif
             CheckDisposed();
 
             bool isReentrant = LocalId == CurrentId;
@@ -451,11 +440,7 @@ namespace System.Threading
         /// </remarks>
         public async ValueTask<T> AcquireAsync<T>(Func<ValueTask<T>> func, CancellationToken cancellationToken = default)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(func);
-#else
-            Throw.IfNull(func);
-#endif
             CheckDisposed();
 
             bool isReentrant = LocalId == CurrentId;

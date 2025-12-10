@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -13,6 +14,28 @@ namespace System.IO
         private int _pos;
         private char? _directorySeparatorChar;
         private bool? _isUnixLikePlatform;
+
+        public partial ValuePathBuilder(Span<char> initialBuffer)
+        {
+            _arrayToReturnToPool = null;
+            _chars = initialBuffer;
+            _pos = 0;
+        }
+
+        public partial ValuePathBuilder(int initialCapacity)
+        {
+            _arrayToReturnToPool = ArrayPool<char>.Shared.Rent(initialCapacity);
+            _chars = _arrayToReturnToPool;
+            _pos = 0;
+        }
+
+        public partial ValuePathBuilder(scoped ReadOnlySpan<char> initialPath)
+        {
+            _arrayToReturnToPool = ArrayPool<char>.Shared.Rent(initialPath.Length);
+            _chars = _arrayToReturnToPool;
+            initialPath.CopyTo(_chars);
+            _pos = initialPath.Length;
+        }
 
         #region Properties
 
@@ -80,7 +103,7 @@ namespace System.IO
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [OverloadResolutionPriority(-1)]
+        //[OverloadResolutionPriority(-1)]
         public partial void Add(scoped ReadOnlySpan<char> s)
         {
             if (s.IsEmpty)
@@ -329,7 +352,7 @@ namespace System.IO
             return builder;
         }
 
-        [OverloadResolutionPriority(-1)]
+        //[OverloadResolutionPriority(-1)]
         public partial void Append(scoped ReadOnlySpan<char> path)
         {
             if (path.IsEmpty)
@@ -405,7 +428,7 @@ namespace System.IO
             return true;
         }
 
-        [OverloadResolutionPriority(-1)]
+        //[OverloadResolutionPriority(-1)]
         public partial bool ChangeFileName(scoped ReadOnlySpan<char> newFileName)
         {
             var fileNameLength = GetFileName().Length;

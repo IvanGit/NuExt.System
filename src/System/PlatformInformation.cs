@@ -1,4 +1,6 @@
-﻿namespace System
+﻿using System.IO;
+
+namespace System
 {
     /// <summary>
     /// This class provides simple properties for determining whether the current platform is Windows or Unix-based.

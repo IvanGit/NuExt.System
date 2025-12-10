@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
 namespace System.Collections.Generic
 {
@@ -37,11 +38,8 @@ namespace System.Collections.Generic
         /// <exception cref="ArgumentNullException">Thrown when the items parameter is null.</exception>
         public static IEnumerable<T> FastReverse<T>(this IList<T> items)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(items);
-#else
-            Throw.IfNull(items);
-#endif
+
             for (int i = items.Count - 1; i >= 0; i--)
             {
                 yield return items[i];
@@ -58,13 +56,9 @@ namespace System.Collections.Generic
         public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
         {
             Debug.Assert(source != null && action != null);
-#if NET
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(action);
-#else
-            Throw.IfNull(source);
-            Throw.IfNull(action);
-#endif
+
             foreach (T item in source)
             {
                 action(item);
@@ -82,13 +76,9 @@ namespace System.Collections.Generic
         public static int IndexOf<T>(this IEnumerable<T> source, Predicate<T> match)
         {
             Debug.Assert(source != null && match != null);
-#if NET
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(match);
-#else
-            Throw.IfNull(source);
-            Throw.IfNull(match);
-#endif
+
             int i = 0;
             foreach (T item in source)
             {
@@ -113,13 +103,9 @@ namespace System.Collections.Generic
         public static int FindIndexOfMax<T, TV>(this IList<T> source, Func<T, TV> selector) where TV : IComparable
         {
             Debug.Assert(source != null && selector != null);
-#if NET
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(selector);
-#else
-            Throw.IfNull(source);
-            Throw.IfNull(selector);
-#endif
+
             if (source.Count == 0)
             {
                 return -1;
@@ -151,11 +137,8 @@ namespace System.Collections.Generic
         public static void DisposeAndClear<T>(this ICollection<T> self) where T : IDisposable?
         {
             Debug.Assert(self != null);
-#if NET
             ArgumentNullException.ThrowIfNull(self);
-#else
-            Throw.IfNull(self);
-#endif
+
             self.ForEach(item => item?.Dispose());
             self.Clear();
         }
@@ -177,11 +160,8 @@ namespace System.Collections.Generic
         public static async ValueTask DisposeAndClearAsync<T>(this ICollection<T> self, bool continueOnCapturedContext = false) where T : IAsyncDisposable?
         {
             Debug.Assert(self != null);
-#if NET
             ArgumentNullException.ThrowIfNull(self);
-#else
-            Throw.IfNull(self);
-#endif
+
             List<Exception>? exceptions = null;
             foreach (var item in self)
             {

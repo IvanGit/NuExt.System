@@ -1,6 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace System
 {
@@ -301,7 +303,7 @@ namespace System
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowInvalidThreadAccess()
         {
-            throw new InvalidOperationException("The calling thread cannot access this object because it is owned by a different thread.");
+            throw new InvalidOperationException(SR.VerifyAccess);
         }
 
         /// <summary>

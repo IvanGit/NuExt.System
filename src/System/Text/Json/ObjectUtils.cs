@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace System.Text.Json
 {
@@ -51,13 +52,9 @@ namespace System.Text.Json
             {
                 return;
             }
-#if NET
             ArgumentNullException.ThrowIfNull(getObjectType);
             ArgumentNullException.ThrowIfNull(setValue);
-#else
-            Throw.IfNull(getObjectType);
-            Throw.IfNull(setValue);
-#endif
+
             //var json = JsonSerializer.Deserialize<JsonDocument>(json);
             try
             {

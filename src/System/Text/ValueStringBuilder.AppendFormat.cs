@@ -36,11 +36,7 @@ namespace System.Text
         // as ValueStringBuilder is a ref struct and cannot be used in a generic.
         public void AppendFormat(IFormatProvider? provider, string format, params ReadOnlySpan<object?> args)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(format);
-#else
-            Throw.IfNull(format);
-#endif
 
             // Undocumented exclusive limits on the range for Argument Hole Index and Argument Hole Alignment.
             const int IndexLimit = 1_000_000; // Note:            0 <= ArgIndex < IndexLimit

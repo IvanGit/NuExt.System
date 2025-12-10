@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;netstandard2.0;net10.0;net9.0;net8.0;net462</TargetFrameworks>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
     <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
     <PackageTags>nuext;extensions;async;asynceventhandler;asynclock;asyncwaithandle;reentrantasynclock;disposable;asyncdisposable;lifetime;asynclifetime;valuestringbuilder;pathbuilder;valuepathbuilder;task;valuetask</PackageTags>
     <Description>Provides various fundamental extensions and classes for .NET, simplifying tasks related to asynchronous programming, resource lifecycle management, thread synchronization, and more.
 
@@ -27,7 +27,7 @@ System.IO.PathBuilder
 System.IO.ValuePathBuilder
 System.Text.ValueStringBuilder
 System.Collections.Generic.ValueListBuilder&lt;T&gt;</Description>
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -50,7 +50,7 @@ System.Collections.Generic.ValueListBuilder&lt;T&gt;</Description>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net462'">
-    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+    <PackageReference Include="System.Text.Json" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>

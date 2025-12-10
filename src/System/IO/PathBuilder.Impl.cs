@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -16,6 +17,49 @@ namespace System.IO
 
 
         private static readonly char[] s_emptyArray = [];
+
+        public partial PathBuilder()
+        {
+            _chars = s_emptyArray;
+            _pos = 0;
+        }
+
+        public partial PathBuilder(int initialCapacity)
+        {
+            Throw.ArgumentOutOfRangeExceptionIf(initialCapacity < 0, nameof(initialCapacity), SR.ArgumentOutOfRange_NeedNonNegNum);
+            _chars = initialCapacity == 0 ? s_emptyArray : new char[initialCapacity];
+            _pos = 0;
+        }
+
+        public partial PathBuilder(IEnumerable<char> initialPath)
+        {
+            ArgumentNullException.ThrowIfNull(initialPath);
+
+            if (initialPath is ICollection<char> chars)
+            {
+                int count = chars.Count;
+                if (count == 0)
+                {
+                    _chars = s_emptyArray;
+                    _pos = 0;
+                }
+                else
+                {
+                    _chars = new char[count];
+                    chars.CopyTo(_chars, 0);
+                    _pos = count;
+                }
+            }
+            else
+            {
+                _chars = s_emptyArray;
+                _pos = 0;
+                foreach (char c in initialPath)
+                {
+                    Add(c);
+                }
+            }
+        }
 
         #region Properties
 
@@ -83,7 +127,7 @@ namespace System.IO
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [OverloadResolutionPriority(-1)]
+        //[OverloadResolutionPriority(-1)]
         public partial void Add(scoped ReadOnlySpan<char> s)
         {
             if (s.IsEmpty)
@@ -307,7 +351,7 @@ namespace System.IO
             return builder;
         }
 
-        [OverloadResolutionPriority(-1)]
+        //[OverloadResolutionPriority(-1)]
         public partial void Append(scoped ReadOnlySpan<char> path)
         {
             if (path.IsEmpty)
@@ -383,7 +427,7 @@ namespace System.IO
             return true;
         }
 
-        [OverloadResolutionPriority(-1)]
+        //[OverloadResolutionPriority(-1)]
         public partial bool ChangeFileName(scoped ReadOnlySpan<char> newFileName)
         {
             var fileNameLength = GetFileName().Length;

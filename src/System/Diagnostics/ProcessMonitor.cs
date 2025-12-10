@@ -1,4 +1,6 @@
-﻿namespace System.Diagnostics
+﻿using System.Threading;
+
+namespace System.Diagnostics
 {
     /// <summary>
     /// Provides comprehensive monitoring of a specified process, including various metrics such as CPU usage,

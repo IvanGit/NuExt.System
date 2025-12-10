@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+﻿using System.Collections.Generic;
 
 namespace System.IO
 {
@@ -11,36 +11,19 @@ namespace System.IO
         /// Initializes a new instance of the <see cref="ValuePathBuilder"/> struct with an initial buffer.
         /// </summary>
         /// <param name="initialBuffer">The initial buffer to use for the path.</param>
-        public ValuePathBuilder(Span<char> initialBuffer)
-        {
-            _arrayToReturnToPool = null;
-            _chars = initialBuffer;
-            _pos = 0;
-        }
+        public partial ValuePathBuilder(Span<char> initialBuffer);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ValuePathBuilder"/> struct with a specified initial capacity.
         /// </summary>
         /// <param name="initialCapacity">The initial number of characters the builder can hold.</param>
-        public ValuePathBuilder(int initialCapacity)
-        {
-            _arrayToReturnToPool = ArrayPool<char>.Shared.Rent(initialCapacity);
-            _chars = _arrayToReturnToPool;
-            _pos = 0;
-        }
+        public partial ValuePathBuilder(int initialCapacity);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ValuePathBuilder"/> struct with an initial path.
         /// </summary>
         /// <param name="initialPath">The initial path to start the builder with.</param>
-        public ValuePathBuilder(scoped ReadOnlySpan<char> initialPath)
-        {
-            _arrayToReturnToPool = ArrayPool<char>.Shared.Rent(initialPath.Length);
-            _chars = _arrayToReturnToPool;
-            initialPath.CopyTo(_chars);
-            _pos = initialPath.Length;
-        }
-
+        public partial ValuePathBuilder(scoped ReadOnlySpan<char> initialPath);
 
         /// <summary>
         /// Gets the capacity of the builder.

@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace System.Reflection
 {
@@ -22,13 +24,9 @@ namespace System.Reflection
         public static IReadOnlyList<FieldInfo> GetAllFields(this Type currentType, Type baseType, BindingFlags flags, Predicate<FieldInfo>? match = default)
         {
             Debug.Assert(currentType != null && baseType != null);
-#if NET
             ArgumentNullException.ThrowIfNull(currentType);
             ArgumentNullException.ThrowIfNull(baseType);
-#else
-            Throw.IfNull(currentType);
-            Throw.IfNull(baseType);
-#endif
+
             var list = new List<FieldInfo>();
             Type? type = currentType;
             while (type != null && type != typeof(object))
@@ -75,13 +73,9 @@ namespace System.Reflection
         public static IReadOnlyList<MethodInfo> GetAllMethods(this Type currentType, Type baseType, BindingFlags flags, Predicate<MethodInfo>? match = default)
         {
             Debug.Assert(currentType != null && baseType != null);
-#if NET
             ArgumentNullException.ThrowIfNull(currentType);
             ArgumentNullException.ThrowIfNull(baseType);
-#else
-            Throw.IfNull(currentType);
-            Throw.IfNull(baseType);
-#endif
+
             var list = new List<MethodInfo>();
             Type? type = currentType;
             while (type != null && type != typeof(object))
@@ -110,13 +104,9 @@ namespace System.Reflection
         public static IReadOnlyList<PropertyInfo> GetAllProperties(this Type currentType, Type baseType, BindingFlags flags, Predicate<PropertyInfo>? match = default)
         {
             Debug.Assert(currentType != null && baseType != null);
-#if NET
             ArgumentNullException.ThrowIfNull(currentType);
             ArgumentNullException.ThrowIfNull(baseType);
-#else
-            Throw.IfNull(currentType);
-            Throw.IfNull(baseType);
-#endif
+
             var list = new List<PropertyInfo>();
             Type? type = currentType;
             while (type != null && type != typeof(object))

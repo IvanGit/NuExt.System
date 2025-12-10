@@ -1,4 +1,6 @@
-﻿namespace System.Threading.Tasks
+﻿using System.Collections.Generic;
+
+namespace System.Threading.Tasks
 {
     //Based on https://stackoverflow.com/questions/45689327/task-whenall-for-valuetask
     /// <summary>
@@ -21,11 +23,8 @@
             /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of tasks.</exception>
             public static ValueTask WhenAll(IEnumerable<ValueTask> tasks)
             {
-#if NET
                 ArgumentNullException.ThrowIfNull(tasks);
-#else
-                Throw.IfNull(tasks);
-#endif
+
                 int? count = null;
                 if (tasks is ICollection<ValueTask> taskCollection)
                 {
@@ -63,11 +62,8 @@
             /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of tasks.</exception>
             public static ValueTask WhenAll(params ValueTask[] tasks)
             {
-#if NET
                 ArgumentNullException.ThrowIfNull(tasks);
-#else
-                Throw.IfNull(tasks);
-#endif
+
                 return WhenAll((IReadOnlyList<ValueTask>)tasks);
             }
 
@@ -97,11 +93,8 @@
             /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of tasks.</exception>
             public static ValueTask<TResult[]> WhenAll<TResult>(IEnumerable<ValueTask<TResult>> tasks)
             {
-#if NET
                 ArgumentNullException.ThrowIfNull(tasks);
-#else
-                Throw.IfNull(tasks);
-#endif
+
                 int? count = null;
                 if (tasks is ICollection<ValueTask<TResult>> taskCollection)
                 {
@@ -140,11 +133,8 @@
             /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of tasks.</exception>
             public static ValueTask<TResult[]> WhenAll<TResult>(params ValueTask<TResult>[] tasks)
             {
-#if NET
                 ArgumentNullException.ThrowIfNull(tasks);
-#else
-                Throw.IfNull(tasks);
-#endif
+
                 return WhenAll((IReadOnlyList<ValueTask<TResult>>)tasks);
             }
 
@@ -175,11 +165,7 @@
         /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of tasks.</exception>
         public static async ValueTask WhenAll(this IReadOnlyList<ValueTask> tasks)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(tasks);
-#else
-            Throw.IfNull(tasks);
-#endif
 
             if (tasks.Count == 0)
             {
@@ -218,11 +204,7 @@
         /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of tasks.</exception>
         public static async ValueTask<TResult[]> WhenAll<TResult>(this IReadOnlyList<ValueTask<TResult>> tasks)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(tasks);
-#else
-            Throw.IfNull(tasks);
-#endif
 
             if (tasks.Count == 0)
             {

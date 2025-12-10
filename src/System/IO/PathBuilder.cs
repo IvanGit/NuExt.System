@@ -1,4 +1,6 @@
-﻿namespace System.IO
+﻿using System.Collections.Generic;
+
+namespace System.IO
 {
     /// <summary>
     /// Provides a mutable builder for constructing paths.
@@ -8,61 +10,21 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="PathBuilder"/> class.
         /// </summary>
-        public PathBuilder()
-        {
-            _chars = s_emptyArray;
-            _pos = 0;
-        }
+        public partial PathBuilder();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PathBuilder"/> class with a specified initial capacity.
         /// </summary>
         /// <param name="initialCapacity">The initial number of characters the builder can hold.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="initialCapacity"/> is less than 0.</exception>
-        public PathBuilder(int initialCapacity)
-        {
-            Throw.ArgumentOutOfRangeExceptionIf(initialCapacity < 0, nameof(initialCapacity), "Non-negative number required.");
-            _chars = initialCapacity == 0 ? s_emptyArray : new char[initialCapacity];
-            _pos = 0;
-        }
+        public partial PathBuilder(int initialCapacity);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PathBuilder"/> class with an initial path.
         /// </summary>
         /// <param name="initialPath">The initial path to start the builder with.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="initialPath"/> is null.</exception>
-        public PathBuilder(IEnumerable<char> initialPath)
-        {
-#if NET
-            ArgumentNullException.ThrowIfNull(initialPath);
-#else
-            Throw.IfNull(initialPath);
-#endif
-            if (initialPath is ICollection<char> chars)
-            {
-                int count = chars.Count;
-                if (count == 0)
-                {
-                    _chars = s_emptyArray;
-                    _pos = 0;
-                }
-                else
-                {
-                    _chars = new char[count];
-                    chars.CopyTo(_chars, 0);
-                    _pos = count;
-                }
-            }
-            else
-            {
-                _chars = s_emptyArray;
-                _pos = 0;
-                foreach (char c in initialPath)
-                {
-                    Add(c);
-                }
-            }
-        }
+        public partial PathBuilder(IEnumerable<char> initialPath);
 
         /// <summary>
         /// Gets the capacity of the builder.

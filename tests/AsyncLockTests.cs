@@ -24,7 +24,7 @@
                 tasks.Add(Task.Run(() => Run()));
             }
             Run();
-            Task.WaitAll(tasks.ToArray());
+            Task.WaitAll([.. tasks]);
             Assert.Pass();
         }
 

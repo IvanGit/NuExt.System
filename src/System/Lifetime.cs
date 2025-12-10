@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 // Based on Станислав Сидристый «Шаблон Lifetime: для сложного Disposing»
@@ -45,11 +46,8 @@ namespace System
         public void Add(Action action)
         {
             Debug.Assert(action != null, $"{nameof(action)} is null");
-#if NET
             ArgumentNullException.ThrowIfNull(action);
-#else
-            Throw.IfNull(action);
-#endif
+
             lock (_actions)
             {
                 CheckTerminated();
@@ -69,13 +67,9 @@ namespace System
         {
             Debug.Assert(subscribe != null, $"{nameof(subscribe)} is null");
             Debug.Assert(unsubscribe != null, $"{nameof(unsubscribe)} is null");
-#if NET
             ArgumentNullException.ThrowIfNull(subscribe);
             ArgumentNullException.ThrowIfNull(unsubscribe);
-#else
-            Throw.IfNull(subscribe);
-            Throw.IfNull(unsubscribe);
-#endif
+
             subscribe();
             Add(unsubscribe);
         }
@@ -92,11 +86,8 @@ namespace System
         public T AddDisposable<T>(T disposable) where T : IDisposable
         {
             Debug.Assert(disposable != null, $"{nameof(disposable)} is null");
-#if NET
             ArgumentNullException.ThrowIfNull(disposable);
-#else
-            Throw.IfNull(disposable);
-#endif
+
             Add(disposable.Dispose);
             return disposable;
         }
@@ -113,11 +104,8 @@ namespace System
         public T AddRef<T>(T obj) where T: class
         {
             Debug.Assert(obj != null, $"{nameof(obj)} is null");
-#if NET
             ArgumentNullException.ThrowIfNull(obj);
-#else
-            Throw.IfNull(obj);
-#endif
+
             Add(() => GC.KeepAlive(obj));
             return obj;
         }
@@ -129,14 +117,7 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CheckTerminated()
         {
-#if NET8_0_OR_GREATER
             ObjectDisposedException.ThrowIf(IsTerminated, this);
-#else
-            if (IsTerminated)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-#endif
         }
 
         /// <summary>

@@ -1,4 +1,6 @@
-﻿namespace System
+﻿using System.Threading.Tasks;
+
+namespace System
 {
     /// <summary>
     /// Defines a contract for managing the asynchronous lifecycle of resources and actions that should be executed upon asynchronous disposal.

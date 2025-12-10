@@ -24,5 +24,17 @@ namespace System
         {
             throw new OutOfMemoryException(SR.OutOfMemory_StringTooLong);
         }
+
+        [DoesNotReturn]
+        internal static void ThrowObjectDisposedException(object? instance)
+        {
+            throw new ObjectDisposedException(instance?.GetType().FullName);
+        }
+
+        [DoesNotReturn]
+        internal static void ThrowObjectDisposedException(Type? type)
+        {
+            throw new ObjectDisposedException(type?.FullName);
+        }
     }
 }

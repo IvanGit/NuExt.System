@@ -9,8 +9,9 @@ namespace NuExt.System.Tests
         [Test]
         public void Test1()
         {
-            var p = new Path() { DirectorySeparatorChar = '/' };
+            var p = new Path(stackalloc char[32]) { DirectorySeparatorChar = '/' };
             Assert.That(p.Length, Is.Zero);
+            Assert.That(p.Capacity, Is.EqualTo(32));
 
             p.Add('/');
             Assert.That(p.Length, Is.EqualTo(1));

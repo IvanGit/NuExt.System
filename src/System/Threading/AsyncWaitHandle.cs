@@ -1,4 +1,6 @@
-﻿namespace System.Threading
+﻿using System.Threading.Tasks;
+
+namespace System.Threading
 {
     /// <summary>
     /// Represents an asynchronous wait handle for a WaitHandle with support for timeouts and cancellation.
@@ -14,11 +16,8 @@
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="waitObject"/> is null.</exception>
         public AsyncWaitHandle(WaitHandle waitObject)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(waitObject);
-#else
-            Throw.IfNull(waitObject);
-#endif
+
             _waitObject = waitObject;
         }
 

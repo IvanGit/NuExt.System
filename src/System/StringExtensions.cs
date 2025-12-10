@@ -522,11 +522,8 @@ namespace System
         /// <exception cref="ArgumentNullException">Thrown when the input string is null.</exception>
         public static string CapitalizeFirstLetter(this string str, CultureInfo? culture = null)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(str);
-#else
-            Throw.IfNull(str);
-#endif
+
             if (str.Length == 0) return str;
             culture ??= CultureInfo.CurrentCulture;
             return char.ToUpper(str[0], culture) +
@@ -545,13 +542,15 @@ namespace System
         /// <exception cref="ArgumentNullException">Thrown when the input string is null.</exception>
         public static string RemoveWhiteSpace(this string str)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(str);
-#else
-            Throw.IfNull(str);
-#endif
 
-            return string.Concat(str.Where(c => !char.IsWhiteSpace(c)));
+            var result = new ValueStringBuilder(str.Length);
+            foreach(char c in str)
+            {
+                if (char.IsWhiteSpace(c)) continue;
+                result.Append(c);
+            }
+            return result.ToString();
         }
 
         /// <summary>
@@ -562,11 +561,8 @@ namespace System
         /// <exception cref="ArgumentNullException">Thrown when the input string is null.</exception>
         public static string Reverse(this string str)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(str);
-#else
-            Throw.IfNull(str);
-#endif
+
             if (str.Length == 0) return str;
             char[] charArray = str.ToCharArray();
             Array.Reverse(charArray);
@@ -582,11 +578,8 @@ namespace System
         /// <exception cref="ArgumentNullException">Thrown when the input string is null.</exception>
         public static string ToTitleCase(this string str, CultureInfo? culture = null)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(str);
-#else
-            Throw.IfNull(str);
-#endif
+
             if (str.Length == 0) return str;
             culture ??= CultureInfo.CurrentCulture;
             return culture.TextInfo.ToTitleCase(str.ToLower(culture));

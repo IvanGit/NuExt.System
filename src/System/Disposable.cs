@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace System
 {
@@ -97,14 +98,7 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void CheckDisposed()
         {
-#if NET8_0_OR_GREATER
             ObjectDisposedException.ThrowIf(_isDisposed, this);
-#else
-            if (_isDisposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-#endif
         }
 
         /// <summary>
@@ -233,7 +227,7 @@ namespace System
             string message = $"{GetType().FullName} ({GetHashCode()}) was finalized without proper disposal.";
             Trace.WriteLine(message);
             Debug.Fail(message);
-            throw new InvalidOperationException(message);
+            Throw.InvalidOperationException(message);
         }
 
         #endregion
