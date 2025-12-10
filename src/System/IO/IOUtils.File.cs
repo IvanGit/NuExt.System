@@ -52,11 +52,8 @@ namespace System.IO
         /// <exception cref="ArgumentException">Thrown when the provided path is null or empty.</exception>
         public static DateTime GetFileTimeStamp(string fullPath)
         {
-#if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(fullPath);
-#else
-            Throw.IfNullOrEmpty(fullPath);
-#endif
+
             try
             {
                 return File.GetLastWriteTimeUtc(fullPath);
@@ -80,11 +77,8 @@ namespace System.IO
         /// <exception cref="ArgumentException">Thrown when the provided path is null or empty.</exception>
         public static long GetFileLength(string fullPath)
         {
-#if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(fullPath);
-#else
-            Throw.IfNullOrEmpty(fullPath);
-#endif
+
             try
             {
                 var info = new FileInfo(fullPath);
@@ -109,11 +103,8 @@ namespace System.IO
         /// <exception cref="InvalidOperationException">Thrown when unable to find a free file name after a maximum number of attempts.</exception>
         public static string GetFreeFileName(string path)
         {
-#if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(path);
-#else
-            Throw.IfNullOrEmpty(path);
-#endif
+
             if (!File.Exists(path))
             {
                 return path;
@@ -132,7 +123,7 @@ namespace System.IO
             } while (File.Exists(newPath) && ++i < maxAttempts);
             if (i >= maxAttempts)
             {
-                throw new InvalidOperationException($"Unable to find a free file name after {maxAttempts} attempts.");
+                Throw.InvalidOperationException($"Unable to find a free file name after {maxAttempts} attempts.");
             }
             return newPath;
         }
@@ -145,11 +136,8 @@ namespace System.IO
         /// <returns>The trimmed file name.</returns>
         public static string SmartTrimFileName(string fileName, int limitSize)
         {
-#if NET
             ArgumentNullException.ThrowIfNull(fileName);
-#else
-            Throw.IfNull(fileName);
-#endif
+
             if (string.IsNullOrEmpty(fileName) || limitSize <= 0)
             {
                 return fileName;
@@ -184,11 +172,8 @@ namespace System.IO
         /// <exception cref="ArgumentException">Thrown when the provided path is null or empty.</exception>
         public static bool SafeDeleteFile(string filePath)
         {
-#if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(filePath);
-#else
-            Throw.IfNullOrEmpty(filePath);
-#endif
+
             try
             {
                 if (File.Exists(filePath))

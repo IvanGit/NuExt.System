@@ -12,11 +12,8 @@ namespace System.IO
         /// <param name="throwError">Indicates whether to throw an exception if the directory cannot be created.</param>
         public static void CheckDirectory(string path, bool throwError)
         {
-#if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(path);
-#else
-            Throw.IfNullOrEmpty(path);
-#endif
+
             if (Directory.Exists(path))
             {
                 return;
@@ -41,11 +38,8 @@ namespace System.IO
         /// <returns>The directory name if it exists; otherwise, returns the original path.</returns>
         public static string GetDirectoryName(string fullPath)
         {
-#if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(fullPath);
-#else
-            Throw.IfNullOrEmpty(fullPath);
-#endif
+
             if (fullPath.Length <= 3)
             {
                 return fullPath;
@@ -64,11 +58,8 @@ namespace System.IO
         /// <exception cref="InvalidOperationException">Thrown when unable to find a free directory name after a maximum number of attempts.</exception>
         public static string GetFreeDirectoryName(string path)
         {
-#if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(path);
-#else
-            Throw.IfNullOrEmpty(path);
-#endif
+
             const int maxAttempts = 65000;
             var originalPath = path;
             int i = 0;
@@ -78,7 +69,7 @@ namespace System.IO
             }
             if (i >= maxAttempts)
             {
-                throw new InvalidOperationException($"Unable to find a free directory name after {maxAttempts} attempts.");
+                Throw.InvalidOperationException($"Unable to find a free directory name after {maxAttempts} attempts.");
             }
             return path;
         }
@@ -91,11 +82,8 @@ namespace System.IO
         /// <exception cref="ArgumentException">Thrown when the provided path is null or empty.</exception>
         public static bool SafeDeleteDirectory(string path)
         {
-#if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(path);
-#else
-            Throw.IfNullOrEmpty(path);
-#endif
+
             try
             {
                 if (Directory.Exists(path))

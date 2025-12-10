@@ -142,13 +142,8 @@ namespace System.IO
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static string GetUriRelativePath(string fromPath, string toPath)
         {
-#if NET7_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(fromPath);
             ArgumentException.ThrowIfNullOrEmpty(toPath);
-#else
-            Throw.IfNullOrEmpty(fromPath);
-            Throw.IfNullOrEmpty(toPath);
-#endif
 
             var fromUri = new Uri(AppendDirectorySeparatorChar(fromPath));
             var toUri = new Uri(AppendDirectorySeparatorChar(toPath));

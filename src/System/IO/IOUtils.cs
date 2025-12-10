@@ -24,11 +24,7 @@ namespace System.IO
 
         public static string CombinePathsUnchecked(string root, string? relativePath)
         {
-#if NET7_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(root);
-#else
-            Throw.IfNullOrEmpty(root);
-#endif
 #if NETFRAMEWORK
             char c = root[root.Length - 1];
 #else
@@ -51,11 +47,7 @@ namespace System.IO
         /// <returns>The updated path with the specified extension.</returns>
         public static string EnsurePathHasExtension(string path, string defaultExtension)
         {
-#if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(path);
-#else
-            Throw.IfNullOrEmpty(path);
-#endif
             Throw.ArgumentExceptionIf(string.IsNullOrWhiteSpace(defaultExtension) ||
 #if NETFRAMEWORK
                                                  !defaultExtension.StartsWith("."),
@@ -212,11 +204,8 @@ namespace System.IO
         /// </remarks>
         public static string PathNormalize(string path)
         {
-#if NET8_0_OR_GREATER
             ArgumentException.ThrowIfNullOrEmpty(path);
-#else
-            Throw.IfNullOrEmpty(path);
-#endif
+
             var fullPath = Path.GetFullPath(path);
             return fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
