@@ -100,29 +100,64 @@ namespace System.Threading
         internal int CurrentId => _currentId;
 
         /// <summary>
-        /// Determines whether the lock is currently held by the current execution flow.
-        /// This property checks if the calling context owns the lock (reentrant-aware).
-        /// This check is instantaneous and does not block the calling thread.
+        /// Gets a value that indicates whether the lock is held by the current execution flow.
         /// </summary>
+        /// <value>
+        /// <see langword="true"/> if the current execution flow holds the lock;
+        /// otherwise, <see langword="false"/>.
+        /// </value>
         /// <remarks>
-        /// This property provides similar functionality to <see cref="Monitor.IsEntered"/> 
-        /// but for asynchronous reentrant locks. It returns <see langword="true"/> only when
-        /// the current execution flow (as identified by its context) holds the lock.
-        /// 
-        /// Important: This is a snapshot check and may be stale immediately after the call.
-        /// It should not be used for making synchronization decisions, as this will introduce race conditions.
+        /// <para>
+        /// This property provides functionality analogous to <see cref="Monitor.IsEntered(object)"/> 
+        /// for asynchronous, reentrant locks. The check is non-blocking and reflects the lock state
+        /// at the precise moment of the call.
+        /// </para>
+        /// <para>
+        /// <strong>Important:</strong> The returned value represents a momentary snapshot that may
+        /// be obsolete immediately after retrieval. It must not be used to control program flow
+        /// for lock acquisition or release, as doing so will lead to race conditions.
+        /// For thread-safe lock operations, use the <see cref="Acquire(Action, CancellationToken)"/> or similar methods.
+        /// </para>
         /// </remarks>
         /// <exception cref="ObjectDisposedException">
-        /// Thrown if the ReentrantAsyncLock has been disposed.
+        /// The <see cref="ReentrantAsyncLock"/> has been disposed.
         /// </exception>
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        internal bool IsHeldByCurrentFlow
+        public bool IsHeldByCurrentFlow
         {
             get
             {
                 CheckDisposed();
                 return _currentId == LocalId && _syncLock.CurrentCount == 0;
+            }
+        }
+
+        /// <summary>
+        /// Gets a value that indicates whether the lock is currently held by any execution flow.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if the lock is currently held by any execution flow;
+        /// otherwise, <see langword="false"/>.
+        /// </value>
+        /// <remarks>
+        /// <para>
+        /// This property checks the lock's occupancy status, regardless of which specific flow holds it.
+        /// </para>
+        /// <para>
+        /// <strong>Important:</strong> This property returns a momentary state snapshot
+        /// which may be obsolete upon return. It cannot identify the specific flow holding
+        /// the lock. Using this property to guide synchronization logic will result in
+        /// race conditions and compromise the mutual exclusion guarantee.
+        /// </para>
+        /// </remarks>
+        /// <exception cref="ObjectDisposedException">
+        /// The <see cref="ReentrantAsyncLock"/> has been disposed.
+        /// </exception>
+        public bool IsLocked
+        {
+            get
+            {
+                CheckDisposed();
+                return _syncLock.CurrentCount == 0;
             }
         }
 
