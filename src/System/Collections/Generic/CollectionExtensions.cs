@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace System.Collections.Generic
@@ -13,6 +14,7 @@ namespace System.Collections.Generic
         /// <typeparam name="T">The type of elements in the array.</typeparam>
         /// <param name="self">The array to check.</param>
         /// <returns>True if the array is null or empty; otherwise, false.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this T[]? self)
         {
             return self == null || self.Length == 0;
@@ -24,6 +26,7 @@ namespace System.Collections.Generic
         /// <typeparam name="T">The type of elements in the collection.</typeparam>
         /// <param name="self">The collection to check.</param>
         /// <returns>True if the collection is null or empty; otherwise, false.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this ICollection<T>? self)
         {
             return self == null || self.Count == 0;
@@ -59,7 +62,7 @@ namespace System.Collections.Generic
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(action);
 
-            foreach (T item in source)
+            foreach (var item in source)
             {
                 action(item);
             }
@@ -80,7 +83,7 @@ namespace System.Collections.Generic
             ArgumentNullException.ThrowIfNull(match);
 
             int i = 0;
-            foreach (T item in source)
+            foreach (var item in source)
             {
                 if (match(item))
                 {
@@ -100,7 +103,7 @@ namespace System.Collections.Generic
         /// <param name="selector">The function to select values from the elements. This value cannot be null.</param>
         /// <returns>The index of the element with the maximum value, or -1 if the list is empty.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the source or selector parameter is null.</exception>
-        public static int FindIndexOfMax<T, TV>(this IList<T> source, Func<T, TV> selector) where TV : IComparable
+        public static int FindIndexOfMax<T, TV>(this IList<T> source, Func<T, TV> selector) where TV : IComparable<TV>
         {
             Debug.Assert(source != null && selector != null);
             ArgumentNullException.ThrowIfNull(source);
@@ -114,18 +117,18 @@ namespace System.Collections.Generic
             {
                 return 0;
             }
-            int index = 0;
-            TV min = selector(source[0]);
+            int maxIndex = 0;
+            TV maxValue = selector(source[0]);
             for (int i = 1; i < source.Count; ++i)
             {
                 TV current = selector(source[i]);
-                if (current.CompareTo(min) > 0)
+                if (current.CompareTo(maxValue) > 0)
                 {
-                    min = current;
-                    index = i;
+                    maxValue = current;
+                    maxIndex = i;
                 }
             }
-            return index;
+            return maxIndex;
         }
 
         /// <summary>
@@ -139,7 +142,10 @@ namespace System.Collections.Generic
             Debug.Assert(self != null);
             ArgumentNullException.ThrowIfNull(self);
 
-            self.ForEach(item => item?.Dispose());
+            foreach (var item in self)
+            {
+                item?.Dispose();
+            }
             self.Clear();
         }
 
@@ -172,7 +178,7 @@ namespace System.Collections.Generic
                 }
                 catch (Exception ex)
                 {
-                    exceptions ??= new List<Exception>();
+                    exceptions ??= [];
                     exceptions.Add(ex);
                 }
             }

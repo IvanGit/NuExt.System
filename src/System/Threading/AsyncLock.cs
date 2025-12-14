@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace System.Threading
@@ -16,28 +17,16 @@ namespace System.Threading
     {
         #region Internal classes
 
-        private sealed class Releaser : IDisposable
+        private sealed class Releaser(AsyncLock asyncLock) : IDisposable
         {
-            private readonly AsyncLock _lock;
             private bool _disposed;
-
-            public Releaser(AsyncLock recursiveLock)
-            {
-                _lock = recursiveLock;
-            }
 
             public void Dispose()
             {
                 if (!_disposed)
                 {
-                    try
-                    {
-                        _lock.Exit();
-                    }
-                    finally
-                    {
-                        _disposed = true;
-                    }
+                    asyncLock.Exit();
+                    _disposed = true;
                 }
             }
         }
@@ -68,16 +57,24 @@ namespace System.Threading
         #region Properties
 
         /// <summary>
-        /// Determines whether the current context holds the lock.
+        /// Gets a value indicating whether the lock is currently held by any execution context.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// This property returns true if the lock is currently held by any context, and false otherwise.
         /// Note that this check is instantaneous and does not block the calling thread.
+        /// It should not be used for making synchronization decisions, as this will introduce race conditions.
+        /// </para>
+        /// <para>
+        /// This property is exposed internally for debugging and state validation only.
+        /// </para>
         /// </remarks>
         /// <exception cref="ObjectDisposedException">
         /// Thrown if the AsyncLock has been disposed.
         /// </exception>
-        public bool IsEntered
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        internal bool IsEntered
         {
             get
             {
@@ -97,7 +94,7 @@ namespace System.Threading
         /// enter the critical section protected by this lock at a time.
         /// </summary>
         /// <param name="cancellationToken">
-        /// A CancellationToken to observe while waiting to acquire the lock.
+        /// A <see cref="CancellationToken"/> to observe while waiting to acquire the lock.
         /// The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <exception cref="OperationCanceledException">
@@ -119,11 +116,11 @@ namespace System.Threading
         /// section protected by this lock at a time.
         /// </summary>
         /// <param name="cancellationToken">
-        /// A CancellationToken to observe while waiting to acquire the lock.
+        /// A <see cref="CancellationToken"/> to observe while waiting to acquire the lock.
         /// The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <returns>
-        /// A ValueTask representing the asynchronous operation of acquiring the lock.
+        /// A <see cref="ValueTask"/> representing the asynchronous operation of acquiring the lock.
         /// </returns>
         /// <exception cref="OperationCanceledException">
         /// Thrown if the operation is canceled via the provided <paramref name="cancellationToken"/>.
@@ -153,18 +150,18 @@ namespace System.Threading
         }
 
         /// <summary>
-        /// Acquires an exclusive lock for the current context and returns an IDisposable 
+        /// Acquires an exclusive lock for the current context and returns an <see cref="IDisposable"/> 
         /// that will release the lock upon disposal.
         /// This method combines lock acquisition and release management into a single, convenient API. 
-        /// It ensures that the lock is properly released when the returned IDisposable is disposed, 
+        /// It ensures that the lock is properly released when the returned <see cref="IDisposable"/> is disposed, 
         /// typically using a 'using' statement.
         /// </summary>
         /// <param name="cancellationToken">
-        /// A CancellationToken to observe while waiting to acquire the lock.
+        /// A <see cref="CancellationToken"/> to observe while waiting to acquire the lock.
         /// The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <returns>
-        /// An IDisposable that releases the acquired lock when disposed.
+        /// An <see cref="IDisposable"/> that releases the acquired lock when disposed.
         /// </returns>
         /// <exception cref="OperationCanceledException">
         /// Thrown if the operation is canceled via the provided <paramref name="cancellationToken"/>.
@@ -179,19 +176,19 @@ namespace System.Threading
         }
 
         /// <summary>
-        /// Asynchronously acquires an exclusive lock for the current context and returns an IDisposable 
+        /// Asynchronously acquires an exclusive lock for the current context and returns an <see cref="IDisposable"/> 
         /// that will release the lock upon disposal.
         /// This method combines lock acquisition and release management into a single, convenient API. 
-        /// It ensures that the lock is properly released when the returned IDisposable is disposed, 
+        /// It ensures that the lock is properly released when the returned <see cref="IDisposable"/> is disposed, 
         /// typically using a 'using' statement or pattern.
         /// </summary>
         /// <param name="cancellationToken">
-        /// A CancellationToken to observe while waiting to acquire the lock.
+        /// A <see cref="CancellationToken"/> to observe while waiting to acquire the lock.
         /// The default value is <see cref="CancellationToken.None"/>.
         /// </param>
         /// <returns>
-        /// A ValueTask representing the asynchronous operation of acquiring the lock, which upon completion 
-        /// provides an IDisposable that releases the acquired lock when disposed.
+        /// A <see cref="ValueTask{TResult}"/> representing the asynchronous operation of acquiring the lock, which upon completion 
+        /// provides an <see cref="IDisposable"/> that releases the acquired lock when disposed.
         /// </returns>
         /// <exception cref="OperationCanceledException">
         /// Thrown if the operation is canceled via the provided <paramref name="cancellationToken"/>.
@@ -205,10 +202,10 @@ namespace System.Threading
             return new Releaser(this);
         }
 
-        protected override void OnDispose()
+        protected override void DisposeCore()
         {
             _syncLock.Dispose();
-            base.OnDispose();
+            base.DisposeCore();
         }
 
         /// <summary>
@@ -216,7 +213,7 @@ namespace System.Threading
         /// This method returns immediately, indicating whether the lock was successfully acquired or not.
         /// </summary>
         /// <returns>
-        /// True if the lock was successfully acquired; otherwise, false.
+        /// <see langword="true"/> if the lock was successfully acquired; otherwise, <see langword="false"/>.
         /// </returns>
         /// <exception cref="ObjectDisposedException">
         /// Thrown if the AsyncLock has been disposed.
@@ -224,9 +221,182 @@ namespace System.Threading
         public bool TryEnter()
         {
             CheckDisposed();
-            return _syncLock.Wait(0);
+            return _syncLock.Wait(0, CancellationToken.None);
         }
 
+        /// <summary>
+        /// Attempts to acquire an exclusive lock for the current context, observing a cancellation token.
+        /// This method blocks until the lock is acquired or the cancellation token is canceled.
+        /// </summary>
+        /// <param name="cancellationToken">
+        /// A <see cref="CancellationToken"/> to observe while waiting to acquire the lock.
+        /// The default value is <see cref="CancellationToken.None"/>.
+        /// </param>
+        /// <returns>
+        /// <see langword="true"/> if the lock was successfully acquired; otherwise, <see langword="false"/>.
+        /// </returns>
+        /// <exception cref="OperationCanceledException">
+        /// Thrown if the operation is canceled via the provided <paramref name="cancellationToken"/>.
+        /// </exception>
+        /// <exception cref="ObjectDisposedException">
+        /// Thrown if the AsyncLock has been disposed.
+        /// </exception>
+        public bool TryEnter(CancellationToken cancellationToken)
+        {
+            CheckDisposed();
+            return _syncLock.Wait(Timeout.InfiniteTimeSpan, cancellationToken);
+        }
+
+        /// <summary>
+        /// Attempts to acquire an exclusive lock for the current context within the specified timeout.
+        /// This method blocks until the lock is acquired or the timeout expires.
+        /// </summary>
+        /// <param name="timeout">
+        /// A <see cref="TimeSpan"/> representing the maximum time to wait for the lock.
+        /// To wait indefinitely, use <see cref="Timeout.InfiniteTimeSpan"/>.
+        /// </param>
+        /// <returns>
+        /// <see langword="true"/> if the lock was successfully acquired; 
+        /// <see langword="false"/> if the timeout expired before the lock could be acquired.
+        /// </returns>
+        /// <exception cref="ObjectDisposedException">
+        /// Thrown if the AsyncLock has been disposed.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Thrown if <paramref name="timeout"/> is a negative time other than <see cref="Timeout.InfiniteTimeSpan"/>.
+        /// </exception>
+        public bool TryEnter(TimeSpan timeout)
+        {
+            CheckDisposed();
+            return _syncLock.Wait(timeout, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Attempts to acquire an exclusive lock for the current context within the specified timeout.
+        /// This method blocks until the lock is acquired, the timeout expires, or the cancellation token is canceled.
+        /// </summary>
+        /// <param name="timeout">
+        /// A <see cref="TimeSpan"/> representing the maximum time to wait for the lock.
+        /// To wait indefinitely, use <see cref="Timeout.InfiniteTimeSpan"/>.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// A <see cref="CancellationToken"/> to observe while waiting to acquire the lock.
+        /// The default value is <see cref="CancellationToken.None"/>.
+        /// </param>
+        /// <returns>
+        /// <see langword="true"/> if the lock was successfully acquired; 
+        /// <see langword="false"/> if the timeout expired before the lock could be acquired.
+        /// </returns>
+        /// <exception cref="ObjectDisposedException">
+        /// Thrown if the AsyncLock has been disposed.
+        /// </exception>
+        /// <exception cref="OperationCanceledException">
+        /// Thrown if the operation is canceled via the provided <paramref name="cancellationToken"/>.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Thrown if <paramref name="timeout"/> is a negative time other than <see cref="Timeout.InfiniteTimeSpan"/>.
+        /// </exception>
+        public bool TryEnter(TimeSpan timeout, CancellationToken cancellationToken = default)
+        {
+            CheckDisposed();
+            return _syncLock.Wait(timeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously attempts to acquire an exclusive lock for the current context without blocking.
+        /// This method returns immediately with a result indicating whether the lock was successfully acquired or not.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="ValueTask{TResult}"/> that completes with <see langword="true"/> if the lock was successfully acquired;
+        /// otherwise, <see langword="false"/>.
+        /// </returns>
+        /// <exception cref="ObjectDisposedException">
+        /// Thrown if the AsyncLock has been disposed.
+        /// </exception>
+        public async ValueTask<bool> TryEnterAsync()
+        {
+            CheckDisposed();
+            return await _syncLock.WaitAsync(0, CancellationToken.None).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Asynchronously attempts to acquire an exclusive lock for the current context, observing a cancellation token.
+        /// This method asynchronously blocks until the lock is acquired or the cancellation token is canceled.
+        /// </summary>
+        /// <param name="cancellationToken">
+        /// A <see cref="CancellationToken"/> to observe while waiting to acquire the lock.
+        /// The default value is <see cref="CancellationToken.None"/>.
+        /// </param>
+        /// <returns>
+        /// A <see cref="ValueTask{TResult}"/> that completes with <see langword="true"/> if the lock was successfully acquired;
+        /// otherwise, <see langword="false"/>.
+        /// </returns>
+        /// <exception cref="OperationCanceledException">
+        /// Thrown if the operation is canceled via the provided <paramref name="cancellationToken"/>.
+        /// </exception>
+        /// <exception cref="ObjectDisposedException">
+        /// Thrown if the AsyncLock has been disposed.
+        /// </exception>
+        public async ValueTask<bool> TryEnterAsync(CancellationToken cancellationToken)
+        {
+            CheckDisposed();
+            return await _syncLock.WaitAsync(Timeout.InfiniteTimeSpan, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Asynchronously attempts to acquire an exclusive lock for the current context within the specified timeout.
+        /// This method asynchronously blocks until the lock is acquired or the timeout expires.
+        /// </summary>
+        /// <param name="timeout">
+        /// A <see cref="TimeSpan"/> representing the maximum time to wait for the lock.
+        /// To wait indefinitely, use <see cref="Timeout.InfiniteTimeSpan"/>.
+        /// </param>
+        /// <returns>
+        /// A <see cref="ValueTask{TResult}"/> that completes with <see langword="true"/> if the lock was successfully acquired;
+        /// <see langword="false"/> if the timeout expired before the lock could be acquired.
+        /// </returns>
+        /// <exception cref="ObjectDisposedException">
+        /// Thrown if the AsyncLock has been disposed.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Thrown if <paramref name="timeout"/> is a negative time other than <see cref="Timeout.InfiniteTimeSpan"/>.
+        /// </exception>
+        public async ValueTask<bool> TryEnterAsync(TimeSpan timeout)
+        {
+            CheckDisposed();
+            return await _syncLock.WaitAsync(timeout, CancellationToken.None).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Asynchronously attempts to acquire an exclusive lock for the current context within the specified timeout.
+        /// This method asynchronously blocks until the lock is acquired, the timeout expires, or the cancellation token is canceled.
+        /// </summary>
+        /// <param name="timeout">
+        /// A <see cref="TimeSpan"/> representing the maximum time to wait for the lock.
+        /// To wait indefinitely, use <see cref="Timeout.InfiniteTimeSpan"/>.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// A <see cref="CancellationToken"/> to observe while waiting to acquire the lock.
+        /// The default value is <see cref="CancellationToken.None"/>.
+        /// </param>
+        /// <returns>
+        /// A <see cref="ValueTask{TResult}"/> that completes with <see langword="true"/> if the lock was successfully acquired;
+        /// <see langword="false"/> if the timeout expired before the lock could be acquired.
+        /// </returns>
+        /// <exception cref="ObjectDisposedException">
+        /// Thrown if the AsyncLock has been disposed.
+        /// </exception>
+        /// <exception cref="OperationCanceledException">
+        /// Thrown if the operation is canceled via the provided <paramref name="cancellationToken"/>.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Thrown if <paramref name="timeout"/> is a negative time other than <see cref="Timeout.InfiniteTimeSpan"/>.
+        /// </exception>
+        public async ValueTask<bool> TryEnterAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+        {
+            CheckDisposed();
+            return await _syncLock.WaitAsync(timeout, cancellationToken).ConfigureAwait(false);
+        }
         #endregion
     }
 }

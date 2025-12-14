@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace System.Threading
@@ -39,7 +41,7 @@ namespace System.Threading
         /// The current count of reentrant entries into the lock by the current flow of execution.
         /// Used to track how many times the lock has been entered without being fully released.
         /// </summary>
-        private volatile int _currentCount;
+        private int _currentCount;
 
         /// <summary>
         /// The identifier of the current flow of execution that holds the lock.
@@ -98,23 +100,29 @@ namespace System.Threading
         internal int CurrentId => _currentId;
 
         /// <summary>
-        /// Determines whether the current context holds the lock.
+        /// Determines whether the lock is currently held by the current execution flow.
+        /// This property checks if the calling context owns the lock (reentrant-aware).
+        /// This check is instantaneous and does not block the calling thread.
         /// </summary>
         /// <remarks>
-        /// This property returns true if the lock is currently held by any context, and false otherwise.
-        /// Note that this check is instantaneous and does not block the calling thread.
+        /// This property provides similar functionality to <see cref="Monitor.IsEntered"/> 
+        /// but for asynchronous reentrant locks. It returns <see langword="true"/> only when
+        /// the current execution flow (as identified by its context) holds the lock.
         /// 
-        /// This property does not raise PropertyChanged notifications to avoid potential recursion issues.
+        /// Important: This is a snapshot check and may be stale immediately after the call.
+        /// It should not be used for making synchronization decisions, as this will introduce race conditions.
         /// </remarks>
         /// <exception cref="ObjectDisposedException">
         /// Thrown if the ReentrantAsyncLock has been disposed.
         /// </exception>
-        public bool IsEntered
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        internal bool IsHeldByCurrentFlow
         {
             get
             {
                 CheckDisposed();
-                return _syncLock.CurrentCount == 0;
+                return _currentId == LocalId && _syncLock.CurrentCount == 0;
             }
         }
 
@@ -180,13 +188,17 @@ namespace System.Threading
             CheckDisposed();
 
             bool isReentrant = LocalId == CurrentId;
-            SemaphoreSlim? syncRoot = null;
+            SemaphoreSlim? previousSyncRoot = null;
             if (isReentrant)//Reentrant lock in the flow
             {
                 ValidateReentrantState();
 
-                syncRoot = SyncRoot;
-                syncRoot!.Wait(cancellationToken);//Acquires a nested lock in the flow
+                previousSyncRoot = SyncRoot;
+                if (previousSyncRoot == null)
+                {
+                    ThrowSynchronizationLockException();
+                }
+                previousSyncRoot!.Wait(cancellationToken);//Acquires a nested lock in the flow
             }
             else
             {
@@ -210,20 +222,20 @@ namespace System.Threading
             {
                 PerformValidationAfterExecution(isReentrant, localSyncRoot);
 
-                SyncRoot = syncRoot;// Restore the previous synchronization root to maintain correct synchronization state and nested lock handling in the current flow.
+                SyncRoot = previousSyncRoot;// Restore the previous synchronization root to maintain correct synchronization state and nested lock handling in the current flow.
 
                 CheckSynchronizationLock();
 
                 if (Interlocked.Decrement(ref _currentCount) == 0)
                 {
-                    ValidateExclusiveStateFinally(isReentrant, syncRoot);
+                    ValidateExclusiveStateFinally(isReentrant, previousSyncRoot);
                     _currentId = 0;//The lock is released
                     _syncLock.Release();//Releases an exclusive lock
                 }
                 else
                 {
-                    ValidateReentrantStateFinally(isReentrant, syncRoot);
-                    syncRoot!.Release();//Releases a nested lock
+                    ValidateReentrantStateFinally(isReentrant, previousSyncRoot);
+                    previousSyncRoot!.Release();//Releases a nested lock
                 }
             }
         }
@@ -269,13 +281,17 @@ namespace System.Threading
             CheckDisposed();
 
             bool isReentrant = LocalId == CurrentId;
-            SemaphoreSlim? syncRoot = null;
+            SemaphoreSlim? previousSyncRoot = null;
             if (isReentrant)//Reentrant lock in the flow
             {
                 ValidateReentrantState();
 
-                syncRoot = SyncRoot;
-                syncRoot!.Wait(cancellationToken);//Acquires a nested lock in the flow
+                previousSyncRoot = SyncRoot;
+                if (previousSyncRoot == null)
+                {
+                    ThrowSynchronizationLockException();
+                }
+                previousSyncRoot!.Wait(cancellationToken);//Acquires a nested lock in the flow
             }
             else
             {
@@ -299,20 +315,20 @@ namespace System.Threading
             {
                 PerformValidationAfterExecution(isReentrant, localSyncRoot);
 
-                SyncRoot = syncRoot;// Restore the previous synchronization root to maintain correct synchronization state and nested lock handling in the current flow.
+                SyncRoot = previousSyncRoot;// Restore the previous synchronization root to maintain correct synchronization state and nested lock handling in the current flow.
 
                 CheckSynchronizationLock();
 
                 if (Interlocked.Decrement(ref _currentCount) == 0)
                 {
-                    ValidateExclusiveStateFinally(isReentrant, syncRoot);
+                    ValidateExclusiveStateFinally(isReentrant, previousSyncRoot);
                     _currentId = 0;//The lock is released
                     _syncLock.Release();//Releases an exclusive lock
                 }
                 else
                 {
-                    ValidateReentrantStateFinally(isReentrant, syncRoot);
-                    syncRoot!.Release();//Releases a nested lock
+                    ValidateReentrantStateFinally(isReentrant, previousSyncRoot);
+                    previousSyncRoot!.Release();//Releases a nested lock
                 }
             }
         }
@@ -355,13 +371,17 @@ namespace System.Threading
             CheckDisposed();
 
             bool isReentrant = LocalId == CurrentId;
-            SemaphoreSlim? syncRoot = null;
+            SemaphoreSlim? previousSyncRoot = null;
             if (isReentrant)//Reentrant lock in the flow
             {
                 ValidateReentrantState();
 
-                syncRoot = SyncRoot;
-                await syncRoot!.WaitAsync(cancellationToken).ConfigureAwait(false);//Acquires a nested lock in the flow
+                previousSyncRoot = SyncRoot;
+                if (previousSyncRoot == null)
+                {
+                    ThrowSynchronizationLockException();
+                }
+                await previousSyncRoot!.WaitAsync(cancellationToken).ConfigureAwait(false);//Acquires a nested lock in the flow
             }
             else
             {
@@ -391,14 +411,14 @@ namespace System.Threading
 
                 if (Interlocked.Decrement(ref _currentCount) == 0)
                 {
-                    ValidateExclusiveStateFinally(isReentrant, syncRoot);
+                    ValidateExclusiveStateFinally(isReentrant, previousSyncRoot);
                     _currentId = 0;//The lock is released
                     _syncLock.Release();//Releases an exclusive lock
                 }
                 else
                 {
-                    ValidateReentrantStateFinally(isReentrant, syncRoot);
-                    syncRoot!.Release();//Releases a nested lock
+                    ValidateReentrantStateFinally(isReentrant, previousSyncRoot);
+                    previousSyncRoot!.Release();//Releases a nested lock
                 }
             }
         }
@@ -444,13 +464,17 @@ namespace System.Threading
             CheckDisposed();
 
             bool isReentrant = LocalId == CurrentId;
-            SemaphoreSlim? syncRoot = null;
+            SemaphoreSlim? previousSyncRoot = null;
             if (isReentrant)//Reentrant lock in the flow
             {
                 ValidateReentrantState();
 
-                syncRoot = SyncRoot;
-                await syncRoot!.WaitAsync(cancellationToken).ConfigureAwait(false);//Acquires a nested lock in the flow
+                previousSyncRoot = SyncRoot;
+                if (previousSyncRoot == null)
+                {
+                    ThrowSynchronizationLockException();
+                }
+                await previousSyncRoot!.WaitAsync(cancellationToken).ConfigureAwait(false);//Acquires a nested lock in the flow
             }
             else
             {
@@ -480,14 +504,14 @@ namespace System.Threading
 
                 if (Interlocked.Decrement(ref _currentCount) == 0)
                 {
-                    ValidateExclusiveStateFinally(isReentrant, syncRoot);
+                    ValidateExclusiveStateFinally(isReentrant, previousSyncRoot);
                     _currentId = 0;//The lock is released
                     _syncLock.Release();//Releases an exclusive lock
                 }
                 else
                 {
-                    ValidateReentrantStateFinally(isReentrant, syncRoot);
-                    syncRoot!.Release();//Releases a nested lock
+                    ValidateReentrantStateFinally(isReentrant, previousSyncRoot);
+                    previousSyncRoot!.Release();//Releases a nested lock
                 }
             }
         }
@@ -518,10 +542,10 @@ namespace System.Threading
             return newId;
         }
 
-        protected override void OnDispose()
+        protected override void DisposeCore()
         {
             _syncLock.Dispose();
-            base.OnDispose();
+            base.DisposeCore();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

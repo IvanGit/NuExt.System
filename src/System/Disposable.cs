@@ -1,5 +1,4 @@
-﻿#define USE_DISPOSED_EVENT_
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -11,24 +10,39 @@ namespace System
     /// </summary>
     /// <remarks>
     /// This class implements the <see cref="IDisposable"/> interface and provides a mechanism 
-    /// for synchronously releasing both managed and unmanaged resources. 
+    /// for synchronously releasing both managed (<see cref="DisposeCore"/>) and unmanaged (<see cref="Dispose(bool)"/>) resources. 
     /// It also includes support for property change notifications by extending the <see cref="PropertyChangeNotifier"/> class.
     /// 
     /// Note that this class has a finalizer, but it is generally undesirable for the finalizer to be called. 
     /// Ensure that <see cref="Dispose()"/> is properly invoked to suppress finalization.
     ///
     /// <para>
-    /// This class is designed to have its <see cref="Dispose()"/> method called only once. 
-    /// Calling <see cref="Dispose()"/> multiple times or attempting to use the object after it has been disposed 
-    /// may result in undefined behavior or exceptions.
+    /// This class is designed to have its <see cref="Dispose()"/> method called only once. Multiple calls to <see cref="Dispose()"/> are thread safe.
     /// </para>
     /// </remarks>
     [DebuggerStepThrough]
     [Serializable]
     public abstract class Disposable : PropertyChangeNotifier, IDisposable
     {
-        private bool _isDisposed;
-        private bool _isDisposing;
+#if NET9_0_OR_GREATER
+        private enum States
+        {
+            NotDisposed,// default value of _state
+            Disposing,
+            Disposed
+        }
+
+        private volatile States _state;
+#else
+        private class States
+        {
+            public const int NotDisposed = 0;// default value of _state
+            public const int Disposing = 1;
+            public const int Disposed = 2;
+        }
+
+        private volatile int _state;
+#endif
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Disposable"/> class 
@@ -44,17 +58,19 @@ namespace System
         /// An optional <see cref="SynchronizationContext"/> to use for property change notifications. 
         /// If null, no synchronization context will be used.
         /// </param>
-        protected Disposable(SynchronizationContext? synchronizationContext) :base(synchronizationContext) { }
+        protected Disposable(SynchronizationContext? synchronizationContext) : base(synchronizationContext) { }
 
+        /// <summary>
+        /// Finalizes an instance of the <see cref="Disposable"/> class.
+        /// This method is invoked by the garbage collector if explicit disposal did not occur.
+        /// It releases unmanaged resources by calling <see cref="Dispose(bool)"/> with disposing set to <see langword="false"/>.
+        /// </summary>
         ~Disposable()
         {
             Dispose(false);
-            if (!ShouldThrowFinalizerException())
-            {
-                Debug.Fail($"{GetType().FullName} ({GetHashCode()}) was finalized without proper disposal.");
-                return;
-            }
-            ThrowFinalizerException();
+            string message = $"{GetType().FullName} ({GetHashCode()}) was finalized without proper disposal.";
+            Trace.WriteLine(message);
+            Debug.Fail(message);
         }
 
         #region Properties
@@ -63,29 +79,31 @@ namespace System
         /// Gets a value indicating whether the object has been disposed.
         /// </summary>
         [Browsable(false)]
-        public bool IsDisposed { get => _isDisposed; private set => SetProperty(ref _isDisposed, value); }
+        public bool IsDisposed => _state == States.Disposed;
 
         /// <summary>
         /// Gets a value indicating whether the object is currently in the process of being disposed.
         /// </summary>
         [Browsable(false)]
-        public bool IsDisposing { get => _isDisposing; private set => SetProperty(ref _isDisposing, value); }
+        public bool IsDisposing => _state == States.Disposing;
 
         #endregion
 
         #region Events
 
-#if USE_DISPOSED_EVENT
-        /// <summary>
-        /// Occurs when the object has been disposed.
-        /// </summary>
-        [Browsable(false)]
-        public event EventHandler? Disposed;
-#endif
-
         /// <summary>
         /// Occurs when the object starts the disposing process.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// ⚠️ <b>Important:</b> Subscribers are responsible for unsubscribing from this event
+        /// to prevent memory leaks. The event is not automatically cleared during disposal.
+        /// </para>
+        /// <para>
+        /// Event handlers should be designed to complete quickly and avoid throwing exceptions.
+        /// If an exception is thrown, it may interrupt the disposal process.
+        /// </para>
+        /// </remarks>
         public event EventHandler? Disposing;
 
         #endregion
@@ -98,64 +116,123 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void CheckDisposed()
         {
-            ObjectDisposedException.ThrowIf(_isDisposed, this);
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
         }
 
         /// <summary>
-        /// Disposes of the resources used by the instance.
+        /// Releases all resources used by this instance. This method is idempotent and thread-safe.
         /// </summary>
+        /// <exception cref="ObjectDisposedException">Thrown if the object is already disposed and
+        /// <see cref="ShouldThrowAlreadyDisposedException"/> returns <see langword="true"/>.</exception>
+        /// <remarks>
+        /// Invokes the <see cref="Disposing"/> event and calls <see cref="Dispose(bool)"/> with disposing set to <see langword="true"/>,
+        /// which in turn invokes <see cref="DisposeCore"/> for managed resources.
+        /// The disposal operation is performed only once. Subsequent calls are thread-safe and have no effect.
+        /// The object transitions to the disposed state even if an exception occurs during cleanup.
+        /// </remarks>
         public void Dispose()
         {
-            Dispose(true);
+            if (Interlocked.CompareExchange(ref _state, States.Disposing, States.NotDisposed) != States.NotDisposed)
+            {
+                // Already disposing or disposed
+
+                if (IsDisposed)
+                {
+                    string message = $"{GetType().FullName} ({GetHashCode()}) is already disposed.";
+                    Trace.WriteLine(message);
+                    Debug.Fail(message);
+                }
+                if (IsDisposing)
+                {
+                    string message = $"{GetType().FullName} ({GetHashCode()}) is already disposing.";
+                    Trace.WriteLine(message);
+                    Debug.Fail(message);
+                }
+
+                if (ShouldThrowAlreadyDisposedException())
+                {
+                    ObjectDisposedException.ThrowIf(IsDisposed, this);
+                }
+                return;
+            }
+
+            OnPropertyChanged(EventArgsCache.IsDisposingPropertyChanged);
+            try
+            {
+                Disposing?.Invoke(this, EventArgs.Empty);
+                //https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose
+                Dispose(true);
+
+                if (Disposing != null)
+                {
+                    var message = $"{GetType().FullName} ({GetHashCode()}): {nameof(Disposing)} is not null";
+                    Trace.WriteLine(message);
+                    Debug.Fail(message);
+                }
+                if (HasPropertyChangedSubscribers)
+                {
+                    var message = $"{GetType().FullName} ({GetHashCode()}): {nameof(PropertyChanged)} is not null";
+                    Trace.WriteLine(message);
+                    Debug.Fail(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"{GetType().FullName} ({GetHashCode()}):{Environment.NewLine}{ex.Message}";
+                Trace.WriteLine(errorMessage);
+                Debug.Fail(errorMessage);
+                throw;
+            }
+            finally
+            {
+                _state = States.Disposed;
+                OnPropertyChanged(EventArgsCache.IsDisposingPropertyChanged);
+                OnPropertyChanged(EventArgsCache.IsDisposedPropertyChanged);
+            }
             GC.SuppressFinalize(this);
         }
 
         /// <summary>
-        /// Disposes of the unmanaged resources used by the instance and optionally disposes of the managed resources.
+        /// Override to release managed resources.
         /// </summary>
-        /// <param name="disposing">True to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
-        private void Dispose(bool disposing)
+        /// <remarks>
+        /// <para>
+        /// This method is called from <see cref="Dispose(bool)"/> when the disposing parameter is <see langword="true"/>.
+        /// It is not called during finalization.
+        /// </para>
+        /// <para>
+        /// The base implementation does nothing. Derived classes should override this method to release managed resources
+        /// and should call the base implementation to ensure proper cleanup in the inheritance chain.
+        /// </para>
+        /// </remarks>
+        protected virtual void DisposeCore()
         {
-            Debug.Assert(!IsDisposed, $"{GetType().FullName} ({GetHashCode()}) is already disposed");
-            Debug.Assert(!IsDisposing, $"{GetType().FullName} ({GetHashCode()}) is already disposing");
-            if (ShouldThrowAlreadyDisposedException())
-            {
-                CheckDisposed();
-            }
-            if (IsDisposed || IsDisposing)
-            {
-                return;
-            }
+        }
+
+        /// <summary>
+        /// Releases the unmanaged resources used by this instance and optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing">
+        /// <see langword="true"/> to release both managed and unmanaged resources (when called from <see cref="Dispose()"/>);
+        /// <see langword="false"/> to release only unmanaged resources (when called from a finalizer).
+        /// </param>
+        /// <remarks>
+        /// <para>
+        /// This method is called by <see cref="Dispose()"/> (with <paramref name="disposing"/> set to <see langword="true"/>) and by the finalizer (with <paramref name="disposing"/> set to <see langword="false"/>).
+        /// </para>
+        /// <para>
+        /// When overriding this method in a derived class, release unmanaged resources regardless of the value of <paramref name="disposing"/>.
+        /// Release managed resources only when <paramref name="disposing"/> is <see langword="true"/>, preferably by overriding <see cref="DisposeCore"/>.
+        /// </para>
+        /// <para>
+        /// This method must be idempotent and safe to call multiple times. It must not throw exceptions when <paramref name="disposing"/> is <see langword="false"/>.
+        /// </para>
+        /// </remarks>
+        protected virtual void Dispose(bool disposing)
+        {
             if (disposing)
             {
-                IsDisposing = true;
-                try
-                {
-                    Disposing?.Invoke(this, EventArgs.Empty);
-                    //https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose
-                    OnDispose();
-                    OnDisposeUnmanaged();
-                    IsDisposed = true;
-#if USE_DISPOSED_EVENT
-                    Disposed?.Invoke(this, EventArgs.Empty);
-                    Debug.Assert(Disposed == null, $"{nameof(Disposed)} is not null");
-#endif
-                    Debug.Assert(Disposing is null, $"{GetType().FullName} ({GetHashCode()}): {nameof(Disposing)} is not null");
-                    Debug.Assert(HasPropertyChangedSubscribers == false, $"{GetType().FullName} ({GetHashCode()}): {nameof(PropertyChanged)} is not null");
-                }
-                catch (Exception ex)
-                {
-                    Debug.Assert(false, $"{GetType().FullName} ({GetHashCode()}):{Environment.NewLine}{ex.Message}");
-                    throw;
-                }
-                finally
-                {
-                    IsDisposing = false;
-                }
-            }
-            else
-            {
-                OnDisposeUnmanaged();
+                DisposeCore();
             }
         }
 
@@ -165,6 +242,7 @@ namespace System
         /// <typeparam name="T">The type of the disposable object.</typeparam>
         /// <param name="disposable">The disposable object to dispose of.</param>
         /// <returns>The original disposable object, or null if it was already null.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IDisposable? DisposeAndNull<T>(ref T? disposable) where T : class, IDisposable
         {
             var original = disposable;
@@ -174,30 +252,34 @@ namespace System
         }
 
         /// <summary>
-        /// Override this method to release managed resources.
-        /// This method is called when <see cref="Dispose()"/> is invoked.
+        /// Disposes of the specified disposable object and sets the reference to null.
+        /// Returns a value indicating whether the object was disposed.
         /// </summary>
-        protected virtual void OnDispose()
+        /// <typeparam name="T">The type of the disposable object.</typeparam>
+        /// <param name="disposable">The disposable object to dispose of.</param>
+        /// <returns><c>true</c> if the disposable was disposed; otherwise, <c>false</c>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool TryDisposeAndNull<T>(ref T? disposable) where T : class, IDisposable
         {
+            var original = disposable;
+            if (original == null) return false;
+
+            original.Dispose();
+            disposable = null;
+            return true;
         }
 
         /// <summary>
-        /// Override this method to release unmanaged resources.
-        /// This method is called when <see cref="Dispose()"/> is invoked or when the finalizer of <see cref="Disposable"/> is executed.
-        /// </summary>
-        protected virtual void OnDisposeUnmanaged()
-        {
-        }
-
-        /// <summary>
-        /// Determines whether an exception should be thrown when Dispose is called 
-        /// on an already disposed object. By default, returns false.
+        /// Determines whether an <see cref="ObjectDisposedException"/> should be thrown when
+        /// <see cref="Dispose()"/> is called on an already disposed object.
         /// </summary>
         /// <returns>
-        /// True if an exception should be thrown on redundant Dispose calls; otherwise, false.
+        /// <see langword="true"/> if an exception should be thrown on redundant <see cref="Dispose()"/> calls; 
+        /// otherwise, <see langword="false"/>.
         /// </returns>
         /// <remarks>
-        /// Override this method in derived classes to customize disposal behavior.
+        /// The base implementation returns <see langword="false"/>. Override this method in derived classes
+        /// to customize disposal behavior.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual bool ShouldThrowAlreadyDisposedException()
@@ -205,31 +287,12 @@ namespace System
             return false;
         }
 
-        /// <summary>
-        /// Overridable method that determines whether an exception should be thrown during finalization.
-        /// By default, it returns true. Subclasses can override this method to change the behavior.
-        /// </summary>
-        /// <returns>Returns true if an exception should be thrown; otherwise, false.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual bool ShouldThrowFinalizerException()
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Method invoked by the finalizer to generate an exception.
-        /// It outputs debug messages and throws an exception with information about the type and hash code of the object.
-        /// This method can be used for debugging and diagnosing issues related to improper object usage.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ThrowFinalizerException()
-        {
-            string message = $"{GetType().FullName} ({GetHashCode()}) was finalized without proper disposal.";
-            Trace.WriteLine(message);
-            Debug.Fail(message);
-            Throw.InvalidOperationException(message);
-        }
-
         #endregion
+    }
+
+    internal static partial class EventArgsCache
+    {
+        internal static readonly PropertyChangedEventArgs IsDisposedPropertyChanged = new(nameof(Disposable.IsDisposed));
+        internal static readonly PropertyChangedEventArgs IsDisposingPropertyChanged = new(nameof(Disposable.IsDisposing));
     }
 }

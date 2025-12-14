@@ -23,10 +23,10 @@ namespace System.Threading
 
         #region Methods
 
-        protected override void OnDispose()
+        protected override void DisposeCore()
         {
             _waitObject.Dispose();
-            base.OnDispose();
+            base.DisposeCore();
         }
 
         /// <summary>

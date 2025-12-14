@@ -11,18 +11,29 @@ namespace System
     /// <see cref="INotifyPropertyChanged"/> interface. It also supports thread-safe property updates and 
     /// synchronization with a specified <see cref="SynchronizationContext"/> for UI-bound operations.
     /// </summary>
-    /// <remarks>
-    /// Initializes a new instance of the <see cref="PropertyChangeNotifier"/> class 
-    /// with the specified synchronization context.
-    /// </remarks>
-    /// <param name="synchronizationContext">
-    /// An optional synchronization context to use for property change notifications. 
-    /// If null, no synchronization context will be used.
-    /// </param>
     [DebuggerStepThrough]
     [Serializable]
-    public abstract class PropertyChangeNotifier(SynchronizationContext? synchronizationContext) : INotifyPropertyChanged, IDispatcherObject
+    public abstract partial class PropertyChangeNotifier : INotifyPropertyChanged
     {
+        private readonly SendOrPostCallback? _propertyChangedCallback;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PropertyChangeNotifier"/> class 
+        /// with the specified synchronization context.
+        /// </summary>
+        /// <param name="synchronizationContext">
+        /// An optional synchronization context to use for property change notifications. 
+        /// If null, no synchronization context will be used.
+        /// </param>
+        protected PropertyChangeNotifier(SynchronizationContext? synchronizationContext)
+        {
+            SynchronizationContext = synchronizationContext;
+            if (HasSynchronizationContext)
+            {
+                _propertyChangedCallback = OnPropertyChanged;
+            }
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyChangeNotifier"/> class 
         /// without a synchronization context.
@@ -43,28 +54,6 @@ namespace System
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => PropertyChanged is not null;
         }
-
-        /// <summary>
-        /// Gets a value indicating whether a SynchronizationContext is provided.
-        /// </summary>
-        [Browsable(false)]
-        protected bool HasSynchronizationContext
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => SynchronizationContext is not null;
-        }
-
-        /// <summary>
-        /// Gets the SynchronizationContext associated with this instance.
-        /// </summary>
-        [Browsable(false)]
-        public SynchronizationContext? SynchronizationContext { get; } = synchronizationContext;
-
-        /// <summary>
-        /// Gets the thread on which the current instance was created.
-        /// </summary>
-        [Browsable(false)]
-        public Thread Thread { get; } = Thread.CurrentThread;
 
         #endregion
 
@@ -87,21 +76,9 @@ namespace System
         /// <param name="newValue">The new value to set.</param>
         /// <param name="propertyName">The name of the property being updated. This is optional and can be automatically provided by the compiler.</param>
         /// <returns>True if the property can be set; otherwise, false.</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual bool CanSetProperty<T>(T oldValue, T newValue, [CallerMemberName] string? propertyName = null)
         {
             return true;
-        }
-
-        /// <summary>
-        /// Checks if the current thread is the same as the thread on which this instance was created.
-        /// </summary>
-        /// <returns>True if the current thread is the same as the creation thread; otherwise, false.</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool CheckAccess()
-        {
-            return Thread == Thread.CurrentThread;
         }
 
         /// <summary>
@@ -110,7 +87,7 @@ namespace System
         /// <returns>
         /// An array of <see cref="PropertyChangedEventHandler"/> delegates. If there are no subscribers, returns an empty array.
         /// </returns>
-        protected PropertyChangedEventHandler[] GetPropertyChangedEventHandlers()
+        protected PropertyChangedEventHandler[] GetPropertyChangedSubscribers()
         {
             // eventDelegate will be null if no listeners are attached to the event
             var eventDelegate = PropertyChanged;
@@ -121,6 +98,11 @@ namespace System
 
             var subscribers = Array.ConvertAll(eventDelegate.GetInvocationList(), del => (PropertyChangedEventHandler)del);
             return subscribers;
+        }
+
+        private void OnPropertyChanged(object? state)
+        {
+            PropertyChanged?.Invoke(this, (PropertyChangedEventArgs)state!);
         }
 
         /// <summary>
@@ -134,12 +116,10 @@ namespace System
             {
                 return;
             }
-            if (HasSynchronizationContext/* && !CheckAccess()*/)
+            // No need to check access because SynchronizationContext was passed to the constructor from outside.
+            if (HasSynchronizationContext)
             {
-                SynchronizationContext!.Send(x =>
-                {
-                    PropertyChanged?.Invoke(this, (PropertyChangedEventArgs)x!);
-                }, e);
+                SynchronizationContext!.Send(_propertyChangedCallback!, e);
                 return;
             }
             handler(this, e);
@@ -157,12 +137,10 @@ namespace System
                 return;
             }
             var args = new PropertyChangedEventArgs(propertyName);
-            if (HasSynchronizationContext/* && !CheckAccess()*/)
+            // No need to check access because SynchronizationContext was passed to the constructor from outside.
+            if (HasSynchronizationContext)
             {
-                SynchronizationContext!.Send(x =>
-                {
-                    PropertyChanged?.Invoke(this, (PropertyChangedEventArgs)x!);
-                }, args);
+                SynchronizationContext!.Send(_propertyChangedCallback!, args);
                 return;
             }
             handler(this, args);
@@ -298,26 +276,6 @@ namespace System
             storage = value;
             OnPropertyChanged(propertyName);
             return true;
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ThrowInvalidThreadAccess()
-        {
-            throw new InvalidOperationException(SR.VerifyAccess);
-        }
-
-        /// <summary>
-        /// Checks if the current thread is the same as the thread on which this instance was created and throws an <see cref="InvalidOperationException"/> if not.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when the current thread is not the same as the thread on which this instance was created.</exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void VerifyAccess()
-        {
-            if (!CheckAccess())
-            {
-                ThrowInvalidThreadAccess();
-            }
         }
 
         #endregion

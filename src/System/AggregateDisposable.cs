@@ -113,7 +113,7 @@ namespace System
         /// <exception cref="AggregateException">
         /// Thrown if one or more exceptions occur during the disposal of the aggregated disposables.
         /// </exception>
-        protected override void OnDispose()
+        protected override void DisposeCore()
         {
             List<Exception>? exceptions = null;
             foreach (var disposable in _disposables)
@@ -132,7 +132,6 @@ namespace System
             {
                 throw new AggregateException(exceptions);
             }
-            base.OnDispose();
         }
     }
 }

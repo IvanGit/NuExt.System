@@ -22,8 +22,9 @@ namespace System
         /// </summary>
         /// <param name="disposables">A read-only list of async disposables to aggregate.</param>
         /// <param name="synchronizationContext">An optional <see cref="SynchronizationContext"/> to use for property change notifications.</param>
+        /// <param name="continueOnCapturedContext">Whether to continue on the captured synchronization context during disposal.</param>
         /// <exception cref="ArgumentNullException">Thrown when disposables is null.</exception>
-        public AggregateAsyncDisposable(IReadOnlyList<IAsyncDisposable?> disposables, SynchronizationContext? synchronizationContext) : base(synchronizationContext)
+        public AggregateAsyncDisposable(IReadOnlyList<IAsyncDisposable?> disposables, SynchronizationContext? synchronizationContext, bool continueOnCapturedContext) : base(synchronizationContext, continueOnCapturedContext)
         {
             _  = disposables ?? throw new ArgumentNullException(nameof(disposables));
             List<(IAsyncDisposable?, IDisposable?)> list = new(disposables.Count);
@@ -39,7 +40,7 @@ namespace System
         /// </summary>
         /// <param name="disposables">A read-only list of async disposables to aggregate.</param>
         /// <exception cref="ArgumentNullException">Thrown when disposables is null.</exception>
-        public AggregateAsyncDisposable(params IReadOnlyList<IAsyncDisposable?> disposables) : this(disposables, null)
+        public AggregateAsyncDisposable(params IReadOnlyList<IAsyncDisposable?> disposables) : this(disposables, null, continueOnCapturedContext: false)
         {
         }
 
@@ -48,8 +49,9 @@ namespace System
         /// </summary>
         /// <param name="disposables">A collection of async disposables to aggregate.</param>
         /// <param name="synchronizationContext">An optional <see cref="SynchronizationContext"/> to use for property change notifications.</param>
+        /// <param name="continueOnCapturedContext">Whether to continue on the captured synchronization context during disposal.</param>
         /// <exception cref="ArgumentNullException">Thrown when disposables is null.</exception>
-        public AggregateAsyncDisposable(IEnumerable<IAsyncDisposable?> disposables, SynchronizationContext? synchronizationContext) : base(synchronizationContext)
+        public AggregateAsyncDisposable(IEnumerable<IAsyncDisposable?> disposables, SynchronizationContext? synchronizationContext, bool continueOnCapturedContext) : base(synchronizationContext, continueOnCapturedContext)
         {
             _ = disposables ?? throw new ArgumentNullException(nameof(disposables));
             List<(IAsyncDisposable?, IDisposable?)> list = [];
@@ -65,7 +67,7 @@ namespace System
         /// </summary>
         /// <param name="disposables">A collection of disposables to aggregate.</param>
         /// <exception cref="ArgumentNullException">Thrown when disposables is null.</exception>
-        public AggregateAsyncDisposable(params IEnumerable<IAsyncDisposable?> disposables) : this(disposables, null)
+        public AggregateAsyncDisposable(params IEnumerable<IAsyncDisposable?> disposables) : this(disposables, null, continueOnCapturedContext: false)
         {
         }
 
@@ -74,7 +76,7 @@ namespace System
         /// </summary>
         /// <param name="disposables">An array of disposables to aggregate.</param>
         /// <exception cref="ArgumentNullException">Thrown when disposables is null.</exception>
-        public AggregateAsyncDisposable(params IAsyncDisposable?[] disposables) : this(disposables, null)
+        public AggregateAsyncDisposable(params IAsyncDisposable?[] disposables) : this(disposables, null, continueOnCapturedContext: false)
         {
         }
 
@@ -83,7 +85,7 @@ namespace System
         /// Initializes a new instance of the <see cref="AggregateAsyncDisposable"/> class with the specified async disposables.
         /// </summary>
         /// <param name="disposables">A read-only span of disposables to aggregate.</param>
-        public AggregateAsyncDisposable(params ReadOnlySpan<IAsyncDisposable?> disposables)
+        public AggregateAsyncDisposable(params ReadOnlySpan<IAsyncDisposable?> disposables) : base(continueOnCapturedContext: false)
         {
             List<(IAsyncDisposable?, IDisposable?)> list = new(disposables.Length);
             foreach (var disposable in disposables)
@@ -181,7 +183,7 @@ namespace System
         /// </summary>
         /// <returns>A task that represents the asynchronous dispose operation.</returns>
         /// <exception cref="AggregateException">Thrown if one or more exceptions occur during the disposal of the aggregated disposables.</exception>
-        protected override async ValueTask OnDisposeAsync()
+        protected override async ValueTask DisposeAsyncCore()
         {
             List<Exception>? exceptions = null;
             foreach (var (asyncDisposable, disposable) in _disposables)
@@ -190,7 +192,7 @@ namespace System
                 {
                     if (asyncDisposable != null)
                     {
-                        await asyncDisposable.DisposeAsync();
+                        await asyncDisposable.DisposeAsync().ConfigureAwait(continueOnCapturedContext: ContinueOnCapturedContext);
                         continue;
                     }
                     disposable?.Dispose();
@@ -205,7 +207,6 @@ namespace System
             {
                 throw new AggregateException(exceptions);
             }
-            await base.OnDisposeAsync();
         }
     }
 }

@@ -12,8 +12,8 @@ namespace System.Threading
 #if !DEBUG_VALIDATE
             return;
 #endif
-            WriteLineIf(!IsEntered, $"{nameof(IsEntered)}={IsEntered}");
-            Assert(IsEntered, $"{nameof(IsEntered)}={IsEntered}");
+            WriteLineIf(!IsHeldByCurrentFlow, $"{nameof(IsHeldByCurrentFlow)}={IsHeldByCurrentFlow}");
+            Assert(IsHeldByCurrentFlow, $"{nameof(IsHeldByCurrentFlow)}={IsHeldByCurrentFlow}");
 
             WriteLineIf(LocalId != CurrentId, $"{nameof(LocalId)}={LocalId} != {nameof(CurrentId)}={CurrentId}");
             Assert(LocalId == CurrentId, $"{nameof(LocalId)}={LocalId} != {nameof(CurrentId)}={CurrentId}");
@@ -68,8 +68,8 @@ namespace System.Threading
 #if !DEBUG_VALIDATE
             return;
 #endif
-            WriteLineIf(!IsEntered, $"{nameof(IsEntered)}={IsEntered}");
-            Assert(IsEntered, $"{nameof(IsEntered)}={IsEntered}");
+            WriteLineIf(!IsHeldByCurrentFlow, $"{nameof(IsHeldByCurrentFlow)}={IsHeldByCurrentFlow}");
+            Assert(IsHeldByCurrentFlow, $"{nameof(IsHeldByCurrentFlow)}={IsHeldByCurrentFlow}");
 
             WriteLineIf(CurrentCount <= 0, $"{nameof(CurrentCount)}={CurrentCount}");
             Assert(CurrentCount > 0, $"{nameof(CurrentCount)}={CurrentCount}");

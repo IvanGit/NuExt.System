@@ -1,5 +1,10 @@
 ﻿#define DEBUG_WRITELINE_
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+
+#nullable disable
+#pragma warning disable CS9236
+#pragma warning disable NUnit2045
 
 namespace NuExt.System.Tests
 {
@@ -14,13 +19,13 @@ namespace NuExt.System.Tests
 #endif
             _asyncLock.Acquire(() =>
             {
-                Assert.That(_asyncLock.IsEntered, Is.True);
+                Assert.That(_asyncLock.IsHeldByCurrentFlow, Is.True);
                 if (depth > 0)
                 {
                     DoRecursion(depth - 1, cancellationToken);
                     _asyncLock.Acquire(() =>
                     {
-                        Assert.That(_asyncLock.IsEntered, Is.True);
+                        Assert.That(_asyncLock.IsHeldByCurrentFlow, Is.True);
                     }, cancellationToken);
                 }
                 Thread.Sleep(10);
@@ -38,7 +43,7 @@ namespace NuExt.System.Tests
 #endif
             await _asyncLock.AcquireAsync(async () =>
             {
-                Assert.That(_asyncLock.IsEntered, Is.True);
+                Assert.That(_asyncLock.IsHeldByCurrentFlow, Is.True);
                 if (depth > 0)
                 {
                     await DoRecursionAsync(depth - 1, cancellationToken).ConfigureAwait(false);
@@ -93,7 +98,7 @@ namespace NuExt.System.Tests
             });
 
             Assert.That(raceConditionActualValue, Is.EqualTo(raceConditionExpectedValue));
-            Assert.That(raceConditionCurrentCount, Is.EqualTo(0));
+            Assert.That(raceConditionCurrentCount, Is.Zero);
             Assert.Pass();
 
             async Task GenerateTask()
@@ -106,7 +111,7 @@ namespace NuExt.System.Tests
                     Assert.That(raceConditionCurrentCount, Is.EqualTo(asyncLock.CurrentCount));
                     Assert.That(asyncLock.CurrentCount, Is.EqualTo(2));
                     Assert.That(asyncLock.SyncRoot, Is.Not.Null);
-                    Assert.That(parent.CurrentCount, Is.EqualTo(0));
+                    Assert.That(parent.CurrentCount, Is.Zero);
                     var tasks = new List<Task>();
                     for (int i = 0; i < 10; i++)
                     {
@@ -125,7 +130,7 @@ namespace NuExt.System.Tests
                             raceConditionCurrentCount--;
                         });
                     }
-                    Task.WaitAll(tasks.ToArray());
+                    Task.WaitAll([.. tasks]);
                     raceConditionCurrentCount--;
                 });
                 await Task.Yield();
@@ -142,7 +147,7 @@ namespace NuExt.System.Tests
                     raceConditionCurrentCount++;
                     Assert.That(raceConditionCurrentCount, Is.EqualTo(asyncLock.CurrentCount));
                     Assert.That(asyncLock.CurrentCount, Is.EqualTo(3));
-                    Assert.That(parent.CurrentCount, Is.EqualTo(0));
+                    Assert.That(parent.CurrentCount, Is.Zero);
                     Assert.That(asyncLock.SyncRoot, Is.Not.Null);
                     raceConditionActualValue++;
                     Interlocked.Increment(ref raceConditionExpectedValue);
@@ -155,7 +160,7 @@ namespace NuExt.System.Tests
                     raceConditionCurrentCount++;
                     Assert.That(raceConditionCurrentCount, Is.EqualTo(asyncLock.CurrentCount));
                     Assert.That(asyncLock.CurrentCount, Is.EqualTo(3));
-                    Assert.That(parent.CurrentCount, Is.EqualTo(0));
+                    Assert.That(parent.CurrentCount, Is.Zero);
                     Assert.That(asyncLock.SyncRoot, Is.Not.Null);
                     raceConditionActualValue++;
                     Interlocked.Increment(ref raceConditionExpectedValue);
@@ -166,14 +171,14 @@ namespace NuExt.System.Tests
                 });
             }
 
-            void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+            void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
             {
                 if (sender is not ReentrantAsyncLock @lock) return;
                 Assert.That(e.PropertyName, Is.Not.EqualTo(nameof(@lock.CurrentCount)));
                 switch (e.PropertyName)
                 {
                     case nameof(@lock.CurrentCount)://does not triggered
-                        Assert.That(@lock.IsEntered, Is.True);
+                        Assert.That(@lock.IsHeldByCurrentFlow, Is.True);
                         raceConditionCurrentCount = @lock.CurrentCount;
                         break;
                 }
@@ -190,7 +195,7 @@ namespace NuExt.System.Tests
                 tasks.Add(Task.Run(() => DoRecursion()));
             }
             DoRecursion();
-            Task.WaitAll(tasks.ToArray());
+            Task.WaitAll([.. tasks]);
             Assert.Pass();
         }
 
@@ -229,21 +234,21 @@ namespace NuExt.System.Tests
                     var parent = asyncLock.SyncRoot!;
                     Assert.That(parent, Is.Not.Null);
                     Assert.That(parent.CurrentCount, Is.EqualTo(1));
-                    Assert.That(asyncLock.IsEntered, Is.True);
+                    Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                     asyncLock.Acquire(() =>
                     {
-                        Assert.That(parent.CurrentCount, Is.EqualTo(0));
-                        Assert.That(asyncLock.IsEntered, Is.True);
+                        Assert.That(parent.CurrentCount, Is.Zero);
+                        Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                     });
                     Assert.That(asyncLock.SyncRoot, Is.EqualTo(parent));
                     var task = asyncLock.AcquireAsync(async () =>
                     {
-                        Assert.That(parent.CurrentCount, Is.EqualTo(0));
-                        Assert.That(asyncLock.IsEntered, Is.True);
+                        Assert.That(parent.CurrentCount, Is.Zero);
+                        Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                         asyncLock.Acquire(() =>
                         {
-                            Assert.That(asyncLock.IsEntered, Is.True);
-                            Assert.That(parent.CurrentCount, Is.EqualTo(0));
+                            Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
+                            Assert.That(parent.CurrentCount, Is.Zero);
                             Assert.That(asyncLock.SyncRoot, Is.Not.EqualTo(parent));
                         });
                         await Task.Yield();
@@ -253,8 +258,8 @@ namespace NuExt.System.Tests
                         Assert.That(parent.CurrentCount, Is.EqualTo(1));
                         asyncLock.Acquire(() =>
                                 {
-                                    Assert.That(asyncLock.IsEntered, Is.True);
-                                    Assert.That(parent.CurrentCount, Is.EqualTo(0));
+                                    Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
+                                    Assert.That(parent.CurrentCount, Is.Zero);
                                     Assert.That(asyncLock.SyncRoot, Is.Not.EqualTo(parent));
                                 });
                     });
@@ -271,75 +276,75 @@ namespace NuExt.System.Tests
             int depth = 0;
             await Task.Run(async () =>
             {
-                Assert.That(asyncLock.IsEntered, Is.False);
+                Assert.That(asyncLock.IsHeldByCurrentFlow, Is.False);
                 Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
                 await asyncLock.AcquireAsync(async () =>
                 {
                     depth++;
-                    Assert.That(asyncLock.IsEntered, Is.True);
+                    Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                     Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
                     await Task.Run(async () =>
                     {
-                        Assert.That(asyncLock.IsEntered, Is.True);
+                        Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                         Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
                         await asyncLock.AcquireAsync(async () =>
                         {
                             depth++;
-                            Assert.That(asyncLock.IsEntered, Is.True);
+                            Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                             Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
                             await Task.Run(async () =>
                             {
-                                Assert.That(asyncLock.IsEntered, Is.True);
+                                Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                                 Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
                                 await asyncLock.AcquireAsync(async () =>
                                 {
                                     depth++;
-                                    Assert.That(asyncLock.IsEntered, Is.True);
+                                    Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                                     Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
                                     await Task.Run(async () =>
                                     {
-                                        Assert.That(asyncLock.IsEntered, Is.True);
+                                        Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                                         Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
-                                        await asyncLock.AcquireAsync(async () =>
+                                        await asyncLock.AcquireAsync(async ValueTask () =>
                                         {
                                             depth++;
                                             await Task.Yield();
                                             //await Task.Delay(100).ConfigureAwait(false);
-                                            Assert.That(asyncLock.IsEntered, Is.True);
+                                            Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                                             Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
                                         }).ConfigureAwait(false);
                                         depth--;
                                         //await Task.Delay(100).ConfigureAwait(false);
-                                        Assert.That(asyncLock.IsEntered, Is.True);
+                                        Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                                         Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
                                     }).ConfigureAwait(false);
-                                    Assert.That(asyncLock.IsEntered, Is.True);
+                                    Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                                     Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
                                 }).ConfigureAwait(false);
                                 depth--;
                                 //await Task.Delay(100).ConfigureAwait(false);
-                                Assert.That(asyncLock.IsEntered, Is.True);
+                                Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                                 Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
                             }).ConfigureAwait(false);
-                            Assert.That(asyncLock.IsEntered, Is.True);
+                            Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                             Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
                         }).ConfigureAwait(false);
                         depth--;
                         //await Task.Delay(100).ConfigureAwait(false);
-                        Assert.That(asyncLock.IsEntered, Is.True);
+                        Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                         Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
                     }).ConfigureAwait(false);
-                    Assert.That(asyncLock.IsEntered, Is.True);
+                    Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                     Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
                 }).ConfigureAwait(false);
                 depth--;
                 //await Task.Delay(100).ConfigureAwait(false);
-                Assert.That(asyncLock.IsEntered, Is.False);
+                Assert.That(asyncLock.IsHeldByCurrentFlow, Is.False);
                 Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
             }).ConfigureAwait(false);
             //await Task.Delay(100).ConfigureAwait(false);
             Assert.That(depth, Is.EqualTo(asyncLock.CurrentCount));
-            Assert.That(depth, Is.EqualTo(0));
+            Assert.That(depth, Is.Zero);
             Assert.Pass();
         }
 
@@ -389,7 +394,7 @@ namespace NuExt.System.Tests
                         // Another (perhaps more reliable) way to detect racing threads is to assert that the currently
                         // executing thread is the same thread that is currently processing the WorkQueue used
                         // internally by the ReentrantAsyncLock.
-                        Assert.That(asyncLock.IsEntered, Is.True);
+                        Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
 
                         var task1 = DoTask();
 
@@ -428,7 +433,7 @@ namespace NuExt.System.Tests
                         // ...then come back and do the above stuff a second time.
                         raceConditionActualValue++;
                         Interlocked.Increment(ref raceConditionExpectedValue);
-                        Assert.That(asyncLock.IsEntered, Is.True);
+                        Assert.That(asyncLock.IsHeldByCurrentFlow, Is.True);
                         Assert.That(asyncLock.CurrentId, Is.EqualTo(currentId3));
                         Assert.That(asyncLock.CurrentId, Is.Not.Zero);
                         Assert.That(asyncLock.CurrentCount, Is.EqualTo(2));
