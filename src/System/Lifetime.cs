@@ -11,7 +11,7 @@ namespace System
     /// Manages the lifecycle of resources and ensures that all registered cleanup actions are executed upon disposal.
     /// </summary>
     [DebuggerStepThrough]
-    public sealed class Lifetime : ILifetime
+    public sealed class Lifetime : Disposable, ILifetime
     {
         private readonly List<Action> _actions = [];
 
@@ -48,9 +48,11 @@ namespace System
             Debug.Assert(action != null, $"{nameof(action)} is null");
             ArgumentNullException.ThrowIfNull(action);
 
+            CheckTerminatedOrDisposed();
+
             lock (_actions)
             {
-                CheckTerminated();
+                CheckTerminatedOrDisposed();
                 _actions.Add(action);
             }
         }
@@ -70,8 +72,14 @@ namespace System
             ArgumentNullException.ThrowIfNull(subscribe);
             ArgumentNullException.ThrowIfNull(unsubscribe);
 
-            subscribe();
-            Add(unsubscribe);
+            CheckTerminatedOrDisposed();
+
+            lock (_actions)
+            {
+                CheckTerminatedOrDisposed();
+                subscribe();
+                _actions.Add(unsubscribe);
+            }
         }
 
         /// <summary>
@@ -111,13 +119,15 @@ namespace System
         }
 
         /// <summary>
-        /// Checks whether the <see cref="Lifetime"/> instance has been terminated and throws an exception if it has.
+        /// Checks whether the <see cref="Lifetime"/> instance has been terminated or disposed and throws an exception if it has.
         /// </summary>
-        /// <exception cref="ObjectDisposedException">Thrown if the <see cref="Lifetime"/> instance is terminated.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if the <see cref="Lifetime"/> instance is terminated or disposed.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void CheckTerminated()
+        private void CheckTerminatedOrDisposed()
         {
             ObjectDisposedException.ThrowIf(IsTerminated, this);
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            ObjectDisposedException.ThrowIf(IsDisposing, this);
         }
 
         /// <summary>
@@ -125,12 +135,8 @@ namespace System
         /// Ensures that all resources are released properly.
         /// </summary>
         /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of added actions.</exception>
-        public void Dispose()
+        protected override void DisposeCore()
         {
-            if (IsTerminated)
-            {
-                return;
-            }
             List<Exception>? exceptions = null;
             lock (_actions)
             {

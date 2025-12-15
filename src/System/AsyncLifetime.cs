@@ -13,9 +13,9 @@ namespace System
     /// Manages the asynchronous lifecycle of resources, ensuring that all registered cleanup actions are executed upon disposal.
     /// </summary>
     [DebuggerStepThrough]
-    public sealed class AsyncLifetime : IAsyncLifetime
+    public sealed class AsyncLifetime : AsyncDisposable, IAsyncLifetime
     {
-        private readonly List<Func<ValueTask>> _actions = [];
+        private readonly List<(Func<ValueTask>?, Action?)> _actions = [];
         private readonly SemaphoreSlim _syncLock = new(1, 1);
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace System
         /// <remarks>
         /// This constructor initializes the <see cref="AsyncLifetime"/> instance with 
         /// <c>ContinueOnCapturedContext</c> set to <c>false</c>. By default, the current execution context 
-        /// will not be captured to continue asynchronous operations in the <see cref="DisposeAsync"/> method.
+        /// will not be captured to continue asynchronous operations in the <see cref="AsyncDisposable.DisposeAsync"/> method.
         /// </remarks>
         public AsyncLifetime() : this(false)
         {
@@ -35,25 +35,18 @@ namespace System
         /// Initializes a new instance of the <see cref="AsyncLifetime"/> class with the specified settings.
         /// </summary>
         /// <param name="continueOnCapturedContext">Determines whether the current execution context should be captured 
-        /// and used to continue asynchronous operations in the <see cref="DisposeAsync"/> method.</param>
+        /// and used to continue asynchronous operations in the <see cref="AsyncDisposable.DisposeAsync"/> method.</param>
         /// <remarks>
         /// When an instance of <see cref="AsyncLifetime"/> is disposed asynchronously, the actions added to it will 
         /// be executed. If <paramref name="continueOnCapturedContext"/> is set to true, the original synchronization context 
         /// will be used to continue the asynchronous operations.
         /// </remarks>
-        public AsyncLifetime(bool continueOnCapturedContext)
+        public AsyncLifetime(bool continueOnCapturedContext) : base(continueOnCapturedContext: continueOnCapturedContext)
         {
-            ContinueOnCapturedContext = continueOnCapturedContext;
             Add(() => IsTerminated = true);
         }
 
         #region Properties
-
-        /// <summary>
-        /// Gets a value indicating whether the current execution context should be captured 
-        /// and used to continue asynchronous operations in the DisposeAsync method.
-        /// </summary>
-        public bool ContinueOnCapturedContext { get; }
 
         /// <summary>
         /// Gets a value indicating whether this instance has been terminated. 
@@ -77,29 +70,38 @@ namespace System
             Debug.Assert(action != null, $"{nameof(action)} is null");
             ArgumentNullException.ThrowIfNull(action);
 
-            AddAsync(() =>
+            CheckTerminatedOrDisposed();
+
+            _syncLock.Wait();
+            try
             {
-                action();
-                return default;
-            });
+                CheckTerminatedOrDisposed();
+                _actions.Add((null, action));
+            }
+            finally
+            {
+                _syncLock.Release();
+            }
         }
 
         /// <summary>
         /// Adds an asynchronous action to be executed when the <see cref="AsyncLifetime"/> instance is disposed asynchronously.
         /// </summary>
-        /// <param name="action">The asynchronous action to add. This action will be called upon asynchronous disposal.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the action is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add an action to a terminated <see cref="AsyncLifetime"/> instance.</exception>
-        public void AddAsync(Func<ValueTask> action)
+        /// <param name="callback">The asynchronous callback to add. This callback will be called upon asynchronous disposal.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the callback is null.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add a callback to a terminated <see cref="AsyncLifetime"/> instance.</exception>
+        public void AddAsync(Func<ValueTask> callback)
         {
-            Debug.Assert(action != null, $"{nameof(action)} is null");
-            ArgumentNullException.ThrowIfNull(action);
+            Debug.Assert(callback != null, $"{nameof(callback)} is null");
+            ArgumentNullException.ThrowIfNull(callback);
+
+            CheckTerminatedOrDisposed();
 
             _syncLock.Wait();
             try
             {
-                CheckTerminated();
-                _actions.Add(action);
+                CheckTerminatedOrDisposed();
+                _actions.Add((callback, null));
             }
             finally
             {
@@ -140,27 +142,68 @@ namespace System
             ArgumentNullException.ThrowIfNull(subscribe);
             ArgumentNullException.ThrowIfNull(unsubscribe);
 
-            subscribe();
-            Add(unsubscribe);
+            CheckTerminatedOrDisposed();
+
+            _syncLock.Wait();
+            try
+            {
+                CheckTerminatedOrDisposed();
+                subscribe();
+                _actions.Add((null, unsubscribe));
+            }
+            finally
+            {
+                _syncLock.Release();
+            }
         }
 
         /// <summary>
-        /// Adds a pair of asynchronous actions: one to be executed immediately (subscribe) and another to be executed during asynchronous disposal (unsubscribe).
+        /// Adds a pair of asynchronous actions: one to be executed immediately (subscribe) 
+        /// and another to be executed during asynchronous disposal (unsubscribe).
+        /// Uses the value of <see cref="AsyncDisposable.ContinueOnCapturedContext"/> property to determine 
+        /// synchronization context behavior for the <paramref name="subscribe"/> callback execution.
         /// </summary>
         /// <param name="subscribe">The action to execute immediately.</param>
         /// <param name="unsubscribe">The action to execute upon asynchronous disposal.</param>
         /// <exception cref="ArgumentNullException">Thrown if either subscribe or unsubscribe is null.</exception>
         /// <exception cref="ObjectDisposedException">Thrown if trying to add actions to a terminated <see cref="AsyncLifetime"/> instance.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async ValueTask AddBracketAsync(Func<ValueTask> subscribe, Func<ValueTask> unsubscribe)
+        public ValueTask AddBracketAsync(Func<ValueTask> subscribe, Func<ValueTask> unsubscribe) =>
+            AddBracketAsync(subscribe, unsubscribe, ContinueOnCapturedContext);
+
+        /// <summary>
+        /// Adds a pair of asynchronous actions: one to be executed immediately (subscribe) 
+        /// and another to be executed during asynchronous disposal (unsubscribe).
+        /// </summary>
+        /// <param name="subscribe">The action to execute immediately.</param>
+        /// <param name="unsubscribe">The action to execute upon asynchronous disposal.</param>
+        /// <param name="subscribeOnCapturedContext">
+        /// Determines whether the <paramref name="subscribe"/> callback begins execution
+        /// on the captured synchronization context. When <see langword="true"/>, 
+        /// the context is preserved for the start of <paramref name="subscribe"/>.
+        /// </param>
+        /// <exception cref="ArgumentNullException">Thrown if either subscribe or unsubscribe is null.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if trying to add actions to a terminated <see cref="AsyncLifetime"/> instance.</exception>
+        public async ValueTask AddBracketAsync(Func<ValueTask> subscribe, Func<ValueTask> unsubscribe, bool subscribeOnCapturedContext)
         {
             Debug.Assert(subscribe != null, $"{nameof(subscribe)} is null");
             Debug.Assert(unsubscribe != null, $"{nameof(unsubscribe)} is null");
             ArgumentNullException.ThrowIfNull(subscribe);
             ArgumentNullException.ThrowIfNull(unsubscribe);
 
-            await subscribe().ConfigureAwait(false);
-            AddAsync(unsubscribe);
+            CheckTerminatedOrDisposed();
+
+            await _syncLock.WaitAsync().ConfigureAwait(subscribeOnCapturedContext);
+            try
+            {
+                CheckTerminatedOrDisposed();
+                await subscribe().ConfigureAwait(false);
+                _actions.Add((unsubscribe, null));
+            }
+            finally
+            {
+                _syncLock.Release();
+            }
         }
 
         /// <summary>
@@ -200,13 +243,15 @@ namespace System
         }
 
         /// <summary>
-        /// Checks whether the <see cref="AsyncLifetime"/> instance has been terminated and throws an exception if it has.
+        /// Checks whether the <see cref="AsyncLifetime"/> instance has been terminated or disposed and throws an exception if it has.
         /// </summary>
-        /// <exception cref="ObjectDisposedException">Thrown if the <see cref="AsyncLifetime"/> instance is terminated.</exception>
+        /// <exception cref="ObjectDisposedException">Thrown if the <see cref="AsyncLifetime"/> instance is terminated or disposed.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void CheckTerminated()
+        private void CheckTerminatedOrDisposed()
         {
             ObjectDisposedException.ThrowIf(IsTerminated, this);
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            ObjectDisposedException.ThrowIf(IsDisposing, this);
         }
 
         /// <summary>
@@ -215,21 +260,23 @@ namespace System
         /// </summary>
         /// <returns>A ValueTask representing the asynchronous operation.</returns>
         /// <exception cref="AggregateException">One or more exceptions occurred during the invocation of added asynchronous actions.</exception>
-        public async ValueTask DisposeAsync()
+        protected override async ValueTask DisposeAsyncCore()
         {
-            if (IsTerminated)
-            {
-                return;
-            }
             List<Exception>? exceptions = null;
             await _syncLock.WaitAsync().ConfigureAwait(ContinueOnCapturedContext);
             try
             {
                 for (int i = _actions.Count - 1; i >= 0; i--)
                 {
+                    var (callback, action) = _actions[i];
                     try
                     {
-                        await _actions[i]().ConfigureAwait(ContinueOnCapturedContext);
+                        if (callback != null)
+                        {
+                            await callback().ConfigureAwait(ContinueOnCapturedContext);
+                            continue;
+                        }
+                        action?.Invoke();
                     }
                     catch (Exception ex)
                     {

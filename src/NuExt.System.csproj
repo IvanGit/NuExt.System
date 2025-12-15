@@ -27,7 +27,7 @@ System.IO.PathBuilder
 System.IO.ValuePathBuilder
 System.Text.ValueStringBuilder
 System.Collections.Generic.ValueListBuilder&lt;T&gt;</Description>
-    <Version>0.5.1</Version>
+    <Version>0.5.2</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>

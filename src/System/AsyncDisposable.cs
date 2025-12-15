@@ -106,25 +106,24 @@ namespace System
         #region Properties
 
         /// <summary>
-        /// Determines whether asynchronous disposal operations continue on the captured context.
+        /// Gets a value indicating whether to capture the current synchronization context 
+        /// and use it to execute asynchronous continuations.
         /// </summary>
         /// <value>
-        /// <see langword="true"/> to execute disposal continuations on the original 
-        /// synchronization context; <see langword="false"/> to execute on any thread pool thread.
-        /// Default is <see langword="false"/>.
+        /// <see langword="true"/> to execute continuations on the captured synchronization context;
+        /// <see langword="false"/> to execute continuations on a thread pool thread. 
+        /// The default is <see langword="false"/>.
         /// </value>
         /// <remarks>
         /// <para>
-        /// This property controls context flow for all asynchronous operations during disposal,
-        /// including the <see cref="Disposing"/> event and <see cref="DisposeAsyncCore"/> method.
+        /// Controls the flow of the synchronization context during asynchronous operations.
         /// </para>
         /// <para>
-        /// Set to <see langword="true"/> when disposal must interact with thread-affine objects
-        /// (e.g., UI controls in WPF/WinForms). Keep as <see langword="false"/> for library code
-        /// to avoid potential deadlocks and improve performance.
+        /// Set to <see langword="true"/> when the instance must interact with thread-affine objects
+        /// (e.g., UI controls in WPF/WinForms). Keep as <see langword="false"/> for library code.
         /// </para>
         /// </remarks>
-        public virtual bool ContinueOnCapturedContext => _continueOnCapturedContext;
+        public bool ContinueOnCapturedContext => _continueOnCapturedContext;
 
         /// <summary>
         /// Gets a value indicating whether the object has been disposed.
@@ -168,6 +167,25 @@ namespace System
         protected void CheckDisposed()
         {
             ObjectDisposedException.ThrowIf(IsDisposed, this);
+        }
+
+        /// <summary>
+        /// Checks if the object has been disposed or is in the process of disposing.
+        /// Throws an <see cref="ObjectDisposedException"/> if either condition is true.
+        /// </summary>
+        /// <remarks>
+        /// This method provides a stronger guarantee than <see cref="CheckDisposed"/> by also
+        /// validating that the object is not currently in the disposal process, which helps
+        /// prevent race conditions during asynchronous disposal.
+        /// </remarks>
+        /// <exception cref="ObjectDisposedException">
+        /// Thrown when the object is either already disposed or currently being disposed.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void CheckDisposedOrDisposing()
+        {
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            ObjectDisposedException.ThrowIf(IsDisposing, this);
         }
 
         /// <summary>

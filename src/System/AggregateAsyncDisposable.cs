@@ -102,6 +102,8 @@ namespace System
         /// <param name="disposable">The disposable object to add.</param>
         public void Add(IAsyncDisposable? disposable)
         {
+            CheckDisposed();
+
             _disposables.Add((disposable, null));
         }
 
@@ -112,6 +114,8 @@ namespace System
         [OverloadResolutionPriority(-1)]
         public void Add(IDisposable? disposable)
         {
+            CheckDisposed();
+
             if (disposable is IAsyncDisposable asyncDisposable)
             {
                 _disposables.Add((asyncDisposable, null));
