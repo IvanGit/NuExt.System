@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -184,6 +185,7 @@ namespace System
         /// </param>
         /// <exception cref="ArgumentNullException">Thrown if either subscribe or unsubscribe is null.</exception>
         /// <exception cref="ObjectDisposedException">Thrown if trying to add actions to a terminated <see cref="AsyncLifetime"/> instance.</exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public async ValueTask AddBracketAsync(Func<ValueTask> subscribe, Func<ValueTask> unsubscribe, bool subscribeOnCapturedContext)
         {
             Debug.Assert(subscribe != null, $"{nameof(subscribe)} is null");

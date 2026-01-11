@@ -17,11 +17,8 @@ namespace System.Threading
     /// to work with APIs requiring <see cref="IThreadAffineSynchronizationContext"/>.
     /// </para>
     /// </remarks>
-    public class ThreadAffineSynchronizationContext : SynchronizationContext, IThreadAffineSynchronizationContext
+    public partial class ThreadAffineSynchronizationContext : SynchronizationContext, IThreadAffineSynchronizationContext
     {
-        private readonly SynchronizationContext _innerContext;
-        private readonly Thread _associatedThread;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ThreadAffineSynchronizationContext"/> class.
         /// </summary>
@@ -32,8 +29,8 @@ namespace System.Threading
         {
             ArgumentNullException.ThrowIfNull(innerContext);
             ArgumentNullException.ThrowIfNull(associatedThread);
-            _innerContext = innerContext;
-            _associatedThread = associatedThread;
+            InnerContext = innerContext;
+            Thread = associatedThread;
         }
 
         /// <summary>
@@ -45,17 +42,17 @@ namespace System.Threading
         }
 
         /// <inheritdoc/>
-        public Thread Thread => _associatedThread;
+        public Thread Thread { get; }
 
         /// <summary>
         /// Gets the wrapped synchronization context.
         /// </summary>
-        public SynchronizationContext InnerContext => _innerContext;
+        public SynchronizationContext InnerContext { get; }
 
         /// <inheritdoc/>
         public bool CheckAccess()
         {
-            return Thread.CurrentThread == _associatedThread;
+            return Thread.CurrentThread == Thread;
         }
 
         /// <inheritdoc/>
@@ -75,30 +72,30 @@ namespace System.Threading
                 Environment.CurrentManagedThreadId, Thread.ManagedThreadId));
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="SynchronizationContext.Send" />
         public override void Send(SendOrPostCallback d, object? state)
         {
-            _innerContext.Send(d, state);
+            InnerContext.Send(d, state);
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="SynchronizationContext.Post"/>
         public override void Post(SendOrPostCallback d, object? state)
         {
-            _innerContext.Post(d, state);
+            InnerContext.Post(d, state);
         }
 
         /// <inheritdoc/>
         public override SynchronizationContext CreateCopy()
         {
             return new ThreadAffineSynchronizationContext(
-                _innerContext.CreateCopy(),
-                _associatedThread);
+                InnerContext.CreateCopy(),
+                Thread);
         }
 
         /// <inheritdoc/>
         public override int Wait(nint[] waitHandles, bool waitAll, int millisecondsTimeout)
         {
-            return _innerContext.Wait(waitHandles, waitAll, millisecondsTimeout);
+            return InnerContext.Wait(waitHandles, waitAll, millisecondsTimeout);
         }
 
         /// <summary>
@@ -168,8 +165,8 @@ namespace System.Threading
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"ThreadAffineSynchronizationContext(Inner={_innerContext.GetType().Name}, " +
-                   $"Thread={_associatedThread.ManagedThreadId})";
+            return $"ThreadAffineSynchronizationContext(Inner={InnerContext.GetType().Name}, " +
+                   $"Thread={Thread.ManagedThreadId})";
         }
     }
 }

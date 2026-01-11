@@ -1,18 +1,42 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace System.Threading
 {
     public static class SynchronizationContextExtensions
     {
+        private static readonly HashSet<string> s_knownThreadAffineContexts = new (StringComparer.Ordinal)
+        {
+            "System.Windows.Threading.DispatcherSynchronizationContext",
+            "System.Windows.Forms.WindowsFormsSynchronizationContext",
+            "Avalonia.Threading.AvaloniaSynchronizationContext",
+            "System.Threading.ThreadAffineSynchronizationContext"
+        };
+
         extension (SynchronizationContext synchronizationContext)
         {
+            /// <summary>
+            /// Determines if the synchronization context is recognized as a known thread-affine type.
+            /// </summary>
+            /// <value>
+            /// <see langword="true"/> for contexts like WPF's DispatcherSynchronizationContext,
+            /// Windows Forms' WindowsFormsSynchronizationContext, or Avalonia's AvaloniaSynchronizationContext;
+            /// otherwise, <see langword="false"/>.
+            /// </value>
+            /// <remarks>
+            /// This check is based on type names and serves as a fast-path optimization hint.
+            /// When <see langword="true"/>, the context can be safely assumed thread-affine.
+            /// When <see langword="false"/>, further behavioral checks may be required.
+            /// </remarks>
+            public bool IsThreadAffineKnown => s_knownThreadAffineContexts.Contains(synchronizationContext.GetType().FullName!);
+
             /// <summary>
             /// Executes the specified delegate synchronously using the <see cref="SynchronizationContext"/>.
             /// </summary>
             /// <param name="d">The delegate to call.</param>
             /// <param name="state">The object passed to the delegate.</param>
-            /// <returns>The return value from the delegate being invoked, or null if the delegate has no return value.</returns>
-            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="d"/> parameter is null.</exception>
+            /// <returns>The return value from the delegate being invoked, or <see langword="null"/> if the delegate has no return value.</returns>
+            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="d"/> parameter is <see langword="null"/>.</exception>
             public object? Send(Func<object?, object?> d, object? state)
             {
                 ArgumentNullException.ThrowIfNull(d);
@@ -40,12 +64,46 @@ namespace System.Threading
             }
 
             /// <summary>
+            /// Executes the specified delegate asynchronously using the <see cref="SynchronizationContext"/>.
+            /// </summary>
+            /// <param name="method">A delegate to a method that takes parameters of the same number and type that are contained in the args parameter.</param>
+            /// <param name="args">An array of objects to pass as arguments to the given method. This can be <see langword="null"/> if no arguments are needed.</param>
+            /// <returns>A <see cref="Task{Object}"/> that represents the asynchronous operation. 
+            /// The task result is the return value from the delegate being invoked, or <see langword="null"/> if the delegate has no return value.</returns>
+            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="method"/> parameter is <see langword="null"/>.</exception>
+            /// <remarks>
+            /// This method returns immediately and does not wait for the asynchronous operation to complete.
+            /// For delegates with a return value, use <see cref="Task{TResult}.Result"/> to get the result.
+            /// </remarks>
+            public Task<object?> BeginInvoke(Delegate method, params object?[] args)
+            {
+                ArgumentNullException.ThrowIfNull(method);
+
+                var tcs = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+                synchronizationContext.Post(_ =>
+                {
+                    try
+                    {
+                        object? result = method.Call(args);
+                        tcs.SetResult(result);
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.SetException(ex);
+                    }
+                }, null);
+
+                return tcs.Task;
+            }
+
+            /// <summary>
             /// Executes the specified delegate synchronously using the <see cref="SynchronizationContext"/>.
             /// </summary>
             /// <param name="method">A delegate to a method that takes parameters of the same number and type that are contained in the args parameter.</param>
-            /// <param name="args">An array of objects to pass as arguments to the given method. This can be null if no arguments are needed.</param>
-            /// <returns>The return value from the delegate being invoked, or null if the delegate has no return value.</returns>
-            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="method"/> parameter is null.</exception>
+            /// <param name="args">An array of objects to pass as arguments to the given method. This can be <see langword="null"/> if no arguments are needed.</param>
+            /// <returns>The return value from the delegate being invoked, or <see langword="null"/> if the delegate has no return value.</returns>
+            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="method"/> parameter is <see langword="null"/>.</exception>
             public object? Invoke(Delegate method, params object?[] args)
             {
                 ArgumentNullException.ThrowIfNull(method);
@@ -59,7 +117,7 @@ namespace System.Threading
             /// Executes the specified delegate synchronously using the <see cref="SynchronizationContext"/>.
             /// </summary>
             /// <param name="callback">The <see cref="Action"/> delegate to call.</param>
-            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="callback"/> parameter is null.</exception>
+            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="callback"/> parameter is <see langword="null"/>.</exception>
             public void Invoke(Action callback)
             {
                 ArgumentNullException.ThrowIfNull(callback);
@@ -72,7 +130,7 @@ namespace System.Threading
             /// </summary>
             /// <param name="callback">The <see cref="Func{TResult}"/> delegate to call.</param>
             /// <returns>The return value from the delegate being invoked.</returns>
-            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="callback"/> parameter is null.</exception>
+            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="callback"/> parameter is <see langword="null"/>.</exception>
             public TResult Invoke<TResult>(Func<TResult> callback)
             {
                 ArgumentNullException.ThrowIfNull(callback);
@@ -88,7 +146,7 @@ namespace System.Threading
             /// <param name="d">The <see cref="SendOrPostCallback"/> delegate to call.</param>
             /// <param name="state">An object passed to the delegate.</param>
             /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="d"/> parameter is null.</exception>
+            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="d"/> parameter is <see langword="null"/>.</exception>
             /// <remarks>
             /// The method allows the delegate to be executed on a specific thread or context. The returned task completes 
             /// when the delegate has finished executing, either successfully or with an exception.
@@ -120,7 +178,7 @@ namespace System.Threading
             /// </summary>
             /// <param name="callback">The <see cref="Action"/> delegate to call.</param>
             /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="callback"/> parameter is null.</exception>
+            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="callback"/> parameter is <see langword="null"/>.</exception>
             /// <remarks>
             /// The method allows the delegate to be executed on a specific thread or context. The returned task completes 
             /// when the delegate has finished executing, either successfully or with an exception.
@@ -152,7 +210,7 @@ namespace System.Threading
             /// </summary>
             /// <param name="callback">The <see cref="Func{TResult}"/> delegate to call.</param>
             /// <returns>A <see cref="Task{TResult}"/> that represents the asynchronous operation.</returns>
-            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="callback"/> parameter is null.</exception>
+            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="callback"/> parameter is <see langword="null"/>.</exception>
             /// <remarks>
             /// The method allows the delegate to be executed on a specific thread or context. The returned task completes 
             /// when the delegate has finished executing, either successfully or with an exception.
@@ -184,7 +242,7 @@ namespace System.Threading
             /// </summary>
             /// <param name="callback">The Func&lt;Task&gt; delegate to call.</param>
             /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="callback"/> parameter is null.</exception>
+            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="callback"/> parameter is <see langword="null"/>.</exception>
             /// <remarks>
             /// The method allows the callback to be awaited and executed on a specific thread or context.
             /// The returned task completes when the delegate has finished executing, either successfully or with an exception.
@@ -195,7 +253,7 @@ namespace System.Threading
 
                 var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-                synchronizationContext.Post(async _ =>
+                synchronizationContext.Post(async void (_) =>
                 {
                     try
                     {
@@ -216,7 +274,7 @@ namespace System.Threading
             /// </summary>
             /// <param name="callback">The Func&lt;Task&lt;TResult&gt;&gt; delegate to call.</param>
             /// <returns>A <see cref="Task{TResult}"/> that represents the asynchronous operation.</returns>
-            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="callback"/> parameter is null.</exception>
+            /// <exception cref="ArgumentNullException">Thrown when the <paramref name="callback"/> parameter is <see langword="null"/>.</exception>
             /// <remarks>
             /// The method allows the callback to be awaited and executed on a specific thread or context.
             /// The returned task completes when the delegate has finished executing, either successfully or with an exception.
@@ -227,7 +285,7 @@ namespace System.Threading
 
                 var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-                synchronizationContext.Post(async _ =>
+                synchronizationContext.Post(async void (_) =>
                 {
                     try
                     {

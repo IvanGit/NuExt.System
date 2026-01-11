@@ -45,8 +45,6 @@ namespace System
         private volatile int _state;
 #endif
 
-        private readonly bool _continueOnCapturedContext;
-
         /// <summary>
         /// Initializes a new instance with the specified continuation behavior.
         /// </summary>
@@ -55,7 +53,7 @@ namespace System
         /// </param>
         protected AsyncDisposable(bool continueOnCapturedContext)
         {
-            _continueOnCapturedContext = continueOnCapturedContext;
+            ContinueOnCapturedContext = continueOnCapturedContext;
         }
 
         /// <summary>
@@ -77,7 +75,7 @@ namespace System
         protected AsyncDisposable(SynchronizationContext? synchronizationContext, bool continueOnCapturedContext)
             : base(synchronizationContext)
         {
-            _continueOnCapturedContext = continueOnCapturedContext;
+            ContinueOnCapturedContext = continueOnCapturedContext;
         }
 
         /// <summary>
@@ -123,7 +121,7 @@ namespace System
         /// (e.g., UI controls in WPF/WinForms). Keep as <see langword="false"/> for library code.
         /// </para>
         /// </remarks>
-        public bool ContinueOnCapturedContext => _continueOnCapturedContext;
+        public bool ContinueOnCapturedContext { get; }
 
         /// <summary>
         /// Gets a value indicating whether the object has been disposed.
@@ -231,7 +229,7 @@ namespace System
             {
                 await Disposing.InvokeAsync(this, EventArgs.Empty, continueOnCapturedContext: ContinueOnCapturedContext);//no ConfigureAwait needed
                 //https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-disposeasync
-                await DisposeAsyncCore().ConfigureAwait(continueOnCapturedContext: ContinueOnCapturedContext);
+                await DisposeAsyncCore().ConfigureAwait(false);
                 Dispose(false);
 
                 if (Disposing != null)

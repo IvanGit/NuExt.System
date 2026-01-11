@@ -21,6 +21,7 @@
 - **`System.Lifetime`**: Manages the lifecycle of objects and resources.
 - **`System.PropertyChangeNotifier`**: Implementation of `INotifyPropertyChanged`.
 - **`System.Diagnostics.ProcessMonitor`**: Real-time monitoring of CPU, memory and ThreadPool threads.
+- **`System.Threading.AsyncLazy<T>`**: Asynchronous lazy initialization.
 - **`System.Threading.AsyncLock`**: Asynchronous lock for resource synchronization.
 - **`System.Threading.AsyncWaitHandle`**: Async wait handle with timeout and cancellation support.
 - **`System.Threading.ReentrantAsyncLock`**: Reentrant asynchronous lock.

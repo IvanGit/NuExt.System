@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,7 +40,7 @@ namespace System
                         _ => callback.DynamicInvoke(args)
                     };
                 }
-                catch (TargetInvocationException ex) when (ex.InnerException is { })
+                catch (TargetInvocationException ex) when (ex.InnerException is not null)
                 {
                     ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                     // The above line will always throw, but the compiler requires we throw explicitly.
@@ -88,6 +89,7 @@ namespace System
                 switch (callback)
                 {
                     case EventHandler eventHandler when arg1 is EventArgs e: eventHandler(arg0, e); return null;
+                    case PropertyChangedEventHandler eventHandler when arg1 is PropertyChangedEventArgs e: eventHandler(arg0, e); return null;
                     case Action<object?, object?> actionObj: actionObj(arg0, arg1); return null;
                     case Action<string, string> actionStr when arg0 is string s1 && arg1 is string s2: actionStr(s1, s2); return null;
                     case Func<object?, object?, object?> funcObj: return funcObj(arg0, arg1);

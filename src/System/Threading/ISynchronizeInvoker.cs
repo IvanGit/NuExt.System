@@ -9,6 +9,20 @@ namespace System.Threading
     public interface ISynchronizeInvoker : IDispatcherObject
     {
         /// <summary>
+        /// Executes the specified delegate asynchronously on the appropriate thread or context.
+        /// </summary>
+        /// <param name="method">A delegate to a method to invoke.</param>
+        /// <param name="args">An array of objects to pass as arguments to the delegate, or <see langword="null"/>.</param>
+        /// <returns>A <see cref="Task{Object}"/> that represents the asynchronous operation. 
+        /// The task result is the return value from the delegate being invoked, or <see langword="null"/> if the delegate has no return value.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the <paramref name="method"/> parameter is null.</exception>
+        /// <remarks>
+        /// This method returns immediately and does not wait for the asynchronous operation to complete.
+        /// The delegate is always executed asynchronously, even if called from the correct thread.
+        /// </remarks>
+        public Task<object?> BeginInvoke(Delegate method, params object?[] args);
+
+        /// <summary>
         /// Executes the specified delegate synchronously on the appropriate thread or context.
         /// </summary>
         /// <param name="method">A delegate to a method to invoke.</param>
