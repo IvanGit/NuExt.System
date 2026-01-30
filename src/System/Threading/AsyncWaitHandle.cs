@@ -35,7 +35,7 @@ namespace System.Threading
         /// <returns>A task that represents the result of the wait operation.</returns>
         public Task<bool> WaitOneAsync()
         {
-            return WaitOneAsync(Timeout.InfiniteTimeSpan, default);
+            return WaitOneAsync(Timeout.InfiniteTimeSpan, CancellationToken.None);
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace System.Threading
         /// <returns>A task that represents the result of the wait operation.</returns>
         public Task<bool> WaitOneAsync(int millisecondsTimeout)
         {
-            return WaitOneAsync(TimeSpan.FromMilliseconds(millisecondsTimeout), default);
+            return WaitOneAsync(TimeSpan.FromMilliseconds(millisecondsTimeout), CancellationToken.None);
         }
 
         /// <summary>
@@ -99,7 +99,12 @@ namespace System.Threading
             try
             {
                 using (cancellationToken.CanBeCanceled
-                           ? cancellationToken.Register(() => tcs.TrySetCanceled(), useSynchronizationContext: false)
+                           ? cancellationToken
+#if NET
+                           .UnsafeRegister(static state => ((TaskCompletionSource<bool>)state!).TrySetCanceled(), tcs)
+#else
+                           .Register(static state => ((TaskCompletionSource<bool>)state!).TrySetCanceled(), tcs, useSynchronizationContext: false)
+#endif
                            : null as IDisposable)
                 {
                     return await tcs.Task.ConfigureAwait(false);
@@ -118,7 +123,7 @@ namespace System.Threading
         /// <returns>A task that represents the result of the wait operation.</returns>
         public Task<bool> WaitOneAsync(TimeSpan timeout)
         {
-            return WaitOneAsync(timeout, default);
+            return WaitOneAsync(timeout, CancellationToken.None);
         }
 
         #endregion

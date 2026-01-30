@@ -47,13 +47,13 @@ namespace System.IO
             {
                 // If the path would normalize to string empty, we'll consider it empty
                 if (IsEffectivelyEmpty(path))
-                    throw new ArgumentException("The path is empty.", nameof(path));
+                    throw new ArgumentException(SR.Arg_PathEmpty, nameof(path));
 
                 // Embedded null characters are the only invalid character case we truly care about.
                 // This is because the nulls will signal the end of the string to Win32 and therefore have
                 // unpredictable results.
                 if (path.Contains('\0'))
-                    throw new ArgumentException("Null character in path.", nameof(path));
+                    throw new ArgumentException(SR.Argument_NullCharInPath, nameof(path));
 
                 return GetFullPathInternal(path);
             }
@@ -62,11 +62,11 @@ namespace System.IO
             {
                 if (!IsPathFullyQualified(basePath))
                 {
-                    throw new ArgumentException("Basepath argument is not fully qualified.", nameof(basePath));
+                    throw new ArgumentException(SR.Arg_BasePathNotFullyQualified, nameof(basePath));
                 }
 
                 if (basePath.Contains('\0') || path.Contains('\0'))
-                    throw new ArgumentException("Null character in path.");
+                    throw new ArgumentException(SR.Argument_NullCharInPath);
 
                 if (IsPathFullyQualified(path))
                     return GetFullPathInternal(path);
@@ -141,7 +141,7 @@ namespace System.IO
                     return path;
                 }
 
-                //return Normalize(path);
+                //return Normalize(path); -> GetFullPathName -> Interop.Kernel32.GetFullPathNameW
                 return RemoveRelativeSegments(path, GetRootLength(path), false);
             }
 

@@ -514,9 +514,9 @@ namespace System.IO
             return PathUtilities.GetPathSegments(AsSpan(), segments, IsUnixLikePlatform);
         }
 
-        public readonly partial ReadOnlySpan<char> GetRelativePath(ReadOnlySpan<char> path)
+        public readonly partial ReadOnlySpan<char> GetRelativePath(ReadOnlySpan<char> path, ReadOnlySpan<char> basePath)
         {
-            return PathUtilities.GetRelativePath(AsSpan(), path, IsUnixLikePlatform);
+            return PathUtilities.GetRelativePath(AsSpan(), path, IsUnixLikePlatform, basePath);
         }
 
         public readonly partial bool HasExtension()

@@ -20,7 +20,7 @@ namespace System.IO
             internal static ReadOnlySpan<char> GetFullPath(ReadOnlySpan<char> path)
             {
                 if (path.Contains('\0'))
-                    throw new ArgumentException("Null character in path.", nameof(path));
+                    throw new ArgumentException(SR.Argument_NullCharInPath, nameof(path));
 
                 return GetFullPathInternal(path);
             }
@@ -28,10 +28,10 @@ namespace System.IO
             internal static ReadOnlySpan<char> GetFullPath(ReadOnlySpan<char> path, ReadOnlySpan<char> basePath)
             {
                 if (!IsPathFullyQualified(basePath))
-                    throw new ArgumentException("Basepath argument is not fully qualified.", nameof(basePath));
+                    throw new ArgumentException(SR.Arg_BasePathNotFullyQualified, nameof(basePath));
 
                 if (basePath.Contains('\0') || path.Contains('\0'))
-                    throw new ArgumentException("Null character in path.");
+                    throw new ArgumentException(SR.Argument_NullCharInPath);
 
                 if (IsPathFullyQualified(path))
                     return GetFullPathInternal(path);
@@ -48,6 +48,7 @@ namespace System.IO
                 // Expand with current directory if necessary
                 /*if (!IsPathRooted(path))
                 {
+                    //path = Combine(Interop.Sys.GetCwd(), path);
                     var sb = new ValueStringBuilder(1 +  path.Length);
                     sb.Append(DirectorySeparatorChar);
                     sb.Append(path);

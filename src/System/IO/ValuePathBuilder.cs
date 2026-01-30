@@ -247,10 +247,11 @@ namespace System.IO
         /// Returns a relative path from the path to another.
         /// </summary>
         /// <param name="path">The destination path.</param>
+        /// <param name="basePath">The beginning of a fully qualified path or empty.</param>
         /// <exception cref="T:System.ArgumentException">
         /// The path or <paramref name="path" /> is effectively empty.</exception>
         /// <returns>The relative path, or <paramref name="path" /> if the paths don't share the same root.</returns>
-        public readonly partial ReadOnlySpan<char> GetRelativePath(ReadOnlySpan<char> path);
+        public readonly partial ReadOnlySpan<char> GetRelativePath(ReadOnlySpan<char> path, ReadOnlySpan<char> basePath = default);
 
         /// <summary>
         /// Tests if the path's file name includes a file extension. A trailing period is not considered an extension.

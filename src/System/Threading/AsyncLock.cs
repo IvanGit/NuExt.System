@@ -296,7 +296,7 @@ namespace System.Threading
         /// <exception cref="ArgumentOutOfRangeException">
         /// Thrown if <paramref name="timeout"/> is a negative time other than <see cref="Timeout.InfiniteTimeSpan"/>.
         /// </exception>
-        public bool TryEnter(TimeSpan timeout, CancellationToken cancellationToken = default)
+        public bool TryEnter(TimeSpan timeout, CancellationToken cancellationToken)
         {
             CheckDisposed();
             return _syncLock.Wait(timeout, cancellationToken);
@@ -392,7 +392,7 @@ namespace System.Threading
         /// <exception cref="ArgumentOutOfRangeException">
         /// Thrown if <paramref name="timeout"/> is a negative time other than <see cref="Timeout.InfiniteTimeSpan"/>.
         /// </exception>
-        public async ValueTask<bool> TryEnterAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+        public async ValueTask<bool> TryEnterAsync(TimeSpan timeout, CancellationToken cancellationToken)
         {
             CheckDisposed();
             return await _syncLock.WaitAsync(timeout, cancellationToken).ConfigureAwait(false);

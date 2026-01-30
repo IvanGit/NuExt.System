@@ -8,19 +8,19 @@
         /// <summary>
         /// Gets or sets a value indicating whether the object is expanded.
         /// </summary>
-        public bool IsExpanded { get; set; }
+        bool IsExpanded { get; set; }
 
         /// <summary>
         /// Collapses the object by setting the <see cref="IsExpanded"/> property to <c>false</c>.
         /// </summary>
 
 #if NETSTANDARD2_1_OR_GREATER || NET
-        public void Collapse()
+        void Collapse()
         {
             IsExpanded = false;
         }
 #else
-        public void Collapse();
+        void Collapse();
 #endif
 
         /// <summary>
@@ -28,12 +28,12 @@
         /// </summary>
 
 #if NETSTANDARD2_1_OR_GREATER || NET
-        public void Expand()
+        void Expand()
         {
             IsExpanded = true;
         }
 #else
-        public void Expand();
+        void Expand();
 #endif
     }
 }

@@ -1756,16 +1756,27 @@ namespace NuExt.System.Tests
         {
             var p = new Path(relativeTo) { DirectorySeparatorChar = directorySeparatorChar };
 
-            var result = p.GetRelativePath(basePath.AsSpan());
-#if !NETFRAMEWORK
+            var result = p.GetRelativePath(basePath);
             if (directorySeparatorChar == '\\')
             {
                 var relativePath = global::System.IO.Path.GetRelativePath(relativeTo, basePath);
                 Assert.That(result.ToString(), Is.EqualTo(relativePath));
                 Assert.That(relativePath, Is.EqualTo(expected));
             }
-#endif
             Assert.That(result.ToString(), Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void GetRelativePath_WithBasePath_ResolvesCorrectly()
+        {
+            ReadOnlySpan<char> basePath = @"C:\Users\Test".AsSpan();
+            ReadOnlySpan<char> relativeTo = "projectA".AsSpan();
+            ReadOnlySpan<char> path = @"projectB\file.cs".AsSpan();
+
+            var p = new Path(relativeTo.ToString());
+
+            var result = p.GetRelativePath(path, basePath);
+            Assert.That(result.ToString(), Is.EqualTo(@"..\projectB\file.cs"));
         }
 
         [TestCase("C:\\Users\\User\\Documents\\..\\..\\User\\Documents", '\\', "C:\\Users\\User\\Documents")]

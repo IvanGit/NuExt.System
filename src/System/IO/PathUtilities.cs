@@ -15,8 +15,8 @@ namespace System.IO
     /// See LICENSE file in the project root for full license information.
     /// Original source code can be found at https://github.com/dotnet/runtime.
     /// </remarks>
-    [SuppressMessage("Style", "IDE0056", Justification = "<Pending>")]
-    [SuppressMessage("Style", "IDE0057", Justification = "<Pending>")]
+    [SuppressMessage("Style", "IDE0056:Use index operator", Justification = "<Pending>")]
+    [SuppressMessage("Style", "IDE0057:Use range operator", Justification = "<Pending>")]
     public static partial class PathUtilities
     {
         // We consider '/' a directory separator on Unix like systems. 
@@ -378,17 +378,27 @@ namespace System.IO
         /// <param name="relativeTo">The source path the output should be relative to. This path is always considered to be a directory.</param>
         /// <param name="path">The destination path.</param>
         /// <param name="isUnixLike"></param>
+        /// <param name="basePath">The beginning of a fully qualified path or empty.</param>
         /// <returns>The relative path or <paramref name="path"/> if the paths don't share the same root.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="relativeTo"/> or <paramref name="path"/> is <c>null</c> or an empty string.</exception>
-        public static ReadOnlySpan<char> GetRelativePath(scoped ReadOnlySpan<char> relativeTo, ReadOnlySpan<char> path, bool isUnixLike)
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="relativeTo"/> or <paramref name="path"/> is <see langword="null"/> or an empty string.</exception>
+        public static ReadOnlySpan<char> GetRelativePath(scoped ReadOnlySpan<char> relativeTo, ReadOnlySpan<char> path, bool isUnixLike,
+            ReadOnlySpan<char> basePath = default)
         {
             if (IsEffectivelyEmpty(relativeTo, isUnixLike))
-                throw new ArgumentException("The path is empty.", nameof(relativeTo));
+                throw new ArgumentException(SR.Arg_PathEmpty, nameof(relativeTo));
             if (IsEffectivelyEmpty(path, isUnixLike))
-                throw new ArgumentException("The path is empty.", nameof(path));
+                throw new ArgumentException(SR.Arg_PathEmpty, nameof(path));
 
-            relativeTo = GetFullPath(relativeTo, isUnixLike);
-            path = GetFullPath(path, isUnixLike);
+            if (basePath.IsEmpty)
+            {
+                relativeTo = GetFullPath(relativeTo, isUnixLike);
+                path = GetFullPath(path, isUnixLike);
+            }
+            else
+            {
+                relativeTo = GetFullPath(relativeTo, basePath, isUnixLike);
+                path = GetFullPath(path, basePath, isUnixLike);
+            }
 
             // Need to check if the roots are different- if they are we need to return the "to" path.
             if (!AreRootsEqual(relativeTo, path, isUnixLike))//TODO support mac case sensitivity
@@ -466,7 +476,6 @@ namespace System.IO
 
             return sb.ToString().AsSpan();
         }
-
 
         /// <summary>
         /// Try to remove relative segments from the given path (without combining with a root).
@@ -914,11 +923,8 @@ namespace System.IO
             bool hasSeparator = IsDirectorySeparator(first[first.Length - 1], isUnixLike) || IsDirectorySeparator(second[0], isUnixLike);
 
             var directorySeparatorCharAsSpan = (isUnixLike ? Unix.DirectorySeparatorCharAsString : Windows.DirectorySeparatorCharAsString).AsSpan();
-#if !NET
-            return hasSeparator ? StringExtensions.Concat(first, second).AsSpan() : StringExtensions.Concat(first, directorySeparatorCharAsSpan, second).AsSpan();
-#else
+
             return hasSeparator ? string.Concat(first, second).AsSpan() : string.Concat(first, directorySeparatorCharAsSpan, second);
-#endif
         }
 
         private static ReadOnlySpan<char> JoinInternal(scoped ReadOnlySpan<char> first, scoped ReadOnlySpan<char> second, scoped ReadOnlySpan<char> third, bool isUnixLike)
@@ -929,23 +935,14 @@ namespace System.IO
             bool secondHasSeparator = IsDirectorySeparator(second[second.Length - 1], isUnixLike) || IsDirectorySeparator(third[0], isUnixLike);
 
             var directorySeparatorCharAsSpan = (isUnixLike ? Unix.DirectorySeparatorCharAsString : Windows.DirectorySeparatorCharAsString).AsSpan();
-#if !NET
+
             return (firstHasSeparator, secondHasSeparator) switch
             {
-                (false, false) => StringExtensions.Concat(first, directorySeparatorCharAsSpan, second, directorySeparatorCharAsSpan, third).AsSpan(),
-                (false, true) => StringExtensions.Concat(first, directorySeparatorCharAsSpan, second, third).AsSpan(),
-                (true, false) => StringExtensions.Concat(first, second, directorySeparatorCharAsSpan, third).AsSpan(),
-                (true, true) => StringExtensions.Concat(first, second, third).AsSpan(),
-            };
-#else
-            return (firstHasSeparator, secondHasSeparator) switch
-            {
-                (false, false) => StringExtensions.Concat(first, directorySeparatorCharAsSpan, second, directorySeparatorCharAsSpan, third),
+                (false, false) => string.Concat(first, directorySeparatorCharAsSpan, second, directorySeparatorCharAsSpan, third),
                 (false, true) => string.Concat(first, directorySeparatorCharAsSpan, second, third),
                 (true, false) => string.Concat(first, second, directorySeparatorCharAsSpan, third),
                 (true, true) => string.Concat(first, second, third),
             };
-#endif
             //return JoinInternal(JoinInternal(first, second, isUnixLike), third, isUnixLike);
         }
 
