@@ -6,15 +6,18 @@ using System.Threading;
 
 namespace System
 {
-    partial class PropertyChangeNotifier : IDispatcherObject
+    partial class PropertyChangeNotifier
     {
         private sealed class State
         {
             internal readonly SynchronizationContextHelper Helper;
 
-            internal State(SynchronizationContextHelper helper)
+            internal readonly SendOrPostCallback PropertyChangedCallback;
+
+            internal State(SynchronizationContextHelper helper, SendOrPostCallback propertyChangedCallback)
             {
                 Helper = helper;
+                PropertyChangedCallback = propertyChangedCallback;
             }
         }
 
@@ -46,17 +49,6 @@ namespace System
         [Browsable(false)]
         public SynchronizationContext? SynchronizationContext { get; }
 
-        /// <summary>
-        /// Gets the thread on which this instance was created.
-        /// <para>
-        /// <b>Note:</b> This property captures the creation thread for reference, but when a 
-        /// <see cref="SynchronizationContext"/> is provided, thread affinity is managed by 
-        /// the context rather than by comparing threads directly.
-        /// </para>
-        /// </summary>
-        [Browsable(false)]
-        public Thread Thread { get; } = Thread.CurrentThread;
-
         #endregion
 
         #region Methods
@@ -81,20 +73,20 @@ namespace System
         /// <item>
         /// <term>Without SynchronizationContext</term>
         /// <description>
-        /// Returns <see langword="true"/> if the calling thread matches the thread on which this instance was created.
+        /// Returns <see langword="true"/> (access is always granted).
         /// </description>
         /// </item>
         /// </list>
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool CheckAccess()
+        public virtual bool CheckAccess()
         {
             if (HasSynchronizationContext)
             {
                 return _state!.Helper.CheckAccess();
             }
 
-            return Thread == Thread.CurrentThread;
+            return true;
         }
 
         /// <summary>
@@ -111,13 +103,13 @@ namespace System
         /// Thread-affine contexts (UI frameworks like WPF, WinForms, Avalonia) delegate verification to their own access checks.
         /// </item>
         /// <item>
-        /// Unknown contexts (e.g., default <see cref="SynchronizationContext"/>) always require explicit synchronization via 
-        /// Invoke(Action) or InvokeAsync(Action) methods.
+        /// For unknown contexts, CheckAccess always returns <see langword="false"/>; use the associated <see cref="SynchronizationContext"/> 
+        /// to marshal to the right thread before accessing members.
         /// </item>
         /// </list>
         /// </para>
         /// <para>
-        /// For instances without a <see cref="SynchronizationContext"/>, access is restricted to the thread where this instance was created.
+        /// For instances without a <see cref="SynchronizationContext"/> access is always granted.
         /// </para>
         /// <para>
         /// This method is the validation counterpart to <see cref="CheckAccess"/>, throwing an exception instead of returning a boolean.
@@ -135,9 +127,9 @@ namespace System
 
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void ThrowVerifyAccess()
+        private static void ThrowVerifyAccess()
         {
-            throw new InvalidOperationException(string.Format(SR.InvalidOperation_ThreadAccessError, Thread.ManagedThreadId));
+            throw new InvalidOperationException(string.Format(SR.InvalidOperation_ThreadAccessError, Environment.CurrentManagedThreadId));
         }
 
         #endregion

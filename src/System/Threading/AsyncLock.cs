@@ -61,7 +61,7 @@ namespace System.Threading
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This property returns true if the lock is currently held by any context, and false otherwise.
+        /// This property returns <see langword="true"/> if the lock is currently held by any context, and false otherwise.
         /// Note that this check is instantaneous and does not block the calling thread.
         /// It should not be used for making synchronization decisions, as this will introduce race conditions.
         /// </para>

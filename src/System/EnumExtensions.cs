@@ -33,7 +33,7 @@
             /// <typeparam name="TEnum">The type of the enum.</typeparam>
             /// <param name="name">The string name of the enum value to retrieve.</param>
             /// <param name="value">When this method returns, contains the enum value associated with the specified name, if the name is found; otherwise, the default value for the type of the value parameter. This parameter is passed uninitialized.</param>
-            /// <returns><c>true</c> if the enum value was found; otherwise, <c>false</c>.</returns>
+            /// <returns><see langword="true"/> if the enum value was found; otherwise, <see langword="false"/>.</returns>
             public static bool TryGetValue<TEnum>(string? name, out TEnum value) where TEnum : struct, Enum =>
                 EnumHelper<TEnum>.TryGetValue(name, ignoreCase: false, out value);
 
@@ -44,7 +44,7 @@
             /// <param name="name">The string name of the enum value to retrieve.</param>
             /// <param name="ignoreCase">Whether to ignore case when matching the name.</param>
             /// <param name="value">When this method returns, contains the enum value associated with the specified name, if the name is found; otherwise, the default value for the type of the value parameter. This parameter is passed uninitialized.</param>
-            /// <returns><c>true</c> if the enum value was found; otherwise, <c>false</c>.</returns>
+            /// <returns><see langword="true"/> if the enum value was found; otherwise, <see langword="false"/>.</returns>
             public static bool TryGetValue<TEnum>(string? name, bool ignoreCase, out TEnum value) where TEnum : struct, Enum =>
                 EnumHelper<TEnum>.TryGetValue(name, ignoreCase, out value);
         }

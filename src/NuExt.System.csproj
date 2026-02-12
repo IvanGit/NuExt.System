@@ -1,34 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netstandard2.0;net10.0;net9.0;net8.0;net462</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;netstandard2.0;net10.0;net9.0;net8.0;net471;net462</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
     <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
-    <PackageTags>nuext;extensions;async;asynclazy;asynceventhandler;asynclock;asyncwaithandle;reentrantasynclock;disposable;asyncdisposable;lifetime;asynclifetime;valuestringbuilder;pathbuilder;valuepathbuilder;task;valuetask</PackageTags>
+    <PackageTags>nuext;extensions;async;asynclazy;asynceventhandler;asynclock;lockpool;asyncwaithandle;reentrantasynclock;disposable;asyncdisposable;lifetime;asynclifetime;valuestringbuilder;pathbuilder;valuepathbuilder;task;valuetask;observabledictionary;span;polyfills</PackageTags>
     <Description>Provides various fundamental extensions and classes for .NET, simplifying tasks related to asynchronous programming, resource lifecycle management, thread synchronization, and more.
 
 Commonly Used Types:
-System.AggregateDisposable
-System.AggregateAsyncDisposable
-System.AsyncDisposable
-Ssytem.AsyncEventHandler
-Ssytem.AsyncLifetime
-System.Disposable
-Ssytem.Lifetime
-System.PropertyChangeNotifier
+System.AsyncEventHandler
+System.CompatMemoryExtensions
+System.ComponentModel.AggregateDisposable
+System.ComponentModel.AggregateAsyncDisposable
+System.ComponentModel.AsyncDisposable
+System.ComponentModel.AsyncLifetime
+System.ComponentModel.Disposable
+System.ComponentModel.Lifetime
+System.ComponentModel.PropertyChangeNotifier
 System.Diagnostics.ProcessMonitor
 System.Threading.AsyncLazy&lt;T&gt;
 System.Threading.AsyncLock
 System.Threading.AsyncWaitHandle
+System.Threading.Lock
+System.Threading.LockPool&lt;T&gt;
 System.Threading.ReentrantAsyncLock
 System.Threading.Tasks.ValueTaskExtensions
 System.IO.PathBuilder
 System.IO.ValuePathBuilder
 System.Text.ValueStringBuilder
-System.Collections.Generic.ValueListBuilder&lt;T&gt;</Description>
-    <Version>0.6.0</Version>
+System.Collections.Generic.ValueListBuilder&lt;T&gt;
+System.Collections.ObjectModel.ObservableDictionary&lt;TKey, TValue&gt;
+    </Description>
+    <Version>0.7.0</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -38,20 +42,16 @@ System.Collections.Generic.ValueListBuilder&lt;T&gt;</Description>
     <PackageProjectUrl>https://github.com/IvanGit/NuExt.System</PackageProjectUrl>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net462'">
-    <DefineConstants>$(DefineConstants);NET_OLD</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="$(MSBuildProjectName).Tests" Key="0024000004800000940000000602000000240000525341310004000001000100b789a2ca53134810a04b9629da17625466eca3b89758bedfe43ebb1ed321c10eb969c265dbfe73e8fa34a63a30246654a4db84f23112d88b7f2a61573784f338af6d225b994a3ff0aa17db7faadb09edda35a28a5569a7e389fa501a23215d30987200702b22b86b36becc3780770256448a230c38bbdc0ba30fb21faeae5fbc" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net462'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net462' or '$(TargetFramework)' == 'net471'">
     <PackageReference Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net462'">
-    <PackageReference Include="System.Text.Json" Version="10.0.1" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net462' or '$(TargetFramework)' == 'net471'">
+    <PackageReference Include="System.Text.Json" Version="10.0.3" />
   </ItemGroup>
 
   <ItemGroup>

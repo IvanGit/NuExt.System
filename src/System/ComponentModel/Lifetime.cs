@@ -1,19 +1,37 @@
-﻿using System.Collections.Generic;
+﻿using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 // Based on Станислав Сидристый «Шаблон Lifetime: для сложного Disposing»
 // https://www.youtube.com/watch?v=F5oOYKTFpcQ
 
-namespace System
+namespace System.ComponentModel
 {
     /// <summary>
-    /// Manages the lifecycle of resources and ensures that all registered cleanup actions are executed upon disposal.
+    /// Manages the synchronous lifecycle of resources.
+    /// Registered cleanup actions are executed upon disposal in LIFO (Last-In-First-Out) order.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The LIFO execution order ensures that resources which are acquired later
+    /// (and may depend on earlier ones) are disposed of first, mirroring natural unwinding of nested dependencies.
+    /// </para>
+    /// <para>
+    /// For example, if you open a database connection and then begin a transaction,
+    /// the transaction should be disposed before the connection. By adding the connection disposal first
+    /// and the transaction disposal second, the LIFO order guarantees the correct sequence.
+    /// </para>
+    /// <para>
+    /// This class is thread-safe for concurrent modifications and disposal.
+    /// </para>
+    /// </remarks>
     [DebuggerStepThrough]
     public sealed class Lifetime : Disposable, ILifetime
     {
         private readonly List<Action> _actions = [];
+        private readonly Lock _syncLock = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Lifetime"/> class and sets up termination on disposal.
@@ -25,23 +43,14 @@ namespace System
 
         #region Properties
 
-        /// <summary>
-        /// Represents the termination status of the <see cref="Lifetime"/> instance.
-        /// If true, indicates that the instance has been terminated and 
-        /// all associated resources have been released.
-        /// </summary>
+        /// <inheritdoc/>
         public bool IsTerminated { get; private set; }
 
         #endregion
 
         #region Methods
 
-        /// <summary>
-        /// Adds an action to be executed when the <see cref="Lifetime"/> instance is disposed.
-        /// </summary>
-        /// <param name="action">The action to add. This action will be called upon disposal.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the action is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add an action to a terminated <see cref="Lifetime"/> instance.</exception>
+        /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Add(Action action)
         {
@@ -50,20 +59,14 @@ namespace System
 
             CheckTerminatedOrDisposed();
 
-            lock (_actions)
+            lock (_syncLock)
             {
                 CheckTerminatedOrDisposed();
                 _actions.Add(action);
             }
         }
 
-        /// <summary>
-        /// Adds a pair of actions: one to be executed immediately (subscribe) and another to be executed during disposal (unsubscribe).
-        /// </summary>
-        /// <param name="subscribe">The action to execute immediately.</param>
-        /// <param name="unsubscribe">The action to execute upon disposal.</param>
-        /// <exception cref="ArgumentNullException">Thrown if either subscribe or unsubscribe is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add actions to a terminated <see cref="Lifetime"/> instance.</exception>
+        /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddBracket(Action subscribe, Action unsubscribe)
         {
@@ -74,7 +77,7 @@ namespace System
 
             CheckTerminatedOrDisposed();
 
-            lock (_actions)
+            lock (_syncLock)
             {
                 CheckTerminatedOrDisposed();
                 subscribe();
@@ -82,14 +85,7 @@ namespace System
             }
         }
 
-        /// <summary>
-        /// Adds an <see cref="IDisposable"/> object to be disposed of when the <see cref="Lifetime"/> instance is disposed.
-        /// </summary>
-        /// <typeparam name="T">The type of the disposable object.</typeparam>
-        /// <param name="disposable">The disposable object to add.</param>
-        /// <returns>The disposable object that was added.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if the disposable object is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add a disposable object to a terminated <see cref="Lifetime"/> instance.</exception>
+        /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T AddDisposable<T>(T disposable) where T : IDisposable
         {
@@ -100,16 +96,9 @@ namespace System
             return disposable;
         }
 
-        /// <summary>
-        /// Adds a reference to an object to keep it alive until the <see cref="Lifetime"/> instance is disposed.
-        /// </summary>
-        /// <typeparam name="T">The type of the object to keep alive. Must be a reference type.</typeparam>
-        /// <param name="obj">The object to keep alive.</param>
-        /// <returns>The object that was added to be kept alive.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if the object is null.</exception>
-        /// <exception cref="ObjectDisposedException">Thrown if trying to add a reference to a terminated <see cref="Lifetime"/> instance.</exception>
+        /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T AddRef<T>(T obj) where T: class
+        public T AddRef<T>(T obj) where T : class
         {
             Debug.Assert(obj != null, $"{nameof(obj)} is null");
             ArgumentNullException.ThrowIfNull(obj);
@@ -126,8 +115,7 @@ namespace System
         private void CheckTerminatedOrDisposed()
         {
             ObjectDisposedException.ThrowIf(IsTerminated, this);
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
-            ObjectDisposedException.ThrowIf(IsDisposing, this);
+            CheckDisposingOrDisposed();
         }
 
         /// <summary>
@@ -138,22 +126,29 @@ namespace System
         protected override void DisposeCore()
         {
             List<Exception>? exceptions = null;
-            lock (_actions)
+            var pool = ArrayPool<Action>.Shared;
+            Action[] snapshot;
+            int count;
+            lock (_syncLock)
             {
-                for (int i = _actions.Count - 1; i >= 0; i--)
-                {
-                    try
-                    {
-                        _actions[i]();
-                    }
-                    catch (Exception ex)
-                    {
-                        exceptions ??= new List<Exception>(i + 1);
-                        exceptions.Add(ex);
-                    }
-                }
+                count = _actions.Count;
+                snapshot = pool.Rent(count);
+                _actions.CopyTo(snapshot);
                 _actions.Clear();
             }
+            for (int i = count - 1; i >= 0; i--)
+            {
+                try
+                {
+                    snapshot[i]();
+                }
+                catch (Exception ex)
+                {
+                    exceptions ??= new List<Exception>(i + 1);
+                    exceptions.Add(ex);
+                }
+            }
+            pool.Return(snapshot);
             Debug.Assert(IsTerminated, $"{nameof(Lifetime)} is not terminated");
             if (exceptions is not null)
             {

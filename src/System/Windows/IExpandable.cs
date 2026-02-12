@@ -11,7 +11,7 @@
         bool IsExpanded { get; set; }
 
         /// <summary>
-        /// Collapses the object by setting the <see cref="IsExpanded"/> property to <c>false</c>.
+        /// Collapses the object by setting the <see cref="IsExpanded"/> property to <see langword="false"/>.
         /// </summary>
 
 #if NETSTANDARD2_1_OR_GREATER || NET
@@ -24,7 +24,7 @@
 #endif
 
         /// <summary>
-        /// Expands the object by setting the <see cref="IsExpanded"/> property to <c>true</c>.
+        /// Expands the object by setting the <see cref="IsExpanded"/> property to <see langword="true"/>.
         /// </summary>
 
 #if NETSTANDARD2_1_OR_GREATER || NET

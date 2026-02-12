@@ -36,7 +36,7 @@ namespace System.IO
             /// <summary>Gets whether the system is Unix-like.</summary>
             public static bool IsUnixLike => PlatformInformation.IsUnix;
 
-#if !(NET || NETSTANDARD2_1_OR_GREATER)
+#if !(NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER)
             /// <summary>
             /// Create a relative path from one path to another. Paths will be resolved before calculating the difference.
             /// Default path comparison for the active platform will be used (OrdinalIgnoreCase for Windows or Mac, Ordinal for Unix).
@@ -44,7 +44,7 @@ namespace System.IO
             /// <param name="relativeTo">The source path the output should be relative to. This path is always considered to be a directory.</param>
             /// <param name="path">The destination path.</param>
             /// <returns>The relative path or <paramref name="path"/> if the paths don't share the same root.</returns>
-            /// <exception cref="ArgumentNullException">Thrown if <paramref name="relativeTo"/> or <paramref name="path"/> is <c>null</c> or an empty string.</exception>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="relativeTo"/> or <paramref name="path"/> is <see langword="null"/> or an empty string.</exception>
             public static string GetRelativePath(string relativeTo, string path)
             {
                 return GetRelativePath(relativeTo, path, Path.StringComparison);

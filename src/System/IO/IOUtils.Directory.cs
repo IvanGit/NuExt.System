@@ -78,7 +78,7 @@ namespace System.IO
         /// Safely deletes a directory if it exists.
         /// </summary>
         /// <param name="path">The path of the directory to delete.</param>
-        /// <returns>True if the directory was successfully deleted or did not exist; false if an exception occurred.</returns>
+        /// <returns><see langword="true"/> if the directory was successfully deleted or did not exist; false if an exception occurred.</returns>
         /// <exception cref="ArgumentException">Thrown when the provided path is null or empty.</exception>
         public static bool SafeDeleteDirectory(string path)
         {

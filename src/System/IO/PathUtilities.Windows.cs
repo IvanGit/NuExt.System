@@ -147,7 +147,7 @@ namespace System.IO
 
 
             /// <summary>
-            /// Returns true if the given character is a valid drive letter
+            /// Returns <see langword="true"/> if the given character is a valid drive letter
             /// </summary>
             private static bool IsValidDriveChar(char value)
             {
@@ -155,7 +155,7 @@ namespace System.IO
             }
 
             /// <summary>
-            /// Returns true if the path uses any of the DOS device path syntaxes. ("\\.\", "\\?\", or "\??\")
+            /// Returns <see langword="true"/> if the path uses any of the DOS device path syntaxes. ("\\.\", "\\?\", or "\??\")
             /// </summary>
             private static bool IsDevice(scoped ReadOnlySpan<char> path)
             {
@@ -173,7 +173,7 @@ namespace System.IO
             }
 
             /// <summary>
-            /// Returns true if the path is a device UNC (\\?\UNC\, \\.\UNC\)
+            /// Returns <see langword="true"/> if the path is a device UNC (\\?\UNC\, \\.\UNC\)
             /// </summary>
             private static bool IsDeviceUNC(scoped ReadOnlySpan<char> path)
             {
@@ -186,7 +186,7 @@ namespace System.IO
             }
 
             /// <summary>
-            /// Returns true if the path uses the canonical form of extended syntax ("\\?\" or "\??\"). If the
+            /// Returns <see langword="true"/> if the path uses the canonical form of extended syntax ("\\?\" or "\??\"). If the
             /// path matches exactly (cannot use alternate directory separators) Windows will skip normalization
             /// and path length checks.
             /// </summary>
@@ -268,7 +268,7 @@ namespace System.IO
             }
 
             /// <summary>
-            /// Returns true if the path specified is relative to the current drive or working directory.
+            /// Returns <see langword="true"/> if the path specified is relative to the current drive or working directory.
             /// Returns false if the path is fixed to a specific drive or UNC path.  This method does no
             /// validation of the path (URIs will be returned as relative as a result).
             /// </summary>
@@ -306,7 +306,7 @@ namespace System.IO
             }
 
             /// <summary>
-            /// True if the given character is a directory separator.
+            /// <see langword="true"/> if the given character is a directory separator.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static bool IsDirectorySeparator(char c)
@@ -315,7 +315,7 @@ namespace System.IO
             }
 
             /// <summary>
-            /// Returns true if the path is effectively empty for the current OS.
+            /// Returns <see langword="true"/> if the path is effectively empty for the current OS.
             /// For unix, this is empty or null. For Windows, this is empty, null, or
             /// just spaces ((char)32).
             /// </summary>

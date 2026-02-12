@@ -19,7 +19,7 @@ namespace System.Reflection
         /// <param name="match">A predicate that defines the conditions that fields must satisfy to be included in the result. If null, all fields are included.</param>
         /// <returns>A read-only list of fields that match the specified criteria.</returns>
         /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="currentType"/> or <paramref name="baseType"/> is <c>null</c>.
+        /// Thrown if <paramref name="currentType"/> or <paramref name="baseType"/> is <see langword="null"/>.
         /// </exception>
         public static IReadOnlyList<FieldInfo> GetAllFields(this Type currentType, Type baseType, BindingFlags flags, Predicate<FieldInfo>? match = default)
         {
@@ -50,7 +50,7 @@ namespace System.Reflection
         /// <param name="flags">The binding flags used to control the search for fields.</param>
         /// <returns>A read-only list of fields of the specified type <typeparamref name="T"/> that meet the specified criteria.</returns>
         /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="currentType"/> or <paramref name="baseType"/> is <c>null</c>.
+        /// Thrown if <paramref name="currentType"/> or <paramref name="baseType"/> is <see langword="null"/>.
         /// </exception>
         public static IReadOnlyList<FieldInfo> GetAllFieldsOfType<T>(this Type currentType, Type baseType, BindingFlags flags)
         {
@@ -68,7 +68,7 @@ namespace System.Reflection
         /// <param name="match">A predicate that defines the conditions that methods must satisfy to be included in the result. If null, all methods are included.</param>
         /// <returns>A read-only list of methods that match the specified criteria.</returns>
         /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="currentType"/> or <paramref name="baseType"/> is <c>null</c>.
+        /// Thrown if <paramref name="currentType"/> or <paramref name="baseType"/> is <see langword="null"/>.
         /// </exception>
         public static IReadOnlyList<MethodInfo> GetAllMethods(this Type currentType, Type baseType, BindingFlags flags, Predicate<MethodInfo>? match = default)
         {
@@ -99,7 +99,7 @@ namespace System.Reflection
         /// <param name="match">A predicate that defines the conditions that properties must satisfy to be included in the result. If null, all properties are included.</param>
         /// <returns>A read-only list of properties that match the specified criteria.</returns>
         /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="currentType"/> or <paramref name="baseType"/> is <c>null</c>.
+        /// Thrown if <paramref name="currentType"/> or <paramref name="baseType"/> is <see langword="null"/>.
         /// </exception>
         public static IReadOnlyList<PropertyInfo> GetAllProperties(this Type currentType, Type baseType, BindingFlags flags, Predicate<PropertyInfo>? match = default)
         {
@@ -130,7 +130,7 @@ namespace System.Reflection
         /// <param name="flags">The binding flags used to control the search for properties.</param>
         /// <returns>A read-only list of properties of the specified type <typeparamref name="T"/> that meet the specified criteria.</returns>
         /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="currentType"/> or <paramref name="baseType"/> is <c>null</c>.
+        /// Thrown if <paramref name="currentType"/> or <paramref name="baseType"/> is <see langword="null"/>.
         /// </exception>
         public static IReadOnlyList<PropertyInfo> GetAllPropertiesOfType<T>(this Type currentType, Type baseType, BindingFlags flags)
         {

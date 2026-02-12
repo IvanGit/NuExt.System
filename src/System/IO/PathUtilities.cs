@@ -23,7 +23,7 @@ namespace System.IO
         // On Windows both / and \ are equally accepted.
 
         /// <summary>
-        /// Returns true if the two paths have the same root
+        /// Returns <see langword="true"/> if the two paths have the same root
         /// </summary>
         public static bool AreRootsEqual(scoped ReadOnlySpan<char> first, scoped ReadOnlySpan<char> second, bool isUnixLike)
         {
@@ -94,7 +94,7 @@ namespace System.IO
         }
 
         /// <summary>
-        /// True if the given character is a directory separator.
+        /// <see langword="true"/> if the given character is a directory separator.
         /// </summary>
         [DebuggerStepThrough]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -111,7 +111,7 @@ namespace System.IO
         }
 
         /// <summary>
-        /// Returns true if the path is effectively empty for the current OS.
+        /// Returns <see langword="true"/> if the path is effectively empty for the current OS.
         /// For unix, this is empty or null. For Windows, this is empty, null, or
         /// just spaces ((char)32).
         /// </summary>
@@ -335,7 +335,7 @@ namespace System.IO
         }
 
         /// <summary>
-        /// Returns true if the path is fixed to a specific drive or UNC path. This method does no
+        /// Returns <see langword="true"/> if the path is fixed to a specific drive or UNC path. This method does no
         /// validation of the path (URIs will be returned as relative as a result).
         /// Returns false if the path specified is relative to the current drive or working directory.
         /// </summary>
@@ -598,7 +598,7 @@ namespace System.IO
         }
 
         /// <summary>
-        /// Returns true if the path starts in a directory separator.
+        /// Returns <see langword="true"/> if the path starts in a directory separator.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool StartsWithDirectorySeparator(scoped ReadOnlySpan<char> path, bool isUnixLike)
@@ -607,7 +607,7 @@ namespace System.IO
         }
 
         /// <summary>
-        /// Returns true if the path ends in a directory separator.
+        /// Returns <see langword="true"/> if the path ends in a directory separator.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool EndsInDirectorySeparator(scoped ReadOnlySpan<char> path, bool isUnixLike)

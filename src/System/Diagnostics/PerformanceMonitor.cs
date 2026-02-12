@@ -5,12 +5,13 @@ using System.Threading.Tasks;
 namespace System.Diagnostics
 {
     /// <summary>
-    /// Monitors the performance of a specific process and provides formatted usage statistics.
+    /// Monitors performance metrics for a process and provides formatted statistics.
     /// </summary>
     public sealed class PerformanceMonitor: PropertyChangeNotifier
     {
         private readonly ProcessMonitor _processMonitor;
         private readonly IFormatProvider? _formatProvider;
+        private long _peakGcMemory;
 
         public PerformanceMonitor(Process process, IFormatProvider? provider, SynchronizationContext? synchronizationContext) : base(synchronizationContext)
         {
@@ -29,43 +30,42 @@ namespace System.Diagnostics
 
         }
 
-        private string? _formattedUsage;
         /// <summary>
-        /// Gets the formatted usage string.
+        /// Gets the formatted usage string. Updated at each monitoring interval.
         /// </summary>
         public string? FormattedUsage
         {
-            get => _formattedUsage;
-            private set => SetProperty(ref _formattedUsage, value);
+            get;
+            private set => SetProperty(ref field, value);
         }
 
         /// <summary>
-        /// CPU usage format string.
+        /// Gets or sets the CPU usage format string.
         /// </summary>
         public string FormatCpuUsage { get; set; } = "CPU: {0:N1} %";
 
         /// <summary>
-        /// Memory usage format string.
+        /// Gets or sets the memory usage format string.
         /// </summary>
         public string FormatMemoryUsage { get; set; } = "MEM: {0}";
 
         /// <summary>
-        /// Peak memory usage format string.
+        /// Gets or sets the peak memory usage format string.
         /// </summary>
         public string FormatPeakMemoryUsage { get; set; } = "PMEM: {0}";
 
         /// <summary>
-        /// Managed memory usage format string.
+        /// Gets or sets the managed memory usage format string.
         /// </summary>
         public string FormatManagedMemory { get; set; } = "GC: {0}";
 
         /// <summary>
-        /// Peak managed memory usage format string.
+        /// Gets or sets the peak managed memory usage format string.
         /// </summary>
         public string FormatPeakManagedMemory { get; set; } = "PGC: {0}";
 
         /// <summary>
-        /// Thread info format string.
+        /// Gets or sets the thread info format string.
         /// </summary>
         public string FormatThreads { get; set; } = "WRK: {0}/{1}";
 
@@ -105,65 +105,77 @@ namespace System.Diagnostics
         public bool ShowThreads { get; set; }
 
         /// <summary>
+        /// Gets or sets the monitoring update interval.
+        /// Default is 1 second. Value must be positive.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">Value is less than or equal to zero.</exception>
+        public TimeSpan UpdateInterval
+        {
+            get;
+            set
+            {
+                if (value <= TimeSpan.Zero)
+                    throw new ArgumentOutOfRangeException(nameof(value), "Interval must be positive.");
+                field = value;
+            }
+        } = TimeSpan.FromSeconds(1);
+
+        /// <summary>
         /// Monitors the process performance and updates <see cref="FormattedUsage"/> asynchronously.
         /// </summary>
-        /// <param name="cancellationToken">A cancellation token to observe while waiting for task completion.</param>
-        /// <returns>A task that represents the asynchronous monitoring operation.</returns>
+        /// <param name="cancellationToken">Cancellation token to stop monitoring.</param>
+        /// <returns>Task representing the monitoring operation.</returns>
         public async Task RunAsync(CancellationToken cancellationToken)
         {
-            long peakGcMemory = 0;
             try
             {
-                var sb = new StringBuilder();
+                var sb = new StringBuilder(256);
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
-                    Process.Refresh();
+                    await Task.Delay(UpdateInterval, cancellationToken).ConfigureAwait(false);
 
-                    var cpuUsage = _processMonitor.GetCpuUsage();
-                    var memoryUsage = _processMonitor.GetCurrentMemoryUsage();
+                    _processMonitor.Refresh();
+                    if (Process.HasExited)
+                    {
+                        FormattedUsage = "Process terminated";
+                        break;
+                    }
+
                     sb.Clear();
                     string delimiter = string.Empty;
                     if (ShowCpuUsage)
                     {
-                        sb.Append(delimiter);
-                        sb.AppendFormat(_formatProvider, FormatCpuUsage, cpuUsage);
-                        delimiter = ", ";
+                        AppendFormat(sb, ref delimiter, FormatCpuUsage, _processMonitor.GetCpuUsage());
                     }
                     if (ShowMemoryUsage)
                     {
-                        sb.Append(delimiter);
-                        sb.AppendFormat(_formatProvider, FormatMemoryUsage, FormatUtils.FormatSize(_formatProvider, memoryUsage));
-                        delimiter = ", ";
+                        AppendFormat(sb, ref delimiter, FormatMemoryUsage, FormatUtils.FormatSize(_formatProvider, _processMonitor.GetCurrentMemoryUsage()));
                     }
                     if (ShowPeakMemoryUsage)
                     {
-                        sb.Append(delimiter);
-                        sb.AppendFormat(_formatProvider, FormatPeakMemoryUsage, FormatUtils.FormatSize(_formatProvider, _processMonitor.GetPeakMemoryUsage()));
-                        delimiter = ", ";
+                        AppendFormat(sb, ref delimiter, FormatPeakMemoryUsage, FormatUtils.FormatSize(_formatProvider, _processMonitor.GetPeakMemoryUsage()));
                     }
-                    if (ShowManagedMemory)
+                    if (ShowManagedMemory || ShowPeakManagedMemory)
                     {
                         var gcTotalMemory = GC.GetTotalMemory(false);
-                        sb.Append(delimiter);
-                        sb.AppendFormat(_formatProvider, FormatManagedMemory, FormatUtils.FormatSize(_formatProvider, gcTotalMemory));
-                        delimiter = ", ";
-                        if (gcTotalMemory > peakGcMemory)
+                        if (gcTotalMemory > _peakGcMemory)
                         {
-                            peakGcMemory = gcTotalMemory;
+                            _peakGcMemory = gcTotalMemory;
+                        }
+                        if (ShowManagedMemory)
+                        {
+                            AppendFormat(sb, ref delimiter, FormatManagedMemory, FormatUtils.FormatSize(_formatProvider, gcTotalMemory));
                         }
                         if (ShowPeakManagedMemory)
                         {
-                            sb.Append(delimiter);
-                            sb.AppendFormat(_formatProvider, FormatPeakManagedMemory, FormatUtils.FormatSize(_formatProvider, peakGcMemory));
+                            AppendFormat(sb, ref delimiter, FormatPeakManagedMemory, FormatUtils.FormatSize(_formatProvider, _peakGcMemory));
                         }
                     }
                     if (ShowThreads)
                     {
                         var threadCount = _processMonitor.GetThreadCount();
-                        var workerCount = _processMonitor.GetBusyWorkerThreads();
-                        sb.Append(delimiter);
-                        sb.AppendFormat(_formatProvider, FormatThreads, workerCount, threadCount);
+                        var workerCount = _processMonitor.GetAllocatedWorkerThreads();
+                        AppendFormat(sb, ref delimiter, FormatThreads, workerCount, threadCount);
                     }
                     FormattedUsage = sb.ToString();
                 }
@@ -174,9 +186,23 @@ namespace System.Diagnostics
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Error in QueuesAsync: {ex.Message}");
+                Trace.WriteLine($"Performance monitoring error: {ex.Message}");
                 Debug.Assert(false, ex.Message);
             }
+        }
+
+        private void AppendFormat(StringBuilder sb, ref string delimiter, string format, object arg0)
+        {
+            sb.Append(delimiter);
+            sb.AppendFormat(_formatProvider, format, arg0);
+            delimiter = ", ";
+        }
+
+        private void AppendFormat(StringBuilder sb, ref string delimiter, string format, object arg0, object arg1)
+        {
+            sb.Append(delimiter);
+            sb.AppendFormat(_formatProvider, format, arg0, arg1);
+            delimiter = ", ";
         }
     }
 }

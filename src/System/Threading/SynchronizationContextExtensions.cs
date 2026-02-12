@@ -28,7 +28,9 @@ namespace System.Threading
             /// When <see langword="true"/>, the context can be safely assumed thread-affine.
             /// When <see langword="false"/>, further behavioral checks may be required.
             /// </remarks>
-            public bool IsThreadAffineKnown => s_knownThreadAffineContexts.Contains(synchronizationContext.GetType().FullName!);
+            public bool IsThreadAffineKnown =>
+                synchronizationContext is IThreadAffineSynchronizationContext ||
+                s_knownThreadAffineContexts.Contains(synchronizationContext.GetType().FullName!);
 
             /// <summary>
             /// Executes the specified delegate synchronously using the <see cref="SynchronizationContext"/>.
@@ -40,6 +42,11 @@ namespace System.Threading
             public object? Send(Func<object?, object?> d, object? state)
             {
                 ArgumentNullException.ThrowIfNull(d);
+
+                if (ReferenceEquals(SynchronizationContext.Current, synchronizationContext)) 
+                { 
+                    return d(state);
+                }
 
                 object? result = null;
                 synchronizationContext.Send(x => result = d(x), state);
@@ -57,6 +64,11 @@ namespace System.Threading
             public TResult Send<TResult>(Func<object?, TResult> d, object? state)
             {
                 ArgumentNullException.ThrowIfNull(d);
+
+                if (ReferenceEquals(SynchronizationContext.Current, synchronizationContext))
+                {
+                    return d(state);
+                }
 
                 TResult result = default!;
                 synchronizationContext.Send(x => result = d(x), state);
@@ -108,6 +120,11 @@ namespace System.Threading
             {
                 ArgumentNullException.ThrowIfNull(method);
 
+                if (ReferenceEquals(SynchronizationContext.Current, synchronizationContext))
+                {
+                    return method.Call(args);
+                }
+
                 object? result = null;
                 synchronizationContext.Send(_ => result = method.Call(args), null);
                 return result;
@@ -122,6 +139,12 @@ namespace System.Threading
             {
                 ArgumentNullException.ThrowIfNull(callback);
 
+                if (ReferenceEquals(SynchronizationContext.Current, synchronizationContext))
+                {
+                    callback();
+                    return;
+                }
+
                 synchronizationContext.Send(_ => callback(), null);
             }
 
@@ -134,6 +157,11 @@ namespace System.Threading
             public TResult Invoke<TResult>(Func<TResult> callback)
             {
                 ArgumentNullException.ThrowIfNull(callback);
+
+                if (ReferenceEquals(SynchronizationContext.Current, synchronizationContext))
+                {
+                    return callback();
+                }
 
                 TResult result = default!;
                 synchronizationContext.Send(_ => result = callback(), null);

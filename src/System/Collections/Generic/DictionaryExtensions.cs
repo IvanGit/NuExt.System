@@ -1,29 +1,44 @@
-﻿#if NET_OLD
+﻿#if !(NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER)
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace System.Collections.Generic
 {
     [DebuggerStepThrough]
     public static class DictionaryExtensions
     {
-        /// <summary>
-        /// Tries to add the specified key and value to the dictionary.
-        /// </summary>
-        /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
-        /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
-        /// <param name="dictionary">The dictionary to add the key and value to.</param>
-        /// <param name="key">The key of the element to add.</param>
-        /// <param name="value">The value of the element to add.</param>
-        /// <returns>true if the key/value pair was added to the dictionary successfully; otherwise, false.</returns>
-        public static bool TryAdd<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue value)
+        extension<TKey, TValue>(Dictionary<TKey, TValue> dictionary)
         {
-            Throw.IfNull(dictionary);
-            if (dictionary.ContainsKey(key))
+            /// <summary>Attempts to add the specified key and value to the dictionary.</summary>
+            /// <param name="key">The key of the element to add.</param>
+            /// <param name="value">The value of the element to add. It can be <see langword="null" />.</param>
+            /// <exception cref="T:System.ArgumentNullException">
+            /// <paramref name="key" /> is <see langword="null" />.</exception>
+            /// <returns>
+            /// <see langword="true" /> if the key/value pair was added to the dictionary successfully; otherwise, <see langword="false" />.</returns>
+            public bool TryAdd(TKey key, TValue value)
             {
-                return false;
+                ArgumentNullException.ThrowIfNull(dictionary);
+                if (dictionary.ContainsKey(key))
+                {
+                    return false;
+                }
+                dictionary.Add(key, value);
+                return true;
             }
-            dictionary.Add(key, value);
-            return true;
+
+            /// <summary>Removes the value with the specified key from the <see cref="T:System.Collections.Generic.Dictionary`2" />, and copies the element to the <paramref name="value" /> parameter.</summary>
+            /// <param name="key">The key of the element to remove.</param>
+            /// <param name="value">The removed element.</param>
+            /// <exception cref="T:System.ArgumentNullException">
+            /// <paramref name="key" /> is <see langword="null" />.</exception>
+            /// <returns>
+            /// <see langword="true" /> if the element is successfully found and removed; otherwise, <see langword="false" />.</returns>
+            public bool Remove(TKey key, [MaybeNullWhen(false)] out TValue value)
+            {
+                ArgumentNullException.ThrowIfNull(dictionary);
+                return dictionary.TryGetValue(key, out value) && dictionary.Remove(key);
+            }
         }
     }
 }

@@ -10,7 +10,6 @@ namespace System.Collections.ObjectModel
     /// where each object implements the IOrdered interface.
     /// </summary>
     /// <typeparam name="T">The type of elements in the collection, which must implement IOrdered.</typeparam>
-    [Serializable]
     public class OrderedObservableCollection<T> : ObservableCollection<T> where T : IOrdered
     {
         private const int Exponent = 10000;
@@ -241,12 +240,5 @@ namespace System.Collections.ObjectModel
         {
             (item1.Order, item2.Order) = (item2.Order, item1.Order);
         }
-    }
-
-    internal static class EventArgsCache
-    {
-        internal static readonly PropertyChangedEventArgs CountPropertyChanged = new("Count");
-        internal static readonly PropertyChangedEventArgs IndexerPropertyChanged = new("Item[]");
-        internal static readonly NotifyCollectionChangedEventArgs ResetCollectionChanged = new(NotifyCollectionChangedAction.Reset);
     }
 }

@@ -140,7 +140,7 @@ namespace System.IO
             {
                 Grow(s.Length);
             }
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
             s.CopyTo(_chars.AsSpan().Slice(_pos));
 #else
             s.CopyTo(_chars.AsSpan()[_pos..]);
@@ -273,7 +273,7 @@ namespace System.IO
                 EnsureCapacity(_pos + 1);
                 _chars[_pos] = '\0';
             }
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
             return _chars.AsSpan().Slice(0, _pos);
 #else
             return _chars.AsSpan()[.._pos];
@@ -282,7 +282,7 @@ namespace System.IO
 
         public partial ReadOnlySpan<char> AsSpan()
         {
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
             return _chars.AsSpan().Slice(0, _pos);
 #else
             return _chars.AsSpan()[.._pos];
@@ -291,7 +291,7 @@ namespace System.IO
 
         public partial ReadOnlySpan<char> AsSpan(int start)
         {
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
             return _chars.AsSpan().Slice(start, _pos - start);
 #else
             return _chars.AsSpan()[start.._pos];
@@ -306,7 +306,7 @@ namespace System.IO
         public partial bool TryCopyTo(scoped Span<char> destination, out int charsWritten)
         {
             if (_chars.AsSpan()
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
                 .Slice(0, _pos)
 #else
                 [.._pos]

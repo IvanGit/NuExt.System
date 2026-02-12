@@ -166,7 +166,7 @@ namespace System.IO
         /// </summary>
         /// <param name="filePath">The path of the file to delete.</param>
         /// <param name="exception">An exception.</param>
-        /// <returns>True if the file was successfully deleted or did not exist, false if an error occurred.</returns>
+        /// <returns><see langword="true"/> if the file was successfully deleted or did not exist, false if an error occurred.</returns>
         /// <exception cref="ArgumentException">Thrown when the provided path is null or empty.</exception>
         public static bool TryDeleteFile(string filePath, out Exception? exception)
         {

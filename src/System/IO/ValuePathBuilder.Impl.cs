@@ -116,7 +116,7 @@ namespace System.IO
             {
                 Grow(s.Length);
             }
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
             s.CopyTo(_chars.Slice(_pos));
 #else
             s.CopyTo(_chars[_pos..]);
@@ -156,7 +156,7 @@ namespace System.IO
 #if !NET
                 .AsSpan()
 #endif
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
                 .CopyTo(_chars.Slice(pos));
 #else
                 .CopyTo(_chars[pos..]);
@@ -244,7 +244,7 @@ namespace System.IO
             // Make sure to let Rent throw an exception if the caller has a bug and the desired capacity is negative.
             // This could also go negative if the actual required length wraps around.
             char[] poolArray = ArrayPool<char>.Shared.Rent(newCapacity);
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
             _chars.Slice(0, _pos).CopyTo(poolArray);
 #else
             _chars[.._pos].CopyTo(poolArray);
@@ -259,7 +259,7 @@ namespace System.IO
 
         public override partial string ToString()
         {
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
             string s = _chars.Slice(0, _pos).ToString();
 #else
             string s = _chars[.._pos].ToString();
@@ -275,7 +275,7 @@ namespace System.IO
                 EnsureCapacity(_pos + 1);
                 _chars[_pos] = '\0';
             }
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
             return _chars.Slice(0, _pos);
 #else
             return _chars[.._pos];
@@ -284,7 +284,7 @@ namespace System.IO
 
         public readonly partial ReadOnlySpan<char> AsSpan()
         {
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
             return _chars.Slice(0, _pos);
 #else
             return _chars[.._pos];
@@ -293,7 +293,7 @@ namespace System.IO
 
         public readonly partial ReadOnlySpan<char> AsSpan(int start)
         {
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
             return _chars.Slice(start, _pos - start);
 #else
             return _chars[start.._pos];
@@ -305,7 +305,7 @@ namespace System.IO
         public partial bool TryCopyTo(scoped Span<char> destination, out int charsWritten)
         {
             if (_chars
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
                 .Slice(0, _pos)
 #else
                 [.._pos]

@@ -1,0 +1,21 @@
+﻿#define SYSTEM_PRIVATE_CORELIB
+#if !NET
+
+namespace System.Runtime.CompilerServices;
+
+[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+#if SYSTEM_PRIVATE_CORELIB
+public
+#else
+internal
+#endif
+    sealed class CallerArgumentExpressionAttribute : Attribute
+{
+    public CallerArgumentExpressionAttribute(string parameterName)
+    {
+        ParameterName = parameterName;
+    }
+
+    public string ParameterName { get; }
+}
+#endif

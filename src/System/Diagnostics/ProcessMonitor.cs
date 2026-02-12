@@ -17,7 +17,7 @@ namespace System.Diagnostics
         /// Initializes a new instance of the <see cref="ProcessMonitor"/> class for the specified process.
         /// </summary>
         /// <param name="process">The process to monitor.</param>
-        /// <exception cref="ArgumentNullException">Thrown when the <paramref name="process"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when the <paramref name="process"/> is <see langword="null"/>.</exception>
         public ProcessMonitor(Process process)
         {
             Process = process ?? throw new ArgumentNullException(nameof(process));
@@ -37,12 +37,12 @@ namespace System.Diagnostics
         public int ProcessorCount => _processorCount ??= Environment.ProcessorCount;
 
         /// <summary>
-        /// Gets the number of busy worker threads in the ThreadPool.
+        /// Gets the number of allocated worker threads in the ThreadPool.
         /// </summary>
-        /// <returns>The number of busy worker threads.</returns>
-        public int GetBusyWorkerThreads()
+        /// <returns>The number of allocated worker threads.</returns>
+        public int GetAllocatedWorkerThreads()
         {
-            Debug.Assert(ProcessorCount > 1);
+            _ = this;
             try
             {
 
@@ -158,8 +158,12 @@ namespace System.Diagnostics
         /// </summary>
         public void ResetCpuUsageCounters()
         {
-            _lastTotalProcessorTime = Process.TotalProcessorTime;
-            _lastElapsed = _watch.Elapsed;
+            try
+            {
+                _lastTotalProcessorTime = Process.TotalProcessorTime;
+                _lastElapsed = _watch.Elapsed;
+            }
+            catch (InvalidOperationException) { }
         }
     }
 }

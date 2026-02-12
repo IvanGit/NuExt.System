@@ -52,6 +52,10 @@ namespace System.Threading
         /// <inheritdoc/>
         public bool CheckAccess()
         {
+            if (ReferenceEquals(Current, this) || ReferenceEquals(Current, InnerContext))
+            {
+                return true;
+            }
             return Thread.CurrentThread == Thread;
         }
 

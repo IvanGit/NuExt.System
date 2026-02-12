@@ -224,7 +224,7 @@ namespace System.Text
                 {
                     if (!itemFormatSpan.IsEmpty)
                     {
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
                         itemFormat = new string(itemFormatSpan.ToArray());
 #else
                         itemFormat = new string(itemFormatSpan);
@@ -261,7 +261,7 @@ namespace System.Text
                     {
                         if (itemFormatSpan.Length != 0)
                         {
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
                             itemFormat ??= new string(itemFormatSpan.ToArray());
 #else
                             itemFormat ??= new string(itemFormatSpan);

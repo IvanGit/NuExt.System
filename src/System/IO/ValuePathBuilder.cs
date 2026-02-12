@@ -86,7 +86,7 @@ namespace System.IO
         /// <summary>
         /// Returns a read-only span around the contents of the builder, optionally ensuring a null character after <see cref="Length"/>.
         /// </summary>
-        /// <param name="terminate">True to ensure a null character after <see cref="Length"/>; otherwise, false.</param>
+        /// <param name="terminate">True to ensure a null character after <see cref="Length"/>; otherwise, <see langword="false"/>.</param>
         /// <returns>A read-only span that represents the current contents of the builder.</returns>
         public partial ReadOnlySpan<char> AsSpan(bool terminate);
 
@@ -137,7 +137,7 @@ namespace System.IO
         public partial void Dispose();
 
         /// <summary>
-        /// Returns true if the path ends in a directory separator.
+        /// Returns <see langword="true"/> if the path ends in a directory separator.
         /// </summary>
         /// <returns><see langword="true" /> if the path ends in a directory separator; otherwise, <see langword="false" />.</returns>
         public readonly partial bool EndsInDirectorySeparator();
@@ -260,7 +260,7 @@ namespace System.IO
         public readonly partial bool HasExtension();
 
         /// <summary>
-        /// Returns true if the path is effectively empty for the current OS.
+        /// Returns <see langword="true"/> if the path is effectively empty for the current OS.
         /// </summary>
         /// <returns><see langword="true" /> if the path effectively empty; otherwise, <see langword="false" />.</returns>
         /// <remarks>
@@ -293,7 +293,7 @@ namespace System.IO
         public partial bool NormalizeDirectorySeparators();
 
         /// <summary>
-        /// Returns true if the path starts in a directory separator.
+        /// Returns <see langword="true"/> if the path starts in a directory separator.
         /// </summary>
         /// <returns><see langword="true" /> if the path starts in a directory separator; otherwise, <see langword="false" />.</returns>
         public readonly partial bool StartsWithDirectorySeparator();
@@ -320,7 +320,7 @@ namespace System.IO
         /// </summary>
         /// <param name="destination">The destination span to copy to.</param>
         /// <param name="charsWritten">When this method returns, contains the number of characters written to the destination span.</param>
-        /// <returns>True if the copy operation was successful; otherwise, false.</returns>
+        /// <returns><see langword="true"/> if the copy operation was successful; otherwise, <see langword="false"/>.</returns>
         public partial bool TryCopyTo(scoped Span<char> destination, out int charsWritten);
     }
 }

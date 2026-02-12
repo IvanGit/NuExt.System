@@ -24,7 +24,7 @@ namespace System.IO
         public const string ThisDirectory = ".";
 
         /// <summary>
-        /// Returns true if the platform uses case-sensitive file system.
+        /// Returns <see langword="true"/> if the platform uses case-sensitive file system.
         /// </summary>
         public static bool IsCaseSensitiveFileSystem => !(PlatformInformation.IsWindows || PlatformInformation.IsMacOS);
 
@@ -53,7 +53,7 @@ namespace System.IO
         }
 
         /// <summary>
-        /// True if the given character is a directory separator.
+        /// <see langword="true"/> if the given character is a directory separator.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsDirectorySeparator(char c)
@@ -62,7 +62,7 @@ namespace System.IO
         }
 
         /// <summary>
-        /// True if the path is normalized.
+        /// <see langword="true"/> if the path is normalized.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsNormalized(string path)
@@ -83,7 +83,7 @@ namespace System.IO
         /// <param name="path1">The first path to compare. This can be null.</param>
         /// <param name="path2">The second path to compare. This can be null.</param>
         /// <returns>
-        /// true if both paths are considered equal after normalization; otherwise, false. 
+        /// <see langword="true"/> if both paths are considered equal after normalization; otherwise, <see langword="false"/>. 
         /// If either path is null, the method returns false.
         /// </returns>
         public static bool NormalizedPathEquals(string? path1, string? path2)
@@ -129,7 +129,7 @@ namespace System.IO
         }
 
         /// <summary>
-        /// True if the two paths are the same (compare chars). Use <see cref="NormalizedPathEquals"/> to compare paths with normalization.
+        /// <see langword="true"/> if the two paths are the same (compare chars). Use <see cref="NormalizedPathEquals"/> to compare paths with normalization.
         /// </summary>
         /// <returns>
         /// If either path is null, the method returns false.
@@ -271,7 +271,7 @@ namespace System.IO
             ArgumentNullException.ThrowIfNull(directory);
             ArgumentNullException.ThrowIfNull(fullPath);
 
-            var builder = new PathBuilder(directory) { DirectorySeparatorChar = Path.DirectorySeparatorChar };
+            var builder = new PathBuilder(directory);
             return builder.GetRelativePath(fullPath, Environment.CurrentDirectory).ToString();
         }
     }

@@ -418,13 +418,13 @@ namespace System
 #endif
             }
 
-#if NET_OLD
+#if !(NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER)
         /// <summary>
         /// Determines whether this string instance contains a specified character.
         /// </summary>
         /// <param name="str">The string to check.</param>
         /// <param name="value">The character to seek.</param>
-        /// <returns>true if the value parameter occurs within this string; otherwise, false.</returns>
+        /// <returns><see langword="true"/> if the value parameter occurs within this string; otherwise, <see langword="false"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the input string is null.</exception>
         public static bool Contains(this string str, char value)
         {
@@ -433,12 +433,24 @@ namespace System
             return str.IndexOf(value) >= 0;
         }
 
+        public static bool Contains(this string str, char value, StringComparison comparisonType)
+        {
+            Throw.IfNull(str);
+
+            return str.IndexOf(value, comparisonType) >= 0;
+        }
+
+        public static bool Contains(this string str, string value, StringComparison comparisonType)
+        {
+            return str.IndexOf(value, comparisonType) >= 0;
+        }
+
         /// <summary>
         /// Determines whether the end of this string instance matches a specified character.
         /// </summary>
         /// <param name="str">The string to check.</param>
         /// <param name="value">The character to compare to the end of this string.</param>
-        /// <returns>true if value matches the end of this string; otherwise, false.</returns>
+        /// <returns><see langword="true"/> if value matches the end of this string; otherwise, <see langword="false"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the input string is null.</exception>
         public static bool EndsWith(this string str, char value)
         {
@@ -467,7 +479,20 @@ namespace System
         {
             Throw.IfNull(str);
 
+            if (str.Length == 0)
+                return -1;
+
             return str.Substring(startIndex, count).IndexOf(value);
+        }
+
+        public static int IndexOf(this string str, char value, StringComparison comparisonType)
+        {
+            Throw.IfNull(str);
+
+            if (str.Length == 0)
+                return -1;
+
+            return str.IndexOf(value.ToString(), comparisonType);
         }
 
         /// <summary>
@@ -500,7 +525,7 @@ namespace System
         /// </summary>
         /// <param name="str">The string to check.</param>
         /// <param name="value">The character to compare to the start of this string.</param>
-        /// <returns>true if value matches the beginning of this string; otherwise, false.</returns>
+        /// <returns><see langword="true"/> if value matches the beginning of this string; otherwise, <see langword="false"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the input string is null.</exception>
         public static bool StartsWith(this string str, char value)
         {
@@ -527,7 +552,7 @@ namespace System
             if (str.Length == 0) return str;
             culture ??= CultureInfo.CurrentCulture;
             return char.ToUpper(str[0], culture) +
-#if NET_OLD
+#if NETFRAMEWORK || NETSTANDARD2_0
                 str.Substring(1);
 #else
                 str[1..];
