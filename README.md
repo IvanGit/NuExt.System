@@ -1,49 +1,51 @@
-
 # NuExt.System
 
-`NuExt.System` is a **lightweight, production-ready foundation** for everyday .NET development. It brings together high-quality utilities for **asynchrony**, **lifetime management**, **threading primitives**, **high-performance spans/memory helpers**, **diagnostics**, and **collection helpers** — all with a strong focus on **performance**, **correctness**, and **developer ergonomics**.  
-Use it to reduce boilerplate, standardize common patterns across projects, and keep code fast and clean across modern .NET and .NET Framework.
+`NuExt.System` is a **lightweight, production-ready foundation** for everyday .NET development. It brings together high-quality utilities for **asynchrony**, **lifetime management**, **threading primitives**, **high‑performance spans/memory helpers**, **diagnostics**, and **collection helpers** — all with a strong focus on **performance**, **correctness**, and **developer ergonomics**. Use it to reduce boilerplate, standardize common patterns across projects, and keep code fast and clean across modern .NET and .NET Framework.
+
+[![NuGet](https://img.shields.io/nuget/v/NuExt.System.svg)](https://www.nuget.org/packages/NuExt.System)
+[![Build](https://github.com/IvanGit/NuExt.System/actions/workflows/ci.yml/badge.svg)](https://github.com/IvanGit/NuExt.System/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/IvanGit/NuExt.System?label=license)](https://github.com/IvanGit/NuExt.System/blob/main/LICENSE)
+[![Downloads](https://img.shields.io/nuget/dt/NuExt.System.svg)](https://www.nuget.org/packages/NuExt.System)
 
 ## Features
 
 - **Asynchrony & lifetime**
-  - Async locks and wait handles (`AsyncLock`, `ReentrantAsyncLock`, `AsyncWaitHandle`)
-  - Disposable tooling (`Disposable`, `AggregateDisposable`, `AsyncDisposable`, `AggregateAsyncDisposable`, `AsyncLifetime`)
+  - Async locks and wait handles: `AsyncLock`, `ReentrantAsyncLock`, `AsyncWaitHandle`
+  - Disposable tooling: `Disposable`, `AggregateDisposable`, `AsyncDisposable`, `AggregateAsyncDisposable`, `AsyncLifetime`
 - **Threading & synchronization**
-  - Reentrant async lock (context-aware), synchronization context helpers, thread-affine context
-- **High-performance spans & memory**
-  - Backports/polyfills for `Span` / `MemoryExtensions` APIs (see below)
-  - `ValueStringBuilder` / `ValueListBuilder<T>` for zero-allocation building
+  - Reentrant async lock (context‑aware), synchronization‑context helpers, thread‑affine flows
+- **High‑performance spans & memory**
+  - **Backports/polyfills for `Span` / `MemoryExtensions` APIs** (see below)
+  - `ValueStringBuilder` / `ValueListBuilder<T>` for zero‑allocation building
 - **Collections & equality**
-  - `ObservableDictionary<TKey, TValue>`, `ReferenceEqualityComparer` (polyfill), ArrayEqualityComparer, plus **many useful extension helpers**
-- **I/O & paths (cross-platform)**
-  - `PathBuilder` (class, `IDisposable`) and `ValuePathBuilder` (ref struct) — platform-independent path builders
+  - `ObservableDictionary<TKey, TValue>`, `ReferenceEqualityComparer` *(polyfill)*, `ArrayEqualityComparer<T>`, and **many useful extension helpers**
+- **I/O & paths (cross‑platform)**
+  - `PathBuilder` (class, `IDisposable`) and `ValuePathBuilder` (ref struct) — platform‑independent path builders
   - `PathUtilities` — static helpers for common path operations
 - **Diagnostics & utilities**
-  - `ProcessMonitor`, `PerformanceMonitor`, `EnumHelper<T>`, `TypeExtensions`, and more
+  - `ProcessMonitor`, `PerformanceMonitor`, `EnumHelper<T>`, `TypeExtensions`, etc.
 
 ### Span / MemoryExtensions Polyfills
 
-This package includes **polyfills (API backports)** for selected `Span` / `MemoryExtensions`-style APIs from newer .NET versions.  
-On modern runtimes, it transparently uses the inbox implementations; on older runtimes, it provides compatible behavior with the same semantics.
+This package includes **polyfills (API backports)** for selected `Span` / `MemoryExtensions`‑style APIs from newer .NET versions. On modern runtimes, it transparently uses the inbox implementations; on older runtimes, it provides compatible behavior with the same semantics.
 
 **What you get (highlights)**
 - Search & comparison: `Contains`, `SequenceEqual` (+ `IEqualityComparer<T>`)
 - Indexing: `IndexOf`, `LastIndexOf` (element / sequence)
-- Set-based search: `IndexOfAny`, `LastIndexOfAny`, `IndexOfAnyExcept`, `LastIndexOfAnyExcept`
-- Range-based: `IndexOfAnyInRange`, `IndexOfAnyExceptInRange`, `LastIndexOfAnyInRange`, `LastIndexOfAnyExceptInRange`
-- Utilities: `StartsWith`, `EndsWith`, `Replace` (in-place / copy), `Count`, `CountAny`
+- Set‑based search: `IndexOfAny`, `LastIndexOfAny`, `IndexOfAnyExcept`, `LastIndexOfAnyExcept`
+- Range‑based: `IndexOfAnyInRange`, `IndexOfAnyExceptInRange`, `LastIndexOfAnyInRange`, `LastIndexOfAnyExceptInRange`
+- Utilities: `StartsWith`, `EndsWith`, `Replace` (in‑place / copy), `Count`, `CountAny`
 
 **Notes**
-- Allocation-free, performance-oriented; value types use bitwise fast paths where applicable.
-- Semantics match the .NET runtime APIs; custom comparers are honored when provided.
+- Allocation‑free, performance‑oriented; value types use bitwise fast paths where applicable.
+- Semantics mirror the .NET runtime APIs; custom comparers are honored when provided.
 
 ## Why NuExt.System?
 
-- **Practical**: battle-tested building blocks you use every day  
-- **Fast**: zero-alloc paths, tight loops, and careful branching profiles  
-- **Consistent**: same behavior across modern .NET and .NET Framework  
-- **Focused**: no heavy external dependencies or configuration
+- **Practical** — battle‑tested building blocks you use every day
+- **Fast** — zero‑alloc paths, tight loops, careful branching profiles
+- **Consistent** — same behavior across modern .NET and .NET Framework
+- **Focused** — no heavy external dependencies or configuration
 
 ### Compatibility
 
@@ -60,61 +62,72 @@ On modern runtimes, it transparently uses the inbox implementations; on older ru
   - `System.Collections.Generic.ValueListBuilder<T>`
   - `System.Collections.Generic.ReferenceEqualityComparer` *(polyfill)*
   - `System.Collections.Generic.ArrayEqualityComparer<T>`
-  - **Various useful extension helpers** (collections, delegates, enums, strings, exceptions)
+  - **Various extension helpers** (collections, delegates, enums, strings, exceptions)
 - **Strings, spans, and memory**
   - `System.Text.ValueStringBuilder`
-  - `System.CompatMemoryExtensions` (polyfills/backports)
-- **I/O & paths (cross-platform)**
+  - `System.CompatMemoryExtensions` *(polyfills/backports)*
+- **I/O & paths (cross‑platform)**
   - `System.IO.PathBuilder` *(class, `IDisposable` — mutable path builder)*
-  - `System.IO.ValuePathBuilder` *(ref struct — high-performance mutable path builder)*
-  - `System.IO.PathUtilities` *(static common path operations)*  
+  - `System.IO.ValuePathBuilder` *(ref struct — high‑performance mutable path builder)*
+  - `System.IO.PathUtilities` *(static common path operations)*
 - **Diagnostics & helpers**
   - `System.Diagnostics.ProcessMonitor`, `PerformanceMonitor`
   - `System.EnumHelper<T>`, `System.FormatUtils`, `System.HexConverter`
 
-### Installation
+## Quick examples
 
-Via [NuGet](https://www.nuget.org/):
-
-```sh
-dotnet add package NuExt.System
-```
-
-Or via Visual Studio:
-
-1. Go to `Tools -> NuGet Package Manager -> Manage NuGet Packages for Solution...`.
-2. Search for `NuExt.System`.
-3. Click "Install".
-
-### ReentrantAsyncLock Internals
-
-The `ReentrantAsyncLock` provides a context-aware reentrant async lock. It uses `AsyncLocal` to track ownership across awaits, allowing the same logical flow to re-enter without deadlocks.
-
-In scenarios that capture **ExecutionContext** (e.g., `CancellationToken.Register`), prefer suppressing the flow to avoid leaking `AsyncLocal` state into callbacks:
-
+### 1) Reentrant async lock (with ExecutionContext best practices)
 ```csharp
-var asyncLock = new ReentrantAsyncLock();
+var asyncLock = new System.Threading.ReentrantAsyncLock();
 var cts = new CancellationTokenSource();
 
+// Synchronous section
 asyncLock.Acquire(() =>
 {
-    //Don't capture the current ExecutionContext and its AsyncLocals for CancellationToken.Register
-    using (ExecutionContext.SuppressFlow())
-    {
-        cts.Token.Register(() => asyncLock.Acquire(() =>
-        {
-            // user code
-        }));
-    }
-    //The current ExecutionContext is restored after exiting the using block
+    // do work safely, reentry allowed on the same flow
 });
 
-asyncLock.Acquire(() => cts.Cancel());
+// Asynchronous section
+await asyncLock.AcquireAsync(async () =>
+{
+    await DoAsyncWork();
+});
+
+// Avoid unintentionally flowing AsyncLocal into CT callbacks:
+using (ExecutionContext.SuppressFlow())
+{
+    cts.Token.Register(() => asyncLock.Acquire(() =>
+    {
+        // safe callback body
+    }));
+}
 ```
 
-### Usage Examples
+### 2) Async lifetime + aggregated disposal
 
-#### `ValueListBuilder<T>` and `ValueTask.WhenAll`
+```csharp
+var lifetime = new System.AsyncLifetime() { ContinueOnCapturedContext = true };
+lifetime.AddDisposable(new FileStream(path, FileMode.Open));
+lifetime.AddAsync(async () => await FlushBuffersAsync());
+
+await lifetime.DisposeAsync(); // disposes in the right order, async‑aware
+```
+
+### 3) Zero‑alloc string building with `ValueStringBuilder`
+
+```csharp
+Span<char> initial = stackalloc char[128];
+var sb = new System.Text.ValueStringBuilder(initial);
+
+sb.Append("User: ");
+sb.Append(userName);
+sb.Append(", Items: ");
+sb.Append(itemCount);
+
+string result = sb.ToString(); // minimal allocations
+```
+
+### 4) `ValueListBuilder<T>` and `ValueTask.WhenAll`
 
 ```csharp
 public class Example
@@ -164,7 +177,7 @@ public class Example
 }
 ```
 
-#### `ValueListBuilder<T>` and `ValueTask.WhenAll<TResult>`
+### 5) `ValueListBuilder<T>` and `ValueTask.WhenAll<TResult>`
 
 ```csharp
 public class Example
@@ -218,22 +231,38 @@ public class Example
 }
 ```
 
-For comprehensive examples of how to use the package, see:
+## Installation
 
+Via [NuGet](https://www.nuget.org/):
+
+```sh
+dotnet add package NuExt.System
+```
+
+Or via Visual Studio:
+
+1. Go to `Tools -> NuGet Package Manager -> Manage NuGet Packages for Solution...`.
+2. Search for `NuExt.System`.
+3. Click "Install".
+
+## Ecosystem
+
+- [NuExt.Minimal.Mvvm](https://github.com/IvanGit/NuExt.Minimal.Mvvm)
+- [NuExt.Minimal.Mvvm.Wpf](https://github.com/IvanGit/NuExt.Minimal.Mvvm.Wpf)
+- [NuExt.Minimal.Mvvm.MahApps.Metro](https://github.com/IvanGit/NuExt.Minimal.Mvvm.MahApps.Metro)
+- [NuExt.System.Data](https://github.com/IvanGit/NuExt.System.Data)
 - [NuExt.System.Data.SQLite](https://github.com/IvanGit/NuExt.System.Data.SQLite)
 - [NuExt.DevExpress.Mvvm](https://github.com/IvanGit/NuExt.DevExpress.Mvvm)
 - [NuExt.DevExpress.Mvvm.MahApps.Metro](https://github.com/IvanGit/NuExt.DevExpress.Mvvm.MahApps.Metro)
-- [NuExt.Minimal.Mvvm.Wpf](https://github.com/IvanGit/NuExt.Minimal.Mvvm.Wpf)
-- [NuExt.Minimal.Mvvm.MahApps.Metro](https://github.com/IvanGit/NuExt.Minimal.Mvvm.MahApps.Metro)
 
-### Acknowledgements
+## Notes & acknowledgements
 
-Includes code derived from the .NET Runtime, licensed under the MIT License. The original source code can be found in the [.NET Runtime GitHub repository](https://github.com/dotnet/runtime).
+Some implementations are derived from the .NET Runtime (MIT). See LICENSE and source comments for attributions.
 
-### Contributing
+## Contributing
 
 Issues and PRs are welcome. Keep changes minimal and performance-conscious.
 
-### License
+## License
 
 MIT. See LICENSE.
