@@ -63,6 +63,18 @@ namespace System
         }
 
         [DoesNotReturn]
+        internal static void ThrowNotSupportedException(string resourceString)
+        {
+            throw new NotSupportedException(resourceString);
+        }
+
+        [DoesNotReturn]
+        internal static void ThrowArgumentException_Argument_IncompatibleArrayType()
+        {
+            throw new ArgumentException(SR.Argument_IncompatibleArrayType);
+        }
+
+        [DoesNotReturn]
         internal static void ThrowAddingDuplicateWithKeyArgumentException<T>(T key)
         {
             // Generic key to move the boxing to the right hand side of throw

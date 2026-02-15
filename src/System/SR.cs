@@ -5,10 +5,12 @@
         public const string Arg_BasePathNotFullyQualified = "Basepath argument is not fully qualified.";
         public const string Arg_PathEmpty = "The path is empty.";
         public const string Arg_WrongType = """The value "{0}" is not of type "{1}" and cannot be used in this generic collection.""";
+
         public const string Argument_AddingDuplicateWithKey = "An item with the same key has already been added. Key: {0}";
         public const string Argument_DestinationTooShort = "Destination is too short.";
         public const string Argument_EmptyString = "The value cannot be an empty string.";
         public const string Argument_EmptyOrWhiteSpaceString = "The value cannot be an empty string or composed entirely of whitespace.";
+        public const string Argument_IncompatibleArrayType = "Target array type is not compatible with the type of items in the collection.";
         public const string Argument_NullCharInPath = "Null character in path.";
         public const string Argument_WhiteSpaceString = "The value cannot be a white-space string.";
 
@@ -33,7 +35,6 @@
             "Thread access violation. The calling thread (ID: {0}) attempted to access " +
             "a synchronization context bound to thread (ID: {1}). Use the Send or Post methods " +
             "for cross-thread operations.";
-
 
         public const string ObservableObservableDictionaryReentrancyNotAllowed = "Cannot change ObservableDictionary during a CollectionChanged event.";
         public const string OutOfMemory_StringTooLong = "String length exceeded supported range.";

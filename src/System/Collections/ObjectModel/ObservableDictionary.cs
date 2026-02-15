@@ -14,7 +14,7 @@ namespace System.Collections.ObjectModel
     /// </remarks>
     [DebuggerDisplay("Count = {Count}")]
     public class ObservableDictionary<TKey, TValue>(int capacity, IEqualityComparer<TKey>? comparer) : INotifyPropertyChanged, INotifyCollectionChanged,
-        IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>
+        IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IList
         where TKey : notnull
     {
         private readonly Dictionary<TKey, TValue> _innerDictionary = new(capacity, comparer);
@@ -124,43 +124,6 @@ namespace System.Collections.ObjectModel
 
         object ICollection.SyncRoot => this;
 
-        bool IDictionary.IsFixedSize => false;
-
-        bool IDictionary.IsReadOnly => false;
-
-        ICollection IDictionary.Keys => Keys;
-
-        ICollection IDictionary.Values => Values;
-
-        object? IDictionary.this[object key]
-        {
-            get
-            {
-                IDictionary dict = _innerDictionary;
-                return dict[key];
-            }
-            set
-            {
-                ArgumentNullException.ThrowIfNull(key);
-                ThrowHelper.IfNullAndNullsAreIllegalThenThrow<TValue>(value, ExceptionArgument.value);
-                try
-                {
-                    TKey tempKey = (TKey)key;
-                    try
-                    {
-                        this[tempKey] = (TValue)value!;
-                    }
-                    catch (InvalidCastException)
-                    {
-                        ThrowHelper.ThrowWrongValueTypeArgumentException(value, typeof(TValue));
-                    }
-                }
-                catch (InvalidCastException)
-                {
-                    ThrowHelper.ThrowWrongKeyTypeArgumentException(key, typeof(TKey));
-                }
-            }
-        }
 
         #endregion
 
@@ -218,22 +181,38 @@ namespace System.Collections.ObjectModel
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             _innerDictionary.EnsureCapacity(_innerDictionary.Count + builder.Length);
 #endif
-
-            foreach (var pair in builder.AsSpan())
-            {
-                _innerDictionary.Add(pair.Key, pair.Value);
-            }
-
-            OnCountPropertyChanged();
-            OnIndexerPropertyChanged();
             if (builder.Length == 1)
             {
-                OnCollectionChanged(NotifyCollectionChangedAction.Add, builder.AsSpan()[0]);
+                var first = builder[0];
+                _innerDictionary.Add(first.Key, first.Value);
+
+                OnCountPropertyChanged();
+                OnIndexerPropertyChanged();
+                OnCollectionChanged(NotifyCollectionChangedAction.Add, first);
             }
             else
             {
-                OnCollectionReset();
+                foreach (var pair in builder.AsSpan())
+                {
+                    _innerDictionary.Add(pair.Key, pair.Value);
+                }
+#if NET5_0_OR_GREATER
+                _orderedKeys.EnsureCapacity(_orderedKeys.Count + builder.Length);
+#endif
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                _indexMap.EnsureCapacity(_indexMap.Count + builder.Length);
+#endif
+                foreach (var pair in builder.AsSpan())
+                {
+                    _indexMap[pair.Key] = _orderedKeys.Count;
+                    _orderedKeys.Add(pair.Key);
+                }
+
+                OnCountPropertyChanged();
+                OnIndexerPropertyChanged();
+                OnCollectionChanged(EventArgsCache.ResetCollectionChanged);
             }
+
             builder.Dispose();
 #if DEBUG
             ValidateState();
@@ -271,11 +250,24 @@ namespace System.Collections.ObjectModel
             OnIndexerPropertyChanged();
             if (builder.Length == 1)
             {
-                OnCollectionChanged(NotifyCollectionChangedAction.Remove, builder.AsSpan()[0]);
+                OnCollectionChanged(NotifyCollectionChangedAction.Remove, builder[0]);
             }
             else
             {
-                OnCollectionReset();
+                _indexMap.Clear();
+                bool removed = true;
+                foreach (var pair in builder.AsSpan())
+                {
+                    removed &= _orderedKeys.Remove(pair.Key);
+                }
+                Debug.Assert(removed);
+
+                for (int i = 0; i < _orderedKeys.Count; i++)
+                {
+                    _indexMap[_orderedKeys[i]] = i;
+                }
+
+                OnCollectionChanged(EventArgsCache.ResetCollectionChanged);
             }
 #if DEBUG
             ValidateState();
@@ -343,16 +335,17 @@ namespace System.Collections.ObjectModel
         public bool ContainsValue(TValue value) => _innerDictionary.ContainsValue(value);
 
         /// <inheritdoc cref="Dictionary{TKey, TValue}.GetEnumerator"/>
-        public Dictionary<TKey, TValue>.Enumerator GetEnumerator() => _innerDictionary.GetEnumerator();
-
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            //IEnumerable<KeyValuePair<TKey, TValue>> enumerable = _innerDictionary;
-            //return enumerable.GetEnumerator();
             // Enumerate in the stable order maintained by _orderedKeys.
             foreach (var key in _orderedKeys)
+            {
                 yield return new KeyValuePair<TKey, TValue>(key, _innerDictionary[key]);
+            }
         }
+
+        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+            => GetEnumerator();
 
 #if NET9_0_OR_GREATER
         /// <inheritdoc cref="Dictionary{TKey, TValue}.GetAlternateLookup"/>
@@ -432,19 +425,55 @@ namespace System.Collections.ObjectModel
 
         bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => false;
 
+        bool IList.IsFixedSize => false;
+
+        bool IList.IsReadOnly => true;
+
+        object? IList.this[int index]
+        {
+            get 
+            {
+                var key = _orderedKeys[index];
+                return new KeyValuePair<TKey, TValue>(key, _innerDictionary[key]);
+            }
+            set => ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_ReadOnlyCollection);
+        }
+
         void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int index)
         {
-            ICollection<KeyValuePair<TKey, TValue>> dict = _innerDictionary;
-            dict.CopyTo(array, index);
+            // Copy in the stable order maintained by _orderedKeys.
+            for (int i = 0; i < _orderedKeys.Count; i++)
+            {
+                var key = _orderedKeys[i];
+                array[index++] = new KeyValuePair<TKey, TValue>(key, _innerDictionary[key]);
+            }
         }
 
         void ICollection.CopyTo(Array array, int index)
         {
-            ICollection dict = _innerDictionary;
-            dict.CopyTo(array, index);
+            // Copy in the stable order maintained by _orderedKeys.
+            if (array is KeyValuePair<TKey, TValue>[] kvpArray)
+            {
+                for (int i = 0; i < _orderedKeys.Count; i++)
+                {
+                    var key = _orderedKeys[i];
+                    kvpArray[index++] = new KeyValuePair<TKey, TValue>(key, _innerDictionary[key]);
+                }
+                return;
+            }
+            if (array is object[] objArray)
+            {
+                for (int i = 0; i < _orderedKeys.Count; i++)
+                {
+                    var key = _orderedKeys[i];
+                    objArray[index++] = new KeyValuePair<TKey, TValue>(key, _innerDictionary[key]);
+                }
+                return;
+            }
+            ThrowHelper.ThrowArgumentException_Argument_IncompatibleArrayType();
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<KeyValuePair<TKey, TValue>>)this).GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
 #if (NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER)
         /// <inheritdoc cref="Dictionary{TKey, TValue}.EnsureCapacity"/>
@@ -456,54 +485,6 @@ namespace System.Collections.ObjectModel
         /// <inheritdoc cref="Dictionary{TKey, TValue}.TrimExcess(int)"/>
         public void TrimExcess(int capacity) => _innerDictionary.TrimExcess(capacity);
 #endif
-
-        private static bool IsCompatibleKey(object key)
-        {
-            ArgumentNullException.ThrowIfNull(key);
-            return key is TKey;
-        }
-
-        void IDictionary.Add(object key, object? value)
-        {
-            ArgumentNullException.ThrowIfNull(key);
-
-            try
-            {
-                TKey tempKey = (TKey)key;
-                try
-                {
-                    Add(tempKey, (TValue)value!);
-                }
-                catch (InvalidCastException)
-                {
-                    ThrowHelper.ThrowWrongValueTypeArgumentException(value, typeof(TValue));
-                }
-            }
-            catch (InvalidCastException)
-            {
-                ThrowHelper.ThrowWrongKeyTypeArgumentException(key, typeof(TKey));
-            }
-        }
-
-        bool IDictionary.Contains(object key)
-        {
-            IDictionary dict = _innerDictionary;
-            return dict.Contains(key);
-        }
-
-        IDictionaryEnumerator IDictionary.GetEnumerator()
-        {
-            IDictionary dict = _innerDictionary;
-            return dict.GetEnumerator();
-        }
-
-        void IDictionary.Remove(object key)
-        {
-            if (IsCompatibleKey(key))
-            {
-                Remove((TKey)key);
-            }
-        }
 
         /// <summary>
         /// Raises a PropertyChanged event (per <see cref="INotifyPropertyChanged" />).
@@ -705,6 +686,47 @@ namespace System.Collections.ObjectModel
                     Debug.Fail("Key present in order/index but missing in inner dictionary");
             }
         }
+
+        #region IList implementation
+
+        int IList.Add(object? value)
+        {
+            ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_ReadOnlyCollection);
+            return -1;
+        }
+
+        void IList.Clear()
+        {
+            ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_ReadOnlyCollection);
+        }
+
+        bool IList.Contains(object? value) => ((IList)this).IndexOf(value) >= 0;
+
+        int IList.IndexOf(object? value)
+        {
+            if (value is KeyValuePair<TKey, TValue> kvp && _indexMap.TryGetValue(kvp.Key, out int index))
+            {
+                return index;
+            }
+            return -1;
+        }
+
+        void IList.Insert(int index, object? value)
+        {
+            ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_ReadOnlyCollection);
+        }
+
+        void IList.Remove(object? value)
+        {
+            ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_ReadOnlyCollection);
+        }
+
+        void IList.RemoveAt(int index)
+        {
+            ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_ReadOnlyCollection);
+        }
+
+        #endregion
 
     }
 }
