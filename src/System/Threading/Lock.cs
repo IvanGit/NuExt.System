@@ -116,7 +116,6 @@ namespace System.Threading
         /// <inheritdoc cref="Monitor.TryEnter(object)"/>
         /// </returns>
         [MethodImpl(MethodImplOptions.NoInlining)]
-
         public bool TryEnter() => Monitor.TryEnter(this);
 
         /// <summary>

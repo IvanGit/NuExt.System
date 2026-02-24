@@ -290,7 +290,7 @@
             Assert.That(result, Is.EqualTo(42));
         }
 
-        [Test]
+        [Test, Apartment(ApartmentState.STA)]
         public async Task ConfigureAwait_WithFalse_DoesNotReturnToOriginalContext()
         {
             // Arrange

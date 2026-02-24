@@ -32,14 +32,14 @@ System.Text.ValueStringBuilder
 System.Collections.Generic.ValueListBuilder&lt;T&gt;
 System.Collections.ObjectModel.ObservableDictionary&lt;TKey, TValue&gt;
     </Description>
-    <Version>0.7.0</Version>
+    <Version>0.7.1</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;NETSDK1233</NoWarn>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageIcon>logo256.png</PackageIcon>
-    <PackageProjectUrl>https://github.com/IvanGit/NuExt.System</PackageProjectUrl>
+    <PackageIcon>logo.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/nu-ext/NuExt.System</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -55,8 +55,8 @@ System.Collections.ObjectModel.ObservableDictionary&lt;TKey, TValue&gt;
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\logo256.png" Pack="true" PackagePath="\" />
-    <None Include=".\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\logo.png" Pack="true" PackagePath="\" />
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

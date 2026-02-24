@@ -3,8 +3,8 @@
 `NuExt.System` is a **lightweight, production-ready foundation** for everyday .NET development. It brings together high-quality utilities for **asynchrony**, **lifetime management**, **threading primitives**, **high‑performance spans/memory helpers**, **diagnostics**, and **collection helpers** — all with a strong focus on **performance**, **correctness**, and **developer ergonomics**. Use it to reduce boilerplate, standardize common patterns across projects, and keep code fast and clean across modern .NET and .NET Framework.
 
 [![NuGet](https://img.shields.io/nuget/v/NuExt.System.svg)](https://www.nuget.org/packages/NuExt.System)
-[![Build](https://github.com/IvanGit/NuExt.System/actions/workflows/ci.yml/badge.svg)](https://github.com/IvanGit/NuExt.System/actions/workflows/ci.yml)
-[![License](https://img.shields.io/github/license/IvanGit/NuExt.System?label=license)](https://github.com/IvanGit/NuExt.System/blob/main/LICENSE)
+[![Build](https://github.com/nu-ext/NuExt.System/actions/workflows/ci.yml/badge.svg)](https://github.com/nu-ext/NuExt.System/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/nu-ext/NuExt.System?label=license)](https://github.com/nu-ext/NuExt.System/blob/main/LICENSE)
 [![Downloads](https://img.shields.io/nuget/dt/NuExt.System.svg)](https://www.nuget.org/packages/NuExt.System)
 
 ## Features
@@ -247,13 +247,13 @@ Or via Visual Studio:
 
 ## Ecosystem
 
-- [NuExt.Minimal.Mvvm](https://github.com/IvanGit/NuExt.Minimal.Mvvm)
-- [NuExt.Minimal.Mvvm.Wpf](https://github.com/IvanGit/NuExt.Minimal.Mvvm.Wpf)
-- [NuExt.Minimal.Mvvm.MahApps.Metro](https://github.com/IvanGit/NuExt.Minimal.Mvvm.MahApps.Metro)
-- [NuExt.System.Data](https://github.com/IvanGit/NuExt.System.Data)
-- [NuExt.System.Data.SQLite](https://github.com/IvanGit/NuExt.System.Data.SQLite)
-- [NuExt.DevExpress.Mvvm](https://github.com/IvanGit/NuExt.DevExpress.Mvvm)
-- [NuExt.DevExpress.Mvvm.MahApps.Metro](https://github.com/IvanGit/NuExt.DevExpress.Mvvm.MahApps.Metro)
+- [NuExt.Minimal.Mvvm](https://github.com/nu-ext/NuExt.Minimal.Mvvm)
+- [NuExt.Minimal.Mvvm.SourceGenerator](https://github.com/nu-ext/NuExt.Minimal.Mvvm.SourceGenerator)
+- [NuExt.Minimal.Behaviors.Wpf](https://github.com/nu-ext/NuExt.Minimal.Behaviors.Wpf)
+- [NuExt.Minimal.Mvvm.Wpf](https://github.com/nu-ext/NuExt.Minimal.Mvvm.Wpf)
+- [NuExt.Minimal.Mvvm.MahApps.Metro](https://github.com/nu-ext/NuExt.Minimal.Mvvm.MahApps.Metro)
+- [NuExt.System.Data](https://github.com/nu-ext/NuExt.System.Data)
+- [NuExt.System.Data.SQLite](https://github.com/nu-ext/NuExt.System.Data.SQLite)
 
 ## Notes & acknowledgements
 
