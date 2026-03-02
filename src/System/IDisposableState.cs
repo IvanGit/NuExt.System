@@ -1,18 +1,12 @@
 ﻿namespace System
 {
-    /// <summary>
-    /// Provides a mechanism to query the disposal state of an object.
-    /// </summary>
+    /// <summary>Provides access to an object's disposal state.</summary>
     public interface IDisposableState
     {
-        /// <summary>
-        /// Gets a value indicating whether the object is currently being disposed.
-        /// </summary>
+        /// <summary>Gets a value indicating whether the object is being disposed.</summary>
         bool IsDisposing { get; }
 
-        /// <summary>
-        /// Gets a value indicating whether the object has been disposed.
-        /// </summary>
+        /// <summary>Gets a value indicating whether the object has been disposed.</summary>
         bool IsDisposed { get; }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 
-namespace NuExt.System.Tests
+namespace NuExt.System.Tests.Collections
 {
     [TestFixture]
     public class ObservableDictionaryTests

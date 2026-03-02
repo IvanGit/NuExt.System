@@ -11,6 +11,7 @@
         public const string Argument_EmptyString = "The value cannot be an empty string.";
         public const string Argument_EmptyOrWhiteSpaceString = "The value cannot be an empty string or composed entirely of whitespace.";
         public const string Argument_IncompatibleArrayType = "Target array type is not compatible with the type of items in the collection.";
+        public const string Argument_MinMaxValue = "'{0}' cannot be greater than {1}.";
         public const string Argument_NullCharInPath = "Null character in path.";
         public const string Argument_WhiteSpaceString = "The value cannot be a white-space string.";
 
