@@ -275,6 +275,16 @@ namespace System.IO
         public readonly partial bool IsPathFullyQualified();
 
         /// <summary>
+        /// Returns a value that indicates whether the path is partially qualified.
+        /// A partially qualified path is one that is not fully qualified; it may be relative to the current directory,
+        /// or it may not include a drive or server root (e.g., "file.txt", "folder\file.txt", or "C:file.txt").
+        /// </summary>
+        /// <returns>
+        /// <see langword="true" /> if the path is partially qualified; otherwise, <see langword="false" />.
+        /// </returns>
+        public readonly partial bool IsPartiallyQualified();
+
+        /// <summary>
         /// Returns a value that indicates whether the path contains a root.
         /// </summary>
         /// <returns><see langword="true" /> if the path contains a root; otherwise, <see langword="false" />.</returns>

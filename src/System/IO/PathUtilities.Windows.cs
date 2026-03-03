@@ -279,7 +279,7 @@ namespace System.IO
             /// for C: (rooted, but relative). "C:\a" is rooted and not relative (the current directory
             /// will not be used to modify the path).
             /// </remarks>
-            private static bool IsPartiallyQualified(scoped ReadOnlySpan<char> path)
+            internal static bool IsPartiallyQualified(scoped ReadOnlySpan<char> path)
             {
                 if (path.Length < 2)
                 {

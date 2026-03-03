@@ -352,6 +352,12 @@ namespace System.IO
             return isUnixLike ? Unix.IsPathFullyQualified(path) : Windows.IsPathFullyQualified(path);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsPartiallyQualified(scoped ReadOnlySpan<char> path, bool isUnixLike)
+        {
+            return isUnixLike ? Unix.IsPartiallyQualified(path) : Windows.IsPartiallyQualified(path);
+        }
+
         // Tests if the given path contains a root. A path is considered rooted
         // if it starts with a backslash ("\") or a valid drive letter and a colon (":").
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

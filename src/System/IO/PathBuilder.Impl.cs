@@ -533,6 +533,11 @@ namespace System.IO
             return PathUtilities.IsPathFullyQualified(AsSpan(), IsUnixLikePlatform);
         }
 
+        public partial bool IsPartiallyQualified()
+        {
+            return PathUtilities.IsPartiallyQualified(AsSpan(), IsUnixLikePlatform);
+        }
+
         public partial bool IsPathRooted()
         {
             return PathUtilities.IsPathRooted(AsSpan(), IsUnixLikePlatform);

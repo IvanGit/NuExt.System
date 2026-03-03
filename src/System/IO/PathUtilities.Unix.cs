@@ -93,7 +93,7 @@ namespace System.IO
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private static bool IsPartiallyQualified(scoped ReadOnlySpan<char> path)
+            internal static bool IsPartiallyQualified(scoped ReadOnlySpan<char> path)
             {
                 // This is much simpler than Windows where paths can be rooted, but not fully qualified (such as Drive Relative)
                 // As long as the path is rooted in Unix it doesn't use the current directory and therefore is fully qualified.
