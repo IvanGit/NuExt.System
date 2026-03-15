@@ -2,207 +2,206 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace System.Diagnostics
+namespace System.Diagnostics;
+
+/// <summary>
+/// Monitors performance metrics for a process and provides formatted statistics.
+/// </summary>
+public sealed class PerformanceMonitor: PropertyChangeNotifier
 {
-    /// <summary>
-    /// Monitors performance metrics for a process and provides formatted statistics.
-    /// </summary>
-    public sealed class PerformanceMonitor: PropertyChangeNotifier
+    private readonly ProcessMonitor _processMonitor;
+    private readonly IFormatProvider? _formatProvider;
+    private long _peakGcMemory;
+
+    public PerformanceMonitor(Process process, IFormatProvider? provider, SynchronizationContext? synchronizationContext) : base(synchronizationContext)
     {
-        private readonly ProcessMonitor _processMonitor;
-        private readonly IFormatProvider? _formatProvider;
-        private long _peakGcMemory;
+        Process = process ?? throw new ArgumentNullException(nameof(process));
+        _formatProvider = provider;
+        _processMonitor = new ProcessMonitor(Process);
+    }
 
-        public PerformanceMonitor(Process process, IFormatProvider? provider, SynchronizationContext? synchronizationContext) : base(synchronizationContext)
+    public PerformanceMonitor(Process process, IFormatProvider? provider) : this(process, provider, null)
+    {
+
+    }
+
+    public PerformanceMonitor(Process process) : this(process, null)
+    {
+
+    }
+
+    /// <summary>
+    /// Gets the formatted usage string. Updated at each monitoring interval.
+    /// </summary>
+    public string? FormattedUsage
+    {
+        get;
+        private set => SetProperty(ref field, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the CPU usage format string.
+    /// </summary>
+    public string FormatCpuUsage { get; set; } = "CPU: {0:N1} %";
+
+    /// <summary>
+    /// Gets or sets the memory usage format string.
+    /// </summary>
+    public string FormatMemoryUsage { get; set; } = "MEM: {0}";
+
+    /// <summary>
+    /// Gets or sets the peak memory usage format string.
+    /// </summary>
+    public string FormatPeakMemoryUsage { get; set; } = "PMEM: {0}";
+
+    /// <summary>
+    /// Gets or sets the managed memory usage format string.
+    /// </summary>
+    public string FormatManagedMemory { get; set; } = "GC: {0}";
+
+    /// <summary>
+    /// Gets or sets the peak managed memory usage format string.
+    /// </summary>
+    public string FormatPeakManagedMemory { get; set; } = "PGC: {0}";
+
+    /// <summary>
+    /// Gets or sets the thread info format string.
+    /// </summary>
+    public string FormatThreads { get; set; } = "WRK: {0}/{1}";
+
+    /// <summary>
+    /// Gets the process being monitored.
+    /// </summary>
+    public Process Process { get; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to show CPU usage.
+    /// </summary>
+    public bool ShowCpuUsage { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to show Memory usage.
+    /// </summary>
+    public bool ShowMemoryUsage { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to show peak memory usage.
+    /// </summary>
+    public bool ShowPeakMemoryUsage { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to show managed memory usage.
+    /// </summary>
+    public bool ShowManagedMemory { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to show peak managed memory usage.
+    /// </summary>
+    public bool ShowPeakManagedMemory { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to show thread info.
+    /// </summary>
+    public bool ShowThreads { get; set; }
+
+    /// <summary>
+    /// Gets or sets the monitoring update interval.
+    /// Default is 1 second. Value must be positive.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">Value is less than or equal to zero.</exception>
+    public TimeSpan UpdateInterval
+    {
+        get;
+        set
         {
-            Process = process ?? throw new ArgumentNullException(nameof(process));
-            _formatProvider = provider;
-            _processMonitor = new ProcessMonitor(Process);
+            if (value <= TimeSpan.Zero)
+                throw new ArgumentOutOfRangeException(nameof(value), "Interval must be positive.");
+            field = value;
         }
+    } = TimeSpan.FromSeconds(1);
 
-        public PerformanceMonitor(Process process, IFormatProvider? provider) : this(process, provider, null)
+    /// <summary>
+    /// Monitors the process performance and updates <see cref="FormattedUsage"/> asynchronously.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token to stop monitoring.</param>
+    /// <returns>Task representing the monitoring operation.</returns>
+    public async Task RunAsync(CancellationToken cancellationToken)
+    {
+        try
         {
-
-        }
-
-        public PerformanceMonitor(Process process) : this(process, null)
-        {
-
-        }
-
-        /// <summary>
-        /// Gets the formatted usage string. Updated at each monitoring interval.
-        /// </summary>
-        public string? FormattedUsage
-        {
-            get;
-            private set => SetProperty(ref field, value);
-        }
-
-        /// <summary>
-        /// Gets or sets the CPU usage format string.
-        /// </summary>
-        public string FormatCpuUsage { get; set; } = "CPU: {0:N1} %";
-
-        /// <summary>
-        /// Gets or sets the memory usage format string.
-        /// </summary>
-        public string FormatMemoryUsage { get; set; } = "MEM: {0}";
-
-        /// <summary>
-        /// Gets or sets the peak memory usage format string.
-        /// </summary>
-        public string FormatPeakMemoryUsage { get; set; } = "PMEM: {0}";
-
-        /// <summary>
-        /// Gets or sets the managed memory usage format string.
-        /// </summary>
-        public string FormatManagedMemory { get; set; } = "GC: {0}";
-
-        /// <summary>
-        /// Gets or sets the peak managed memory usage format string.
-        /// </summary>
-        public string FormatPeakManagedMemory { get; set; } = "PGC: {0}";
-
-        /// <summary>
-        /// Gets or sets the thread info format string.
-        /// </summary>
-        public string FormatThreads { get; set; } = "WRK: {0}/{1}";
-
-        /// <summary>
-        /// Gets the process being monitored.
-        /// </summary>
-        public Process Process { get; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to show CPU usage.
-        /// </summary>
-        public bool ShowCpuUsage { get; set; } = true;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to show Memory usage.
-        /// </summary>
-        public bool ShowMemoryUsage { get; set; } = true;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to show peak memory usage.
-        /// </summary>
-        public bool ShowPeakMemoryUsage { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to show managed memory usage.
-        /// </summary>
-        public bool ShowManagedMemory { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to show peak managed memory usage.
-        /// </summary>
-        public bool ShowPeakManagedMemory { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to show thread info.
-        /// </summary>
-        public bool ShowThreads { get; set; }
-
-        /// <summary>
-        /// Gets or sets the monitoring update interval.
-        /// Default is 1 second. Value must be positive.
-        /// </summary>
-        /// <exception cref="ArgumentOutOfRangeException">Value is less than or equal to zero.</exception>
-        public TimeSpan UpdateInterval
-        {
-            get;
-            set
+            var sb = new StringBuilder(256);
+            while (!cancellationToken.IsCancellationRequested)
             {
-                if (value <= TimeSpan.Zero)
-                    throw new ArgumentOutOfRangeException(nameof(value), "Interval must be positive.");
-                field = value;
-            }
-        } = TimeSpan.FromSeconds(1);
+                await Task.Delay(UpdateInterval, cancellationToken).ConfigureAwait(false);
 
-        /// <summary>
-        /// Monitors the process performance and updates <see cref="FormattedUsage"/> asynchronously.
-        /// </summary>
-        /// <param name="cancellationToken">Cancellation token to stop monitoring.</param>
-        /// <returns>Task representing the monitoring operation.</returns>
-        public async Task RunAsync(CancellationToken cancellationToken)
-        {
-            try
-            {
-                var sb = new StringBuilder(256);
-                while (!cancellationToken.IsCancellationRequested)
+                _processMonitor.Refresh();
+                if (Process.HasExited)
                 {
-                    await Task.Delay(UpdateInterval, cancellationToken).ConfigureAwait(false);
-
-                    _processMonitor.Refresh();
-                    if (Process.HasExited)
-                    {
-                        FormattedUsage = "Process terminated";
-                        break;
-                    }
-
-                    sb.Clear();
-                    string delimiter = string.Empty;
-                    if (ShowCpuUsage)
-                    {
-                        AppendFormat(sb, ref delimiter, FormatCpuUsage, _processMonitor.GetCpuUsage());
-                    }
-                    if (ShowMemoryUsage)
-                    {
-                        AppendFormat(sb, ref delimiter, FormatMemoryUsage, FormatUtils.FormatSize(_formatProvider, _processMonitor.GetCurrentMemoryUsage()));
-                    }
-                    if (ShowPeakMemoryUsage)
-                    {
-                        AppendFormat(sb, ref delimiter, FormatPeakMemoryUsage, FormatUtils.FormatSize(_formatProvider, _processMonitor.GetPeakMemoryUsage()));
-                    }
-                    if (ShowManagedMemory || ShowPeakManagedMemory)
-                    {
-                        var gcTotalMemory = GC.GetTotalMemory(false);
-                        if (gcTotalMemory > _peakGcMemory)
-                        {
-                            _peakGcMemory = gcTotalMemory;
-                        }
-                        if (ShowManagedMemory)
-                        {
-                            AppendFormat(sb, ref delimiter, FormatManagedMemory, FormatUtils.FormatSize(_formatProvider, gcTotalMemory));
-                        }
-                        if (ShowPeakManagedMemory)
-                        {
-                            AppendFormat(sb, ref delimiter, FormatPeakManagedMemory, FormatUtils.FormatSize(_formatProvider, _peakGcMemory));
-                        }
-                    }
-                    if (ShowThreads)
-                    {
-                        var threadCount = _processMonitor.GetThreadCount();
-                        var workerCount = _processMonitor.GetAllocatedWorkerThreads();
-                        AppendFormat(sb, ref delimiter, FormatThreads, workerCount, threadCount);
-                    }
-                    FormattedUsage = sb.ToString();
+                    FormattedUsage = "Process terminated";
+                    break;
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"Performance monitoring error: {ex.Message}");
-                Debug.Assert(false, ex.Message);
-            }
-        }
 
-        private void AppendFormat(StringBuilder sb, ref string delimiter, string format, object arg0)
-        {
-            sb.Append(delimiter);
-            sb.AppendFormat(_formatProvider, format, arg0);
-            delimiter = ", ";
+                sb.Clear();
+                string delimiter = string.Empty;
+                if (ShowCpuUsage)
+                {
+                    AppendFormat(sb, ref delimiter, FormatCpuUsage, _processMonitor.GetCpuUsage());
+                }
+                if (ShowMemoryUsage)
+                {
+                    AppendFormat(sb, ref delimiter, FormatMemoryUsage, FormatUtils.FormatSize(_formatProvider, _processMonitor.GetCurrentMemoryUsage()));
+                }
+                if (ShowPeakMemoryUsage)
+                {
+                    AppendFormat(sb, ref delimiter, FormatPeakMemoryUsage, FormatUtils.FormatSize(_formatProvider, _processMonitor.GetPeakMemoryUsage()));
+                }
+                if (ShowManagedMemory || ShowPeakManagedMemory)
+                {
+                    var gcTotalMemory = GC.GetTotalMemory(false);
+                    if (gcTotalMemory > _peakGcMemory)
+                    {
+                        _peakGcMemory = gcTotalMemory;
+                    }
+                    if (ShowManagedMemory)
+                    {
+                        AppendFormat(sb, ref delimiter, FormatManagedMemory, FormatUtils.FormatSize(_formatProvider, gcTotalMemory));
+                    }
+                    if (ShowPeakManagedMemory)
+                    {
+                        AppendFormat(sb, ref delimiter, FormatPeakManagedMemory, FormatUtils.FormatSize(_formatProvider, _peakGcMemory));
+                    }
+                }
+                if (ShowThreads)
+                {
+                    var threadCount = _processMonitor.GetThreadCount();
+                    var workerCount = _processMonitor.GetAllocatedWorkerThreads();
+                    AppendFormat(sb, ref delimiter, FormatThreads, workerCount, threadCount);
+                }
+                FormattedUsage = sb.ToString();
+            }
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"Performance monitoring error: {ex.Message}");
+            Debug.Assert(false, ex.Message);
+        }
+    }
 
-        private void AppendFormat(StringBuilder sb, ref string delimiter, string format, object arg0, object arg1)
-        {
-            sb.Append(delimiter);
-            sb.AppendFormat(_formatProvider, format, arg0, arg1);
-            delimiter = ", ";
-        }
+    private void AppendFormat(StringBuilder sb, ref string delimiter, string format, object arg0)
+    {
+        sb.Append(delimiter);
+        sb.AppendFormat(_formatProvider, format, arg0);
+        delimiter = ", ";
+    }
+
+    private void AppendFormat(StringBuilder sb, ref string delimiter, string format, object arg0, object arg1)
+    {
+        sb.Append(delimiter);
+        sb.AppendFormat(_formatProvider, format, arg0, arg1);
+        delimiter = ", ";
     }
 }

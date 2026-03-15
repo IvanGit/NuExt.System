@@ -7,7 +7,7 @@
     <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
     <PackageTags>nuext;extensions;async;asynclazy;asynceventhandler;asynclock;lockpool;asyncwaithandle;reentrantasynclock;disposable;asyncdisposable;lifetime;asynclifetime;valuestringbuilder;pathbuilder;valuepathbuilder;task;valuetask;observabledictionary;span;polyfills</PackageTags>
     <Description>High‑performance foundational utilities for .NET, providing async/threading primitives, lifetime management tools, Span/Memory polyfills, fast path builders, diagnostics helpers, and essential collection utilities. Designed for correctness, speed, and consistent behavior across modern .NET and .NET Framework.</Description>
-    <Version>0.7.2</Version>
+    <Version>0.7.3</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net462' or '$(TargetFramework)' == 'net471'">
-    <PackageReference Include="System.Text.Json" Version="10.0.3" />
+    <PackageReference Include="System.Text.Json" Version="10.0.5" />
   </ItemGroup>
 
   <ItemGroup>

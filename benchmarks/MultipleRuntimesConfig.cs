@@ -2,16 +2,15 @@
 using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Jobs;
 
-namespace NuExt.System.Benchmarks
+namespace NuExt.System.Benchmarks;
+
+public class MultipleRuntimesConfig : ManualConfig
 {
-    public class MultipleRuntimesConfig : ManualConfig
+    public MultipleRuntimesConfig()
     {
-        public MultipleRuntimesConfig()
-        {
-            AddJob(Job.Default.WithRuntime(ClrRuntime.Net462));
-            AddJob(Job.Default.WithRuntime(CoreRuntime.Core80));
-            AddJob(Job.Default.WithRuntime(CoreRuntime.Core90));
-            AddJob(Job.Default.WithRuntime(CoreRuntime.Core10_0));
-        }
+        AddJob(Job.Default.WithRuntime(ClrRuntime.Net462));
+        AddJob(Job.Default.WithRuntime(CoreRuntime.Core80));
+        AddJob(Job.Default.WithRuntime(CoreRuntime.Core90));
+        AddJob(Job.Default.WithRuntime(CoreRuntime.Core10_0));
     }
 }

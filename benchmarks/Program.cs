@@ -1,13 +1,12 @@
 ﻿using BenchmarkDotNet.Running;
 
-namespace NuExt.System.Benchmarks
+namespace NuExt.System.Benchmarks;
+
+internal class Program
 {
-    internal class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
-            Console.ReadKey();
-        }
+        BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+        Console.ReadKey();
     }
 }

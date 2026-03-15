@@ -1,61 +1,60 @@
-﻿namespace NuExt.System.Tests
+﻿namespace NuExt.System.Tests;
+
+public class AsyncLockTests
 {
-    public class AsyncLockTests
+    private readonly AsyncLock _asyncLock = new();
+
+    [SetUp]
+    public void Setup()
     {
-        private readonly AsyncLock _asyncLock = new();
+    }
 
-        [SetUp]
-        public void Setup()
+    [OneTimeTearDown]
+    public void Dispose()
+    {
+        _asyncLock.Dispose();
+    }
+
+    [Test]
+    public void BlockingTest()
+    {
+        var tasks = new List<Task>();
+        for (int i = 0; i < 10; i++)
         {
+            tasks.Add(Task.Run(() => Run()));
         }
+        Run();
+        Task.WaitAll([.. tasks]);
+        Assert.Pass();
+    }
 
-        [OneTimeTearDown]
-        public void Dispose()
+    [Test]
+    public async Task BlockingTestAsync()
+    {
+        var tasks = new List<Task>();
+        for (int i = 0; i < 10; i++)
         {
-            _asyncLock.Dispose();
+            tasks.Add(Task.Run(() => RunAsync()));
         }
+        await RunAsync();
+        await Task.WhenAll(tasks);
+        Assert.Pass();
+    }
 
-        [Test]
-        public void BlockingTest()
+    private void Run(CancellationToken cancellationToken = default)
+    {
+        using (_asyncLock.Lock(cancellationToken))
         {
-            var tasks = new List<Task>();
-            for (int i = 0; i < 10; i++)
-            {
-                tasks.Add(Task.Run(() => Run()));
-            }
-            Run();
-            Task.WaitAll([.. tasks]);
-            Assert.Pass();
+            Thread.Sleep(10);
         }
+    }
 
-        [Test]
-        public async Task BlockingTestAsync()
+
+    private async Task RunAsync(CancellationToken cancellationToken = default)
+    {
+        using (await _asyncLock.LockAsync(cancellationToken))
         {
-            var tasks = new List<Task>();
-            for (int i = 0; i < 10; i++)
-            {
-                tasks.Add(Task.Run(() => RunAsync()));
-            }
-            await RunAsync();
-            await Task.WhenAll(tasks);
-            Assert.Pass();
-        }
-
-        private void Run(CancellationToken cancellationToken = default)
-        {
-            using (_asyncLock.Lock(cancellationToken))
-            {
-                Thread.Sleep(10);
-            }
-        }
-
-
-        private async Task RunAsync(CancellationToken cancellationToken = default)
-        {
-            using (await _asyncLock.LockAsync(cancellationToken))
-            {
-                await Task.Delay(10, cancellationToken);
-            }
+            await Task.Delay(10, cancellationToken);
         }
     }
 }

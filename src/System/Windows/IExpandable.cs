@@ -1,39 +1,38 @@
-﻿namespace System.Windows
+﻿namespace System.Windows;
+
+/// <summary>
+/// Defines a contract for objects that can be expanded and collapsed.
+/// </summary>
+public interface IExpandable
 {
     /// <summary>
-    /// Defines a contract for objects that can be expanded and collapsed.
+    /// Gets or sets a value indicating whether the object is expanded.
     /// </summary>
-    public interface IExpandable
+    bool IsExpanded { get; set; }
+
+    /// <summary>
+    /// Collapses the object by setting the <see cref="IsExpanded"/> property to <see langword="false"/>.
+    /// </summary>
+
+#if NETSTANDARD2_1_OR_GREATER || NET
+    void Collapse()
     {
-        /// <summary>
-        /// Gets or sets a value indicating whether the object is expanded.
-        /// </summary>
-        bool IsExpanded { get; set; }
-
-        /// <summary>
-        /// Collapses the object by setting the <see cref="IsExpanded"/> property to <see langword="false"/>.
-        /// </summary>
-
-#if NETSTANDARD2_1_OR_GREATER || NET
-        void Collapse()
-        {
-            IsExpanded = false;
-        }
-#else
-        void Collapse();
-#endif
-
-        /// <summary>
-        /// Expands the object by setting the <see cref="IsExpanded"/> property to <see langword="true"/>.
-        /// </summary>
-
-#if NETSTANDARD2_1_OR_GREATER || NET
-        void Expand()
-        {
-            IsExpanded = true;
-        }
-#else
-        void Expand();
-#endif
+        IsExpanded = false;
     }
+#else
+    void Collapse();
+#endif
+
+    /// <summary>
+    /// Expands the object by setting the <see cref="IsExpanded"/> property to <see langword="true"/>.
+    /// </summary>
+
+#if NETSTANDARD2_1_OR_GREATER || NET
+    void Expand()
+    {
+        IsExpanded = true;
+    }
+#else
+    void Expand();
+#endif
 }
