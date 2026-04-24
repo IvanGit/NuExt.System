@@ -45,11 +45,11 @@ jobs:
       - name: upload nupkg
         uses: actions/upload-artifact@v7
         with:
-          name: NuExt.System (nupkg)
+          name: nuext-system-nupkg
           path: artifacts/*.nupkg
 
       - name: upload snupkg
         uses: actions/upload-artifact@v7
         with:
-          name: NuExt.System (snupkg)
+          name: nuext-system-snupkg
           path: artifacts/*.snupkg
